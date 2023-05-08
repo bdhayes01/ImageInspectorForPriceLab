@@ -1003,6 +1003,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.cubeAsMSData(filename)
             elif isIM:
                 self.cubeAsIMData(filename)
+            else:
+                print("Please select whether the file is IM or MS Data")
+                return
 
         else:
             print('Unexpected file extension')
