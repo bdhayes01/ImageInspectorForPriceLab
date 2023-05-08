@@ -1012,6 +1012,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return
 
     def cubeAsIMData(self, filename):
+        fileID = open(filename)
+        data = np.fromfile(fileID, dtype=np.int32)
+        print(sys.byteorder)
+        x = data[0]
+        y = data[1]
+        z = data[2]
         print("Todo: Process the IM Data")
 
     def cubeAsMSData(self, filename):
