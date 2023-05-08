@@ -123,6 +123,7 @@ loaded_ui_main = uic.loadUiType(mainWindow_ui_path)[0]
 
 
 class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
+    isIM = None
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
@@ -166,6 +167,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.deleteMapbutton.clicked.connect(self.deleteMapbutton_Callback)
         self.clearMapListboxbutton.clicked.connect(self.clearMapbutton_Callback)
         self.extract_Map_mzOI.clicked.connect(self.mzOI_extractMap_Callback)
+
+        self.IMDataButton.clicked.connect(self.setIM)
+        self.MSDataButton.clicked.connect(self.setMS)
 
         self.multiMW.clicked.connect(self.MultiMapCompare_Display_Callback)
         # self.mmcWindow.slot1_load.clicked.connect(self.MultiMapCompare_LoadMap_Callback)
@@ -977,6 +981,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # These lines set determine which units were used for the x and y
         # coordinates. The default is mm. Other possible units include
         # micrometers, entered as either 'um' or 'microns', and cm.
+        # self.IMDataButton
+
         self.cubefilename = self.fName[0]
         filename = self.cubefilename
         print("Working to read datacube")
@@ -988,6 +994,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return
         elif filename.endswith('.bin'):
             print("File extension: .bin")
+            self.cubeAsMSData()
+
             fileID = open(filename)
             data = np.fromfile(fileID, dtype=np.float32)
             x = int(data[0])
@@ -1179,6 +1187,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self._con_ax.invert_yaxis()
             self._con_ax.set_aspect('equal')
             self.exConcflag = True
+
+
+    def cubeAsMSData(self):
+        x = 7
 
     # --- Executes on slider movement.
     def zmax_Callback(self):
@@ -2053,6 +2065,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.mmcWindow.map_packet[num][2])
             self.mmcWindow.map_packet[num][1].invert_yaxis()
             self.mmcWindow.map_packet[num][1].set_aspect('equal')
+
+    def setIM(self):
+        isIM = True
+    def setMS(self):
+        isIM = False
+
 
 
 if __name__ == "__main__":

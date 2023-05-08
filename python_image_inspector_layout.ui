@@ -763,14 +763,14 @@ background-color: rgb(84, 252, 0);</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QRadioButton" name="radioButton">
+       <widget class="QRadioButton" name="IMDataButton">
         <property name="text">
          <string>IM Data</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="radioButton_2">
+       <widget class="QRadioButton" name="MSDataButton">
         <property name="text">
          <string>MS Data</string>
         </property>
