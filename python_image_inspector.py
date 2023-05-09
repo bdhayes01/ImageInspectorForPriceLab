@@ -1013,7 +1013,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def cubeAsIMData(self, filename):
         fileID = open(filename)
-        data = np.fromfile(fileID, dtype=np.int32)
+        data = np.fromfile(fileID, dtype=np.float32)
         print(sys.byteorder)
         x = data[0]
         y = data[1]
