@@ -1014,10 +1014,23 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def cubeAsIMData(self, filename):
         fileID = open(filename)
         data = np.fromfile(fileID, dtype=np.float32)
-        print(sys.byteorder)
-        x = data[0]
-        y = data[1]
-        z = data[2]
+        frameNum = data[0]
+        fileNum = data[1]
+
+        numFrames = 0
+        i = 2
+
+        while numFrames <= frameNum:
+            driftTime = data[i]
+            i += 1
+            while data[i] != -1:
+
+                intensity = data[i]
+                mOverZ = data[i + 1]
+                i += 2
+            numFrames += 1
+            i += 1
+
         print("Todo: Process the IM Data")
 
     def cubeAsMSData(self, filename):
