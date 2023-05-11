@@ -127,6 +127,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.con_cbar = None
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint)
 
@@ -500,7 +501,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # plot the image
         if self._con_ax:
             self._con_ax.cla()
-            self.con_cbar.remove()
+            self.con_cbar.remove() # Could the error be that there isn't a position set beforehand?
+            # I don't know why this error is ocurring
+            # Could it be that the colorbar should be replaced, not removed?
             self.con_img = self._con_ax.imshow(np.flip(self.areas, axis=0), cmap='jet', aspect='auto',
                                                extent=[0, self.x_end, 0, self.y_end])
             self._con_ax.set_xlabel('x, mm')
@@ -999,7 +1002,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif filename.endswith('.bin'):
             print("File extension: .bin")
 
-            if not isIM:
+            if isIM == False:
                 self.cubeAsMSData(filename)
             elif isIM:
                 self.cubeAsIMData(filename)
@@ -1018,19 +1021,58 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         fileNum = data[1]
 
         numFrames = 0
+        numFiles = 0
         i = 2
 
-        while numFrames <= frameNum:
+        mzVals = []
+        intensity = []
+        drifts = []
+
+        while numFrames < frameNum:
+            if data[i] == -2:
+                i += 1
+                numFrames += 1
+                continue
             driftTime = data[i]
             i += 1
-            while data[i] != -1:
-
-                intensity = data[i]
-                mOverZ = data[i + 1]
+            while data[i] != -1:  # reached the end of a drift time bin
+                drifts.append(driftTime)
+                intensity.append(data[i])
+                mzVals.append(data[i + 1])
                 i += 2
-            numFrames += 1
             i += 1
 
+        # while numFiles < fileNum:
+        #     numFrames = 0
+        #     if data[i] == -3:
+        #         numFiles += 1
+        #         i += 1
+        #         continue
+        #     if data[i] == -2:
+        #         i += 1
+        #         continue
+        #     while numFrames < frameNum:
+        #         if data[i] == -2:
+        #             i += 1
+        #             numFrames += 1
+        #             continue
+        #         driftTime = data[i]
+        #         i += 1
+        #         while data[i] != -1: # reached the end of a drift time bin
+        #             intensity.append(data[i])
+        #             mzVals.append(data[i + 1])
+        #             i += 2
+        #         i += 1
+
+        plt.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75)
+        # plt.yscale('log')
+        # Ask esteban if he wants individual data points for the drift times
+        # or like it was before
+        # can have different colors for drift times
+        # it is x, y
+        plt.ylabel('intensity')
+        plt.xlabel('m/z')
+        plt.show()
         print("Todo: Process the IM Data")
 
     def cubeAsMSData(self, filename):
@@ -1118,7 +1160,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     # hopes that the middle point is on the brain. If it is not,
                     # this may cause us to filter by a contaminant peak not PS.
                     self.PS_Peak_Intensity = img[imgYSize - 1, imgXSize - 1, i]
-                    self.PS_Index = i  # PS_Index should be samller by 1 than that of in MATLAB
+                    self.PS_Index = i  # PS_Index should be smaller by 1 than that of in MATLAB
         # this adds up all PS intensities in the whole image then divides by the
         # number of pixels to get the average intensity.
         for i in range(len(imgY)):
@@ -1247,7 +1289,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ConcMapData = [np.flip(self.areas, axis=0), self.x_end, self.y_end, self.z_min, self.t_max]
         if self._con_ax:
             self._con_ax.cla()
-            self.con_cbar.remove()
+            # if self.con_cbar:
+            #     print("here")
+            #     self.con_cbar.remove()
             clims = np.array([self.z_min, self.t_max])
             self.con_img = self._con_ax.imshow(np.flip(self.areas, axis=0), cmap='jet', aspect='auto', vmin=clims[0],
                                                vmax=clims[1], extent=[0, self.x_end, 0, self.y_end])
