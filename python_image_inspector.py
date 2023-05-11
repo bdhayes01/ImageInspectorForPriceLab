@@ -1028,6 +1028,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         intensity = []
         drifts = []
 
+        over6 = 0
+
         while numFrames < frameNum:
             if data[i] == -2:
                 i += 1
@@ -1039,9 +1041,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 drifts.append(driftTime)
                 intensity.append(data[i])
                 mzVals.append(data[i + 1])
+                if data[i] > 600.0:
+                    over6 += 1
                 i += 2
             i += 1
 
+        print(str(over6) + " Over six hundred")
         # while numFiles < fileNum:
         #     numFrames = 0
         #     if data[i] == -3:
@@ -1065,6 +1070,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         #         i += 1
 
         plt.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75)
+        cbar = plt.colorbar()
+        cbar.set_label('Drift times')
         # plt.yscale('log')
         # Ask esteban if he wants individual data points for the drift times
         # or like it was before
