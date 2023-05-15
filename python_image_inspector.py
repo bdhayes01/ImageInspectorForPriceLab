@@ -1072,6 +1072,23 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         plt.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75)
         cbar = plt.colorbar()
         cbar.set_label('Drift times')
+
+        self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
+        self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.spectra_canvas.setFocus()
+        self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
+        self.plot_spectra.addWidget(self.spectra_toolbar)
+        self.plot_spectra.addWidget(self.spectra_canvas)
+        self._spectra_ax = self.spectra_canvas.figure.subplots()
+        self._spectra_ax.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75)
+        # self.cbar = self._spectra_ax.colorbar() # How to set a colorbar??
+        # self.cbar.set_label('Drift times')
+        self._spectra_ax.set_title('Points In Selected Region')
+        self._spectra_ax.set_xlabel('m/z')
+        self._spectra_ax.set_ylabel('intensity')
+        self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
+        self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
+        self.exSpecflag = True
         # plt.yscale('log')
         # Ask esteban if he wants individual data points for the drift times
         # or like it was before
@@ -1079,7 +1096,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # it is x, y
         plt.ylabel('intensity')
         plt.xlabel('m/z')
-        plt.show()
+        # plt.show()
         print("Todo: Process the IM Data")
 
     def cubeAsMSData(self, filename):
