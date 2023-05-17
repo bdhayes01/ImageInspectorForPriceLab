@@ -131,7 +131,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint)
 
-
         # load in default ID file
         self.ids_pd = pd.read_csv(DESI_ID_path)
 
@@ -168,7 +167,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.deleteMapbutton.clicked.connect(self.deleteMapbutton_Callback)
         self.clearMapListboxbutton.clicked.connect(self.clearMapbutton_Callback)
         self.extract_Map_mzOI.clicked.connect(self.mzOI_extractMap_Callback)
-
 
         # imButton = self.find_el
         self.IMDataButton.clicked.connect(self.setIM)
@@ -501,7 +499,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # plot the image
         if self._con_ax:
             self._con_ax.cla()
-            self.con_cbar.remove() # Could the error be that there isn't a position set beforehand?
+            self.con_cbar.remove()  # Could the error be that there isn't a position set beforehand?
             # I don't know why this error is ocurring
             # Could it be that the colorbar should be replaced, not removed?
             self.con_img = self._con_ax.imshow(np.flip(self.areas, axis=0), cmap='jet', aspect='auto',
@@ -1027,47 +1025,56 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         mzVals = []
         intensity = []
         drifts = []
+        chosenData = []
 
-        over6 = 0
-
-        while numFrames < frameNum:
-            if data[i] == -2:
-                i += 1
-                numFrames += 1
-                continue
-            driftTime = data[i]
-            i += 1
-            while data[i] != -1:  # reached the end of a drift time bin
-                drifts.append(driftTime)
-                intensity.append(data[i])
-                mzVals.append(data[i + 1])
-                if data[i] > 600.0:
-                    over6 += 1
-                i += 2
-            i += 1
-
-        print(str(over6) + " Over six hundred")
-        # while numFiles < fileNum:
-        #     numFrames = 0
-        #     if data[i] == -3:
-        #         numFiles += 1
-        #         i += 1
-        #         continue
+        # while numFrames < frameNum:
         #     if data[i] == -2:
         #         i += 1
+        #         numFrames += 1
         #         continue
-        #     while numFrames < frameNum:
-        #         if data[i] == -2:
-        #             i += 1
-        #             numFrames += 1
-        #             continue
-        #         driftTime = data[i]
-        #         i += 1
-        #         while data[i] != -1: # reached the end of a drift time bin
-        #             intensity.append(data[i])
-        #             mzVals.append(data[i + 1])
-        #             i += 2
-        #         i += 1
+        #     driftTime = data[i]
+        #     i += 1
+        #     while data[i] != -1:  # reached the end of a drift time bin
+        #         drifts.append(driftTime)
+        #         intensity.append(data[i])
+        #         mzVals.append(data[i + 1])
+        #         i += 2
+        #     i += 1
+
+        while numFiles < fileNum:
+            if data[i] == -3:
+                chosenData.append(lineData)
+                i += 1
+                numFiles += 1
+                numFrames = 0
+                continue
+            lineData = []
+            valAdded = False
+            theVal = 0
+            while numFrames < frameNum:
+                if data[i] == -2:  # End of a frame
+                    i += 1
+                    numFrames += 1
+                    if not valAdded:
+                        lineData.append(0)
+                    elif valAdded:
+                        lineData.append(theVal)
+                    valAdded = False
+                    theVal = 0
+                    continue
+                driftTime = data[i]
+                i += 1
+                while data[i] != -1:  # reached the end of a drift time bin
+                    # if driftTime > self.noise_chooser.value() and \
+                    #         self.maxDrift.value() >= data[i + 1] >= self.minDrift.value():
+                    theVal += data[i]
+                    valAdded = True
+
+                    intensity.append(data[i])
+                    drifts.append(driftTime)
+                    mzVals.append(data[i + 1])
+                    i += 2
+                i += 1
 
         plt.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75)
         cbar = plt.colorbar()
@@ -2165,10 +2172,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def setIM(self):
         global isIM
         isIM = True
+
     def setMS(self):
         global isIM
         isIM = False
-
 
 
 if __name__ == "__main__":
