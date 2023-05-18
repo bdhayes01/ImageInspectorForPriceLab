@@ -21,6 +21,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from copy import copy
 import math
 import csv
+from matplotlib.figure import Figure
 
 # imported file
 import ROI_class as roi  # ROI_class.py
@@ -127,6 +128,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.view = None
         self.con_cbar = None
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint)
@@ -1100,6 +1102,24 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # it is x, y
         plt.ylabel('intensity')
         plt.xlabel('m/z')
+
+        numY = len(chosenData)
+        numX = len(chosenData[0])
+        xend = numX * .075
+        yend = numY * .15
+
+        if self.view:
+            self.image_box.removeWidget(self.view)
+        self.view = FigureCanvas(Figure(figsize=(5, 3)))
+        self.axes = self.view.figure.subplots()
+        self.toolbar = NavigationToolbar(self.view, self)
+        self.plot_con.addWidget(self.view)
+        self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
+                   aspect=(yend/xend), extent=[0, xend, 0, yend])
+        # self.axes.set_title('Points In Selected Region')
+        # self.axes.set_xlabel('m/z')
+        # self.axes.set_ylabel('intensity')
+        self.view.draw()
         # plt.show()
         # print("Process the IM Data")
 
