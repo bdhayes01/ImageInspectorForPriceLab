@@ -1972,7 +1972,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             i = indexes[0]
             theXmOverZ = event.mouseevent.lastevent.xdata
             theY = event.mouseevent.lastevent.ydata
-            self.start.setText(str(theXmOverZ))
+
+            self.start.setText("%.5f" % theXmOverZ)
             # self.msindex.setText(str(self.index))
             # thisline = event.artist
             # self.x_picked = thisline.get_xdata()
