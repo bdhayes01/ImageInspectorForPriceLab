@@ -1970,8 +1970,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         else:
             indexes = event.ind
             i = indexes[0]
-            theX = event.mouseevent.lastevent.xdata
+            theXmOverZ = event.mouseevent.lastevent.xdata
             theY = event.mouseevent.lastevent.ydata
+            self.start.setText(str(theXmOverZ))
+            # self.msindex.setText(str(self.index))
             # thisline = event.artist
             # self.x_picked = thisline.get_xdata()
             # self.y_picked = thisline.get_ydata()
