@@ -722,7 +722,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
             self.f = np.argwhere(np.ravel(self.binI, order='F'))[:, 0]
 
-            if (self.massbox.text()) != 0:
+            if self.massbox.text() != 0 and self.massbox.text() != '':
                 massvalue = float(self.massbox.text())
                 massindex = np.where(abs(self.z - (massvalue)) == (abs(self.z - (massvalue))).min())[0][0]
                 massplusoneindex = np.where(abs(self.z - (massvalue + 1)) == (abs(self.z - (massvalue + 1))).min())[0][

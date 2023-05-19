@@ -339,7 +339,7 @@ class ROIellipse(ROIcircle):
 
 def new_ROI(im=None, shape='polygon'):
     """Set up an ROI picker and return it. This is the only way that the
-    ROI class should be involked. Requires an input image (the thing
+    ROI class should be invoked. Requires an input image (the thing
     returned by imshow), or can try the latest image in the current
     axes."""
     pyl.ion()
