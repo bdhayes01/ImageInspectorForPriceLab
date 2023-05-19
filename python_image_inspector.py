@@ -1075,7 +1075,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.plot_spectra.addWidget(self.spectra_toolbar)
         self.plot_spectra.addWidget(self.spectra_canvas)
         self._spectra_ax = self.spectra_canvas.figure.subplots()
-        self._spectra_ax.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75)
+        self._spectra_ax.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75, picker=True)
         # self.cbar = self._spectra_ax.colorbar() # TODO: How to set a colorbar??
         # self.cbar.set_label('Drift times')
         self._spectra_ax.set_title('Points In Selected Region')
@@ -1095,17 +1095,19 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         yend = numY * .15
 
         if self.view:
-            self.image_box.removeWidget(self.view)
+            self.plot_con.removeWidget(self.view)
         self.view = FigureCanvas(Figure(figsize=(5, 3)))
         self.axes = self.view.figure.subplots()
         self.toolbar = NavigationToolbar(self.view, self)
         self.plot_con.addWidget(self.view)
-        self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
+        self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
                    aspect=(yend/xend), extent=[0, xend, 0, yend])
         # self.axes.set_title('Points In Selected Region')
         # self.axes.set_xlabel('m/z')
         # self.axes.set_ylabel('intensity')
         self.view.draw()
+
+        self.has_data = 1
         # plt.show()
         # print("Process the IM Data")
 
@@ -1965,6 +1967,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 x_sig = '%s' % float('%.6g' % self.x_picked[ind][0])
                 y_sig = '%s' % float('%.6g' % self.y_picked[ind][0])
                 self.annotate_spectra(x_sig, y_sig)
+        else:
+            indexes = event.ind
+            what = 'to do here'
 
     def data_cursor_key(self, event):
         if (event.key == 'left'):
