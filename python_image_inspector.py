@@ -1064,9 +1064,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     i += 2
                 i += 1
 
-        plt.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75)
-        cbar = plt.colorbar()
-        cbar.set_label('Drift times')
+        # plt.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75)
+        # cbar = plt.colorbar()
+        # cbar.set_label('Drift times')
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -1969,6 +1969,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.annotate_spectra(x_sig, y_sig)
         else:
             indexes = event.ind
+            i = indexes[0]
+            theX = event.mouseevent.lastevent.xdata
+            theY = event.mouseevent.lastevent.ydata
+            # thisline = event.artist
+            # self.x_picked = thisline.get_xdata()
+            # self.y_picked = thisline.get_ydata()
             what = 'to do here'
 
     def data_cursor_key(self, event):
