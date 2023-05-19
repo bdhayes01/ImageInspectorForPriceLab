@@ -1029,20 +1029,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         drifts = []
         chosenData = []
 
-        # while numFrames < frameNum:
-        #     if data[i] == -2:
-        #         i += 1
-        #         numFrames += 1
-        #         continue
-        #     driftTime = data[i]
-        #     i += 1
-        #     while data[i] != -1:  # reached the end of a drift time bin
-        #         drifts.append(driftTime)
-        #         intensity.append(data[i])
-        #         mzVals.append(data[i + 1])
-        #         i += 2
-        #     i += 1
-
         while numFiles < fileNum:
             if data[i] == -3:
                 chosenData.append(lineData)
