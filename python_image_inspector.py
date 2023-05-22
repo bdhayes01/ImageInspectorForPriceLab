@@ -881,6 +881,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # on the mass spectrum
     # --- Executes on button press in pick_point.
     def pick_point_Callback(self):  # this function only considers "line" referring to MATLAB. Not sure what it means
+        if isIM:
+            self.im_point()
+            return 0
+
         # choose what masspluswhat peak
         if self.massplusone.isChecked():
             self.includemassplustwo = 0
@@ -970,6 +974,84 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     self.mplustwointratiowithmassplustwo[i, k] = 0
                     self.mplustwonormintratiowithmassplustwo[i, k] = 1
         self.refresh_isotoperatio()
+
+    def im_point(self):
+        # NOTE: to Brian . Okay, here's the deal, when building this the code was so confusing,
+        # so we are going to do everything here. In reality, we shouldn't do this, and we won't, in the long run.
+        # When cleaning up, this must be factored into several different functions.
+        if self.view:
+            self.plot_con.removeWidget(self.view)
+
+        # A couple more notes:
+        # 1. How far apart should we accept? Surely not the only val that was selected? +- .5 m/z??
+        # 2. You probably shouldn't do all of these calculations over again,
+        # probably should pull them out of chosen data.
+
+        fileID = open(self.cubefilename)
+        data = np.fromfile(fileID, dtype=np.float32)
+        frameNum = data[0]
+        fileNum = data[1]
+
+        numFrames = 0
+        numFiles = 0
+        i = 2
+
+        mzVals = []
+        intensity = []
+        drifts = []
+        chosenData = []
+
+        while numFiles < fileNum:
+            if data[i] == -3:
+                chosenData.append(lineData)
+                i += 1
+                numFiles += 1
+                numFrames = 0
+                continue
+            lineData = []
+            valAdded = False
+            theVal = 0
+            while numFrames < frameNum:
+                if data[i] == -2:  # End of a frame
+                    i += 1
+                    numFrames += 1
+                    if not valAdded:
+                        lineData.append(0)
+                    elif valAdded:
+                        lineData.append(theVal)
+                    valAdded = False
+                    theVal = 0
+                    continue
+                driftTime = data[i]
+                i += 1
+                while data[i] != -1:  # reached the end of a drift time bin
+                    if (data[i + 1] > (float(self.start.text()) - .5)) and (data[i + 1] < (float(self.start.text()) + .5)):
+                        theVal += data[i]
+                        valAdded = True
+                    # theVal += data[i]
+                    # valAdded = True
+
+                    # intensity.append(data[i])
+                    # drifts.append(driftTime)
+                    # mzVals.append(data[i + 1])
+                    i += 2
+                i += 1
+
+        numY = len(chosenData)
+        numX = len(chosenData[0])
+        xend = numX * .075
+        yend = numY * .15
+
+        self.view = FigureCanvas(Figure(figsize=(5, 3)))
+        self.axes = self.view.figure.subplots()
+        self.toolbar = NavigationToolbar(self.view, self)
+        self.plot_con.addWidget(self.view)
+        self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
+                   aspect=(yend/xend), extent=[0, xend, 0, yend])
+        self.view.draw()
+
+
+
 
     # --- Executes on button press in find_file.
     def find_file_Callback(self):
