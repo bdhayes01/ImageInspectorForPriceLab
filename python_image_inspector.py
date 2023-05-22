@@ -1048,6 +1048,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.plot_con.addWidget(self.view)
         self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
                    aspect=(yend/xend), extent=[0, xend, 0, yend])
+        plt.colorbar(self.con_img)
         self.view.draw()
 
 
@@ -1184,6 +1185,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.plot_con.addWidget(self.view)
         self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
                    aspect=(yend/xend), extent=[0, xend, 0, yend])
+        plt.colorbar(self.con_img)
         # self.axes.set_title('Points In Selected Region')
         # self.axes.set_xlabel('m/z')
         # self.axes.set_ylabel('intensity')
