@@ -501,14 +501,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # plot the image
         if self._con_ax:
             self._con_ax.cla()
-            self.con_cbar.remove()  # Could the error be that there isn't a position set beforehand?
+            # self.con_cbar.remove()  # Could the error be that there isn't a position set beforehand?
             # I don't know why this error is ocurring
             # Could it be that the colorbar should be replaced, not removed?
             self.con_img = self._con_ax.imshow(np.flip(self.areas, axis=0), cmap='jet', aspect='auto',
                                                extent=[0, self.x_end, 0, self.y_end])
             self._con_ax.set_xlabel('x, mm')
             self._con_ax.set_ylabel('y, mm')
-            self.con_cbar = self.con_canvas.figure.colorbar(self.con_img)
+            self.con_cbar = plt.colorbar(self.con_img)
             self._con_ax.invert_yaxis()
             self._con_ax.set_aspect('equal')
             self.con_canvas.draw()
@@ -1111,45 +1111,45 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         intensity = []
         drifts = []
         chosenData = []
+        frameDone = False
 
         while numFiles < fileNum:
-            if data[i] == -3:
+            if frameDone:
                 chosenData.append(lineData)
-                i += 1
                 numFiles += 1
                 numFrames = 0
+                frameDone = False
                 continue
+            frameDone = False
             lineData = []
             valAdded = False
             theVal = 0
             while numFrames < frameNum:
-                if data[i] == -2:  # End of a frame
+                totalDriftBins = data[i]
+                frameDone = True
+                currdriftBin = 0
+                i += 1
+                while currdriftBin < totalDriftBins:
+                    numValues = data[i]
                     i += 1
-                    numFrames += 1
-                    if not valAdded:
-                        lineData.append(0)
-                    elif valAdded:
-                        lineData.append(theVal)
-                    valAdded = False
-                    theVal = 0
-                    continue
-                driftTime = data[i]
-                i += 1
-                while data[i] != -1:  # reached the end of a drift time bin
-                    # if driftTime > self.noise_chooser.value() and \
-                    #         self.maxDrift.value() >= data[i + 1] >= self.minDrift.value():
-                    theVal += data[i]
-                    valAdded = True
+                    driftTime = data[i]
+                    i += 1
+                    for a in range(int(numValues)):
+                        theVal += data[i + 1]
+                        valAdded = True
+                        intensity.append(data[i + 1])
+                        drifts.append(driftTime)
+                        mzVals.append(data[i])
+                        i += 2
+                    currdriftBin += 1
 
-                    intensity.append(data[i])
-                    drifts.append(driftTime)
-                    mzVals.append(data[i + 1])
-                    i += 2
-                i += 1
-
-        # plt.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75)
-        # cbar = plt.colorbar()
-        # cbar.set_label('Drift times')
+                if not valAdded:
+                    lineData.append(0)
+                elif valAdded:
+                    lineData.append(theVal)
+                valAdded = False
+                theVal = 0
+                numFrames += 1
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -1360,12 +1360,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # set up the initial image
         if self.con_canvas:
             self._con_ax.cla()
-            self.con_cbar.remove()
+            # self.con_cbar.remove()
             self.con_img = self._con_ax.imshow(np.flip(img[:, :, round(len(imgZ) / 2) - 1], axis=0), cmap='jet',
                                                aspect='auto', extent=[0, self.x_end, 0, self.y_end])
             self._con_ax.set_xlabel('x, mm')
             self._con_ax.set_ylabel('y, mm')
-            self.con_cbar = self.con_canvas.figure.colorbar(self.con_img)
+            self.con_cbar = plt.colorbar(self.con_img)
             self._con_ax.invert_yaxis()
             self._con_ax.set_aspect('equal')
             self.con_canvas.draw()
@@ -1380,7 +1380,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                                                aspect='auto', extent=[0, self.x_end, 0, self.y_end])
             self._con_ax.set_xlabel('x, mm')
             self._con_ax.set_ylabel('y, mm')
-            self.con_cbar = self.con_canvas.figure.colorbar(self.con_img)
+            self.con_cbar = plt.colorbar(self.con_img)
             self._con_ax.invert_yaxis()
             self._con_ax.set_aspect('equal')
             self.exConcflag = True
@@ -1411,13 +1411,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self._con_ax.cla()
             # if self.con_cbar:
             #     print("here")
-            #     self.con_cbar.remove()
+            # self.con_cbar.remove()
             clims = np.array([self.z_min, self.t_max])
             self.con_img = self._con_ax.imshow(np.flip(self.areas, axis=0), cmap='jet', aspect='auto', vmin=clims[0],
                                                vmax=clims[1], extent=[0, self.x_end, 0, self.y_end])
             self._con_ax.set_xlabel('x, mm')
             self._con_ax.set_ylabel('y, mm')
-            self.con_cbar = self.con_canvas.figure.colorbar(self.con_img)
+            self.con_cbar = plt.colorbar(self.con_img)
+            # self.con_cbar = self.con_canvas.figure.colorbar(self.con_img)
             self._con_ax.invert_yaxis()
             self._con_ax.set_aspect('equal')
             self.con_canvas.draw()
