@@ -317,7 +317,7 @@ class ROIellipse(ROIcircle):
                     self.circ.set_alpha(0.3)
                     self.disconnect()
 
-            elif event.button == 3 and self.circ != None:  # middle button: remove last segment
+            elif event.button == 3 and self.circ != None:  # m iddle button: remove last segment
                 self.circ.remove()
                 self.circ = None
             self.fig.canvas.draw()
