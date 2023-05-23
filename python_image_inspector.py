@@ -499,6 +499,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.zmax.setSingleStep(round(0.01 * self.z_max))
         self.ConcMapData = [np.flip(self.areas, axis=0), self.x_end, self.y_end]
         # plot the image
+        if self.con_canvas:
+            self.plot_con.removeWidget(self.con_canvas)
         if self._con_ax:
             self._con_ax.cla()
             # self.con_cbar.remove()  # Could the error be that there isn't a position set beforehand?
@@ -1387,6 +1389,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ConcMapData = [np.flip(img[:, :, round(len(imgZ) / 2) - 1], axis=0), self.x_end, self.y_end]
         # set up the initial image
         if self.con_canvas:
+            self.plot_con.removeWidget(self.con_canvas)
+        if self.con_canvas:
             self._con_ax.cla()
             # self.con_cbar.remove()
             self.con_img = self._con_ax.imshow(np.flip(img[:, :, round(len(imgZ) / 2) - 1], axis=0), cmap='jet',
@@ -1440,6 +1444,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             # if self.con_cbar:
             #     print("here")
             # self.con_cbar.remove()
+            if self.con_canvas:
+                self.plot_con.removeWidget(self.con_canvas)
             clims = np.array([self.z_min, self.t_max])
             self.con_img = self._con_ax.imshow(np.flip(self.areas, axis=0), cmap='jet', aspect='auto', vmin=clims[0],
                                                vmax=clims[1], extent=[0, self.x_end, 0, self.y_end])
