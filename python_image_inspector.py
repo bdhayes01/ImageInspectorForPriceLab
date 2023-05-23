@@ -52,7 +52,7 @@ class MultiMapCompareobject(QMainWindow, loaded_ui_multicomp):
     def __init__(self):  # Initialization of the code
         super(MultiMapCompareobject, self).__init__()
         self.setWindowTitle("Multi Map Compare")
-        self.setFixedWidth(MW_width * 0.9)
+        self.setFixedWidth(int(MW_width * 0.9))
         self.setFixedHeight(871)
         self.setupUi(self)
 
@@ -704,6 +704,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # --- Executes on button press in ROI_process.
     def ROI_select_Callback_process(self):
         if self.has_data:
+            if isIM:
+                self.ROI_select_IM_Callback()
+                return 0
             self.binI = self.h.get_mask().astype(int)
             # get average spectrum
             # this finds all the pixels (i.e. rows) that are part of the ROI
@@ -877,6 +880,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 print("No data loaded")
         else:
             print("No data loaded")
+    def ROI_select_IM_Callback(self):
+        point = "something"
 
     # This function plots a mass spectrum corresponing to a selected point
     # on the displayed image, or an image corresponding to a selected point
@@ -1080,9 +1085,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                    aspect=(yend/xend), extent=[0, xend, 0, yend])
         plt.colorbar(self.con_img)
         self.view.draw()
-
-
-
 
     # --- Executes on button press in find_file.
     def find_file_Callback(self):
