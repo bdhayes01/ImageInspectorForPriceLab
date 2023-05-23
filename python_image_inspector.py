@@ -996,46 +996,74 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         numFiles = 0
         i = 2
 
-        mzVals = []
-        intensity = []
-        drifts = []
         chosenData = []
+        frameDone = False
 
         while numFiles < fileNum:
-            if data[i] == -3:
+            if frameDone:
                 chosenData.append(lineData)
-                i += 1
                 numFiles += 1
                 numFrames = 0
+                frameDone = False
                 continue
+            frameDone = False
             lineData = []
             valAdded = False
             theVal = 0
             while numFrames < frameNum:
-                if data[i] == -2:  # End of a frame
-                    i += 1
-                    numFrames += 1
-                    if not valAdded:
-                        lineData.append(0)
-                    elif valAdded:
-                        lineData.append(theVal)
-                    valAdded = False
-                    theVal = 0
-                    continue
-                driftTime = data[i]
+                totalDriftBins = data[i]
+                frameDone = True
+                currdriftBin = 0
                 i += 1
-                while data[i] != -1:  # reached the end of a drift time bin
-                    if (data[i + 1] > (float(self.start.text()) - .5)) and (data[i + 1] < (float(self.start.text()) + .5)):
-                        theVal += data[i]
-                        valAdded = True
-                    # theVal += data[i]
-                    # valAdded = True
-
-                    # intensity.append(data[i])
-                    # drifts.append(driftTime)
-                    # mzVals.append(data[i + 1])
+                while currdriftBin < totalDriftBins:
+                    numValues = data[i]
                     i += 2
-                i += 1
+                    for a in range(int(numValues)):
+                        if (data[i] > (float(self.start.text()) - .5)) and (
+                                data[i] < (float(self.start.text()) + .5)):
+                            theVal += data[i + 1]
+                            valAdded = True
+                        i += 2
+                    currdriftBin += 1
+
+                if not valAdded:
+                    lineData.append(0)
+                elif valAdded:
+                    lineData.append(theVal)
+                valAdded = False
+                theVal = 0
+                numFrames += 1
+
+        # while numFiles < fileNum:
+        #     if data[i] == -3:
+        #         chosenData.append(lineData)
+        #         i += 1
+        #         numFiles += 1
+        #         numFrames = 0
+        #         continue
+        #     lineData = []
+        #     valAdded = False
+        #     theVal = 0
+        #     while numFrames < frameNum:
+        #         if data[i] == -2:  # End of a frame
+        #             i += 1
+        #             numFrames += 1
+        #             if not valAdded:
+        #                 lineData.append(0)
+        #             elif valAdded:
+        #                 lineData.append(theVal)
+        #             valAdded = False
+        #             theVal = 0
+        #             continue
+        #         driftTime = data[i]
+        #         i += 1
+        #         while data[i] != -1:  # reached the end of a drift time bin
+        #             if (data[i + 1] > (float(self.start.text()) - .5)) and (data[i + 1] < (float(self.start.text()) + .5)):
+        #                 theVal += data[i]
+        #                 valAdded = True
+        #
+        #             i += 2
+        #         i += 1
 
         numY = len(chosenData)
         numX = len(chosenData[0])
