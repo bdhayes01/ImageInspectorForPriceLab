@@ -883,7 +883,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def ROI_select_IM_Callback(self):
         self.binI = self.h.get_mask().astype(int)
         x = self.h.get_mask().astype(int)
+        z = np.flipud(x)
         f = np.argwhere(np.ravel(self.binI, order='F'))[:, 0]
+        y = self.chosenData
 
         point = "something"
 
