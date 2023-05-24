@@ -909,7 +909,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             for val2 in val:
                 filtered.append(val2)
 
-        something = "here"
+        self.ROIData = filtered
 
 
         # Need to find the m/z and not just the intensity at every single point.. how to do this?
