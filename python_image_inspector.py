@@ -881,6 +881,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         else:
             print("No data loaded")
     def ROI_select_IM_Callback(self):
+        self.binI = self.h.get_mask().astype(int)
+        x = self.h.get_mask().astype(int)
+        f = np.argwhere(np.ravel(self.binI, order='F'))[:, 0]
+
         point = "something"
 
     # This function plots a mass spectrum corresponing to a selected point
@@ -1041,37 +1045,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 theVal = 0
                 numFrames += 1
 
-        # while numFiles < fileNum:
-        #     if data[i] == -3:
-        #         chosenData.append(lineData)
-        #         i += 1
-        #         numFiles += 1
-        #         numFrames = 0
-        #         continue
-        #     lineData = []
-        #     valAdded = False
-        #     theVal = 0
-        #     while numFrames < frameNum:
-        #         if data[i] == -2:  # End of a frame
-        #             i += 1
-        #             numFrames += 1
-        #             if not valAdded:
-        #                 lineData.append(0)
-        #             elif valAdded:
-        #                 lineData.append(theVal)
-        #             valAdded = False
-        #             theVal = 0
-        #             continue
-        #         driftTime = data[i]
-        #         i += 1
-        #         while data[i] != -1:  # reached the end of a drift time bin
-        #             if (data[i + 1] > (float(self.start.text()) - .5)) and (data[i + 1] < (float(self.start.text()) + .5)):
-        #                 theVal += data[i]
-        #                 valAdded = True
-        #
-        #             i += 2
-        #         i += 1
-
         numY = len(chosenData)
         numX = len(chosenData[0])
         xend = numX * .075
@@ -1085,6 +1058,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                    aspect=(yend/xend), extent=[0, xend, 0, yend])
         plt.colorbar(self.con_img)
         self.view.draw()
+
+        self.chosenData = chosenData
 
     # --- Executes on button press in find_file.
     def find_file_Callback(self):
