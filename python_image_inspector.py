@@ -919,7 +919,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             for line in filtered:
                 writer.writerow(line)
         print("Done writing to .csv")
-        # Need to find the m/z and not just the intensity at every single point.. how to do this?
+        # Need to find the m/z and not just the intensity at every single point. how to do this?
         # Have the whole m/z spectra and then be able to select just 1 m/z
 
     # This function plots a mass spectrum corresponing to a selected point
