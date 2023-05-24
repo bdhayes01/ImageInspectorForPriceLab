@@ -889,16 +889,34 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.binI = np.flipud(self.binI)
         f = np.argwhere(np.ravel(self.binI, order='F'))[:, 0]
 
-        raveled = np.ravel(self.chosenData, order='F')
+        x = self.chosenData
+
+        # raveled = np.ravel(self.chosenData, order='F')
 
         theList = []
 
+        i = 0
+
+        for line in x:
+            for frame in line:
+                if i in f and frame != 0:
+                    theList.append(frame)
+                i += 1
+            i += 1
+
+        filtered = []
+        for val in theList:
+            for val2 in val:
+                filtered.append(val2)
+
+        something = "here"
+
+
         # Need to find the m/z and not just the intensity at every single point.. how to do this?
+        # Have the whole m/z spectra and then be able to select just 1 m/z
 
-        for val in f:
-            theList.append(raveled[val])
-
-
+        # for val in f:
+        # theList.append(raveled[val])
 
         point = "something"
 
@@ -1023,19 +1041,23 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         i = 2
 
         chosenData = []
+        theChosenData = []
         frameDone = False
 
         while numFiles < fileNum:
             if frameDone:
                 chosenData.append(lineData)
+                theChosenData.append(otherLine)
                 numFiles += 1
                 numFrames = 0
                 frameDone = False
                 continue
             frameDone = False
             lineData = []
+            otherLine = []
             valAdded = False
             theVal = 0
+            otherLine = []
             while numFrames < frameNum:
                 totalDriftBins = data[i]
                 frameDone = True
@@ -1048,15 +1070,20 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                         if (data[i] > (float(self.start.text()) - .5)) and (
                                 data[i] < (float(self.start.text()) + .5)):
                             theVal += data[i + 1]
+                            otherVal.append([data[i], data[i + 1]])
+                            # otherLine.append(otherVal)
                             valAdded = True
                         i += 2
                     currdriftBin += 1
 
                 if not valAdded:
                     lineData.append(0)
+                    otherLine.append(0)
                 elif valAdded:
                     lineData.append(theVal)
+                    otherLine.append(otherVal)
                 valAdded = False
+                otherVal = []
                 theVal = 0
                 numFrames += 1
 
@@ -1070,11 +1097,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.toolbar = NavigationToolbar(self.view, self)
         self.plot_con.addWidget(self.view)
         self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
-                   aspect=(yend/xend), extent=[0, xend, 0, yend])
+                                        aspect=(yend / xend), extent=[0, xend, 0, yend])
         plt.colorbar(self.con_img)
         self.view.draw()
 
-        self.chosenData = chosenData
+        self.chosenData = theChosenData
 
     # --- Executes on button press in find_file.
     def find_file_Callback(self):
@@ -1206,7 +1233,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.toolbar = NavigationToolbar(self.view, self)
         self.plot_con.addWidget(self.view)
         self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
-                   aspect=(yend/xend), extent=[0, xend, 0, yend])
+                                        aspect=(yend / xend), extent=[0, xend, 0, yend])
         plt.colorbar(self.con_img)
         # self.axes.set_title('Points In Selected Region')
         # self.axes.set_xlabel('m/z')
