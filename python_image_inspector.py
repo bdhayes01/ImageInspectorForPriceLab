@@ -501,6 +501,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # plot the image
         if self.con_canvas:
             self.plot_con.removeWidget(self.con_canvas)
+            self.con_cbar.remove()
         if self._con_ax:
             self._con_ax.cla()
             # self.con_cbar.remove()  # Could the error be that there isn't a position set beforehand?
@@ -911,14 +912,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.ROIData = filtered
 
+        with open("ROI.csv", 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["M/Z Value", "Intensity", "Drift Time", "Line", "Frame Num"])
 
+            for line in filtered:
+                writer.writerow(line)
+        print("Done writing to .csv")
         # Need to find the m/z and not just the intensity at every single point.. how to do this?
         # Have the whole m/z spectra and then be able to select just 1 m/z
-
-        # for val in f:
-        # theList.append(raveled[val])
-
-        point = "something"
 
     # This function plots a mass spectrum corresponing to a selected point
     # on the displayed image, or an image corresponding to a selected point
@@ -1065,12 +1067,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 i += 1
                 while currdriftBin < totalDriftBins:
                     numValues = data[i]
+                    driftTime = data[i + 1]
                     i += 2
                     for a in range(int(numValues)):
                         if (data[i] > (float(self.start.text()) - .5)) and (
                                 data[i] < (float(self.start.text()) + .5)):
                             theVal += data[i + 1]
-                            otherVal.append([data[i], data[i + 1]])
+                            otherVal.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             # otherLine.append(otherVal)
                             valAdded = True
                         i += 2
@@ -1409,6 +1412,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # set up the initial image
         if self.con_canvas:
             self.plot_con.removeWidget(self.con_canvas)
+            self.con_cbar.remove()
         if self.con_canvas:
             self._con_ax.cla()
             # self.con_cbar.remove()
@@ -1465,6 +1469,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             # self.con_cbar.remove()
             if self.con_canvas:
                 self.plot_con.removeWidget(self.con_canvas)
+                self.con_cbar.remove()
             clims = np.array([self.z_min, self.t_max])
             self.con_img = self._con_ax.imshow(np.flip(self.areas, axis=0), cmap='jet', aspect='auto', vmin=clims[0],
                                                vmax=clims[1], extent=[0, self.x_end, 0, self.y_end])
