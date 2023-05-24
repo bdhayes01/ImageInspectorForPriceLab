@@ -699,6 +699,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif self.massplustwo.isChecked():
             self.includemassplustwo = 1
         if self.has_data:
+            if self.h:
+                self.h.disconnect()
+
             self.h = roi.new_ROI(self.con_img)
 
     # --- Executes on button press in ROI_process.
@@ -880,12 +883,22 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 print("No data loaded")
         else:
             print("No data loaded")
+
     def ROI_select_IM_Callback(self):
         self.binI = self.h.get_mask().astype(int)
-        x = self.h.get_mask().astype(int)
-        z = np.flipud(x)
+        self.binI = np.flipud(self.binI)
         f = np.argwhere(np.ravel(self.binI, order='F'))[:, 0]
-        y = self.chosenData
+
+        raveled = np.ravel(self.chosenData, order='F')
+
+        theList = []
+
+        # Need to find the m/z and not just the intensity at every single point.. how to do this?
+
+        for val in f:
+            theList.append(raveled[val])
+
+
 
         point = "something"
 
