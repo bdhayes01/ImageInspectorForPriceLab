@@ -1113,6 +1113,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.view.draw()
 
         self.chosenData = theChosenData
+        self.zmax.setValue(int(maxIntensity))
 
     # --- Executes on button press in find_file.
     def find_file_Callback(self):
@@ -1477,7 +1478,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                                 valAdded = True
                                 newFrame += val[1]
                         if not valAdded:
-                            continue
+                            newFrame = 0
                     newLine.append(newFrame)
                 data.append(newLine)
 
