@@ -501,7 +501,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # plot the image
         if self.con_canvas:
             self.plot_con.removeWidget(self.con_canvas)
-            self.con_cbar.remove()
+            # self.con_cbar.remove()
         if self._con_ax:
             self._con_ax.cla()
             # self.con_cbar.remove()  # Could the error be that there isn't a position set beforehand?
@@ -1046,6 +1046,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         theChosenData = []
         frameDone = False
 
+        maxIntensity = 0
+
         while numFiles < fileNum:
             if frameDone:
                 chosenData.append(lineData)
@@ -1074,8 +1076,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                                 data[i] < (float(self.start.text()) + .5)):
                             theVal += data[i + 1]
                             otherVal.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
-                            # otherLine.append(otherVal)
                             valAdded = True
+                            if data[i + 1] > maxIntensity:
+                                maxIntensity = data[i + 1]
                         i += 2
                     currdriftBin += 1
 
@@ -1094,6 +1097,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         numX = len(chosenData[0])
         xend = numX * .075
         yend = numY * .15
+
+        self.max_int.setText(str(maxIntensity))
+        self.temp_max.setText(str(maxIntensity))
+        self.zmax.setMinimum(0)
+        self.zmax.setMaximum(int(maxIntensity))
 
         self.view = FigureCanvas(Figure(figsize=(5, 3)))
         self.axes = self.view.figure.subplots()
@@ -1412,7 +1420,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # set up the initial image
         if self.con_canvas:
             self.plot_con.removeWidget(self.con_canvas)
-            self.con_cbar.remove()
+            # self.con_cbar.remove()
         if self.con_canvas:
             self._con_ax.cla()
             # self.con_cbar.remove()
@@ -1442,12 +1450,53 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # --- Executes on slider movement.
     def zmax_Callback(self):
+        if isIM:
+            self.temp_max.setText(str(self.zmax.sliderPosition()))
+            self.scale_image()
+            return 0
         self.t_max = self.zmax.sliderPosition()
         self.temp_max.setText(str(self.t_max))
         self.scale_image()
 
     # This function updates the image to the current index
     def scale_image(self):
+        if isIM:
+            x = self.chosenData
+
+            data = []
+            position = self.zmax.sliderPosition()
+
+            for line in x:
+                newLine = []
+                for frame in line:
+                    newFrame = 0
+                    valAdded = False
+                    if frame != 0:
+                        for val in frame:
+                            if val[1] > position:
+                                valAdded = True
+                                newFrame += val[1]
+                        if not valAdded:
+                            continue
+                    newLine.append(newFrame)
+                data.append(newLine)
+
+            numY = len(data)
+            numX = len(data[0])
+            xend = numX * .075
+            yend = numY * .15
+
+            if self.view:
+                self.plot_con.removeWidget(self.view)
+            self.view = FigureCanvas(Figure(figsize=(5, 3)))
+            self.axes = self.view.figure.subplots()
+            self.toolbar = NavigationToolbar(self.view, self)
+            self.plot_con.addWidget(self.view)
+            self.con_img = self.axes.imshow(data, cmap='jet', interpolation='gaussian',
+                                            aspect=(yend / xend), extent=[0, xend, 0, yend])
+            plt.colorbar(self.con_img)
+            self.view.draw()
+            return 0
         # plot the image
         bkg = np.zeros((len(self.y), len(self.x)))  # creates matrix for self.Background
         summarea = np.zeros((len(self.y), len(self.x)))  # creates matrix for the area sums
@@ -1469,7 +1518,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             # self.con_cbar.remove()
             if self.con_canvas:
                 self.plot_con.removeWidget(self.con_canvas)
-                self.con_cbar.remove()
+                # self.con_cbar.remove()
             clims = np.array([self.z_min, self.t_max])
             self.con_img = self._con_ax.imshow(np.flip(self.areas, axis=0), cmap='jet', aspect='auto', vmin=clims[0],
                                                vmax=clims[1], extent=[0, self.x_end, 0, self.y_end])
