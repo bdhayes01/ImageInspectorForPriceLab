@@ -1025,8 +1025,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # NOTE: to Brian . Okay, here's the deal, when building this the code was so confusing,
         # so we are going to do everything here. In reality, we shouldn't do this, and we won't, in the long run.
         # When cleaning up, this must be factored into several different functions.
-        if self.view:
-            self.plot_con.removeWidget(self.view)
 
         # A couple more notes:
         # 1. How far apart should we accept? Surely not the only val that was selected? +- .5 m/z??
@@ -1102,6 +1100,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.temp_max.setText(str(maxIntensity))
         self.zmax.setMinimum(0)
         self.zmax.setMaximum(int(maxIntensity))
+
+        if self.view:
+            self.plot_con.removeWidget(self.view)
 
         self.view = FigureCanvas(Figure(figsize=(5, 3)))
         self.axes = self.view.figure.subplots()
