@@ -302,6 +302,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # When the button is clicked, the mass index is incremented by 1
     # and the image for the new mass is displayed
     def mass_up_Callback(self):
+        if isIM:
+            val = float(self.start.text()) + 1.0
+            self.start.setText(str(val))
+            self.im_point()
+            return 0
+
         if self.has_data:
             self.index = self.index + 1
             self.refresh_image()
@@ -335,6 +341,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # When the button is clicked, the mass index is decremented by 1
     # and the image for the new mass is displayed
     def mass_down_Callback(self):
+        if isIM:
+            val = float(self.start.text()) - 1.0
+            self.start.setText(str(val))
+            self.im_point()
+            return 0
         if self.has_data:
             self.index = self.index - 1
             self.refresh_image()
