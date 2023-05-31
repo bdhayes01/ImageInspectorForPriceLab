@@ -130,6 +130,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         super(MainGUIobject, self).__init__()
         self.view = None
         self.viewPlusOne = None
+        self.viewPlusTwo = None
         self.con_cbar = None
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint)
@@ -1057,9 +1058,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         theChosenData = []
         chosenDataPlusOne = []
         theChosenDataPlusOne = []
+        chosenDataPlusTwo = []
+        theChosenDataPlusTwo = []
         frameDone = False
 
         maxIntensity = 0
+        maxIntensityPlusOne = 0
+        maxIntensityPlusTwo = 0
 
         while numFiles < fileNum:
             if frameDone:
@@ -1067,6 +1072,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 theChosenData.append(otherLine)
                 chosenDataPlusOne.append(lineDataPlusOne)
                 theChosenDataPlusOne.append(otherLinePlusOne)
+                chosenDataPlusTwo.append(lineDataPlusTwo)
+                theChosenDataPlusTwo.append(otherLinePlusTwo)
                 numFiles += 1
                 numFrames = 0
                 frameDone = False
@@ -1074,13 +1081,17 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             frameDone = False
             lineData = []
             lineDataPlusOne = []
+            lineDataPlusTwo = []
             otherLine = []
             valAdded = False
             valAddedPlusOne = False
+            valAddedPlusTwo = False
             theVal = 0
             theValPlusOne = 0
+            theValPlusTwo = 0
             otherLine = []
             otherLinePlusOne = []
+            otherLinePlusTwo = []
             while numFrames < frameNum:
                 totalDriftBins = data[i]
                 frameDone = True
@@ -1103,6 +1114,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                             theValPlusOne += data[i + 1]
                             otherValPlusOne.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAddedPlusOne = True
+                            if data[i + 1] > maxIntensityPlusOne:
+                                maxIntensityPlusOne = data[i + 1]
+                        if (data[i] >= (float(self.start.text()) + 1.5)) and (
+                                data[i] < (float(self.start.text()) + 2.5)):
+                            theValPlusTwo += data[i + 1]
+                            otherValPlusTwo.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
+                            valAddedPlusTwo = True
+                            if data[i + 1] > maxIntensityPlusTwo:
+                                maxIntensityPlusTwo = data[i + 1]
                         i += 2
                     currdriftBin += 1
 
@@ -1118,12 +1138,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 elif valAddedPlusOne:
                     lineDataPlusOne.append(theValPlusOne)
                     otherLinePlusOne.append(otherValPlusOne)
+                if not valAddedPlusTwo:
+                    lineDataPlusTwo.append(0)
+                    otherLinePlusTwo.append(0)
+                elif valAddedPlusTwo:
+                    lineDataPlusTwo.append(theValPlusTwo)
+                    otherLinePlusTwo.append(otherValPlusTwo)
                 valAdded = False
                 valAddedPlusOne = False
+                valAddedPlusTwo = False
                 otherVal = []
                 otherValPlusOne = []
+                otherValPlusTwo = []
                 theVal = 0
                 theValPlusOne = 0
+                theValPlusTwo = 0
                 numFrames += 1
 
         numY = len(chosenData)
@@ -1148,36 +1177,64 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         plt.colorbar(self.con_img)
         self.view.draw()
 
-        if self.massplusone:
+        if self.massplusone.isChecked():
             if self.viewPlusOne:
                 self.plot_kin.removeWidget(self.viewPlusOne)
+            if self.viewPlusTwo:
+                self.plot_kin.removeWidget(self.viewPlusTwo)
 
             self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
             self.axes = self.viewPlusOne.figure.subplots()
             self.toolbar = NavigationToolbar(self.viewPlusOne, self)
             self.plot_kin.addWidget(self.viewPlusOne)
-            self.con_img = self.axes.imshow(chosenDataPlusOne, cmap='jet',
+            self.con_img = self.axes.imshow(chosenDataPlusOne, cmap='inferno',
                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
             plt.colorbar(self.con_img)
             self.viewPlusOne.draw()
-        elif self.massplustwo:
-            do = "nothing"
-            # if self.viewPlusOne:
-            #     self.plot_kin.removeWidget(self.viewPlusOne)
-            #
-            # self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
-            # self.axes = self.viewPlusOne.figure.subplots()
-            # self.toolbar = NavigationToolbar(self.viewPlusOne, self)
-            # self.plot_kin.addWidget(self.viewPlusOne)
-            # self.con_img = self.axes.imshow(chosenDataPlusOne, cmap='jet', interpolation='gaussian',
-            #                                 aspect=(yend / xend), extent=[0, xend, 0, yend])
-            # plt.colorbar(self.con_img)
-            # self.viewPlusOne.draw()
+
+            self.max_iso.setText(str(maxIntensityPlusOne))
+            self.max_int_iso.setText(str(maxIntensityPlusOne))
+            self.zmax_isotope.setMinimum(0)
+            self.zmax_isotope.setMaximum(int(maxIntensityPlusOne))
+
+            self.min_iso.setText(str(0))
+            self.min_int_iso.setText(str(0))
+            self.zmin_isotope.setMinimum(0)
+            self.zmin_isotope.setMaximum(int(maxIntensityPlusOne))
+            self.zmax_isotope.setValue(int(maxIntensityPlusOne))
+
+        elif self.massplustwo.isChecked():
+            if self.viewPlusTwo:
+                self.plot_kin.removeWidget(self.viewPlusTwo)
+            if self.viewPlusOne:
+                self.plot_kin.removeWidget(self.viewPlusOne)
+
+            self.viewPlusTwo = FigureCanvas(Figure(figsize=(5, 3)))
+            self.axes = self.viewPlusTwo.figure.subplots()
+            self.toolbar = NavigationToolbar(self.viewPlusTwo, self)
+            self.plot_kin.addWidget(self.viewPlusTwo)
+            self.con_img = self.axes.imshow(chosenDataPlusTwo, cmap='inferno', interpolation='gaussian',
+                                            aspect=(yend / xend), extent=[0, xend, 0, yend])
+            plt.colorbar(self.con_img)
+            self.viewPlusTwo.draw()
+
+            self.max_iso.setText(str(maxIntensityPlusTwo))
+            self.max_int_iso.setText(str(maxIntensityPlusTwo))
+            self.zmax_isotope.setMinimum(0)
+            self.zmax_isotope.setMaximum(int(maxIntensityPlusTwo))
+
+            self.min_iso.setText(str(0))
+            self.min_int_iso.setText(str(0))
+            self.zmin_isotope.setMinimum(0)
+            self.zmin_isotope.setMaximum(int(maxIntensityPlusTwo))
+            self.zmax_isotope.setValue(int(maxIntensityPlusTwo))
 
         self.chosenData = theChosenData
         self.chosenDataPlusOne = theChosenDataPlusOne
+        self.chosenDataPlusTwo = theChosenDataPlusTwo
 
         self.zmax.setValue(0)
+        self.zmin_isotope.setValue(0)
 
     # --- Executes on button press in find_file.
     def find_file_Callback(self):
@@ -1598,6 +1655,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # --- Executes on slider movement.
     def zmax_isotope_Callback(self):
+        if isIM:
+            return 0
         self.iso_max = self.zmax_truearr[self.zmax_isotope.sliderPosition()]
         self.iso_min = self.zmax_truearr[self.zmin_isotope.sliderPosition()]  # TODO: Is this line necessary?
         self.max_iso.setText(str(('%s' % float('%.5g' % self.iso_max))))
@@ -1646,6 +1705,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # --- Executes on slider movement.
     def zmin_isotope_Callback(self):
+        if isIM:
+            return 0
         self.iso_max = self.zmax_truearr[self.zmax_isotope.sliderPosition()]
         self.iso_min = self.zmax_truearr[self.zmin_isotope.sliderPosition()]
         self.min_iso.setText(str(('%s' % float('%.5g' % self.iso_min))))
