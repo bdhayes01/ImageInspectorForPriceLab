@@ -129,6 +129,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
         self.view = None
+        self.viewPlusOne = None
         self.con_cbar = None
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint)
@@ -240,7 +241,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.z_min = 0
         self.t_max = 0
         self.areas = 0
-        self.includemassplustwo = 0
+        self.includemassplustwo = False
         self.mintratio = 0
         self.good = 0
         self.checkpoint_maxima = 10
@@ -707,9 +708,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # --- Executes on button press in ROI_select.
     def ROI_select_Callback_mask(self):
         if self.massplusone.isChecked():
-            self.includemassplustwo = 0
+            self.includemassplustwo = False
         elif self.massplustwo.isChecked():
-            self.includemassplustwo = 1
+            self.includemassplustwo = True
         if self.has_data:
             if self.h:
                 self.h.disconnect()
@@ -940,13 +941,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def pick_point_Callback(self):  # this function only considers "line" referring to MATLAB. Not sure what it means
         if isIM:
             self.im_point()
+            # self.refresh_isotoperatio()
             return 0
 
         # choose what masspluswhat peak
         if self.massplusone.isChecked():
-            self.includemassplustwo = 0
+            self.includemassplustwo = False
         elif self.massplustwo.isChecked():
-            self.includemassplustwo = 1
+            self.includemassplustwo = True
         self.start.setText(str(self.z[self.index]))
         self.msindex.setText(str(self.index))
         self.Noise_Output_Box.setText(str(self.img_std[self.index]))
@@ -1053,6 +1055,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         chosenData = []
         theChosenData = []
+        chosenDataPlusOne = []
+        theChosenDataPlusOne = []
         frameDone = False
 
         maxIntensity = 0
@@ -1061,16 +1065,22 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             if frameDone:
                 chosenData.append(lineData)
                 theChosenData.append(otherLine)
+                chosenDataPlusOne.append(lineDataPlusOne)
+                theChosenDataPlusOne.append(otherLinePlusOne)
                 numFiles += 1
                 numFrames = 0
                 frameDone = False
                 continue
             frameDone = False
             lineData = []
+            lineDataPlusOne = []
             otherLine = []
             valAdded = False
+            valAddedPlusOne = False
             theVal = 0
+            theValPlusOne = 0
             otherLine = []
+            otherLinePlusOne = []
             while numFrames < frameNum:
                 totalDriftBins = data[i]
                 frameDone = True
@@ -1081,13 +1091,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     driftTime = data[i + 1]
                     i += 2
                     for a in range(int(numValues)):
-                        if (data[i] > (float(self.start.text()) - .5)) and (
+                        if (data[i] >= (float(self.start.text()) - .5)) and (
                                 data[i] < (float(self.start.text()) + .5)):
                             theVal += data[i + 1]
                             otherVal.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAdded = True
                             if data[i + 1] > maxIntensity:
                                 maxIntensity = data[i + 1]
+                        if (data[i] >= (float(self.start.text()) + .5)) and (
+                                data[i] < (float(self.start.text()) + 1.5)):
+                            theValPlusOne += data[i + 1]
+                            otherValPlusOne.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
+                            valAddedPlusOne = True
                         i += 2
                     currdriftBin += 1
 
@@ -1097,9 +1112,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 elif valAdded:
                     lineData.append(theVal)
                     otherLine.append(otherVal)
+                if not valAddedPlusOne:
+                    lineDataPlusOne.append(0)
+                    otherLinePlusOne.append(0)
+                elif valAddedPlusOne:
+                    lineDataPlusOne.append(theValPlusOne)
+                    otherLinePlusOne.append(otherValPlusOne)
                 valAdded = False
+                valAddedPlusOne = False
                 otherVal = []
+                otherValPlusOne = []
                 theVal = 0
+                theValPlusOne = 0
                 numFrames += 1
 
         numY = len(chosenData)
@@ -1124,7 +1148,35 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         plt.colorbar(self.con_img)
         self.view.draw()
 
+        if self.massplusone:
+            if self.viewPlusOne:
+                self.plot_kin.removeWidget(self.viewPlusOne)
+
+            self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
+            self.axes = self.viewPlusOne.figure.subplots()
+            self.toolbar = NavigationToolbar(self.viewPlusOne, self)
+            self.plot_kin.addWidget(self.viewPlusOne)
+            self.con_img = self.axes.imshow(chosenDataPlusOne, cmap='jet',
+                                            aspect=(yend / xend), extent=[0, xend, 0, yend])
+            plt.colorbar(self.con_img)
+            self.viewPlusOne.draw()
+        elif self.massplustwo:
+            do = "nothing"
+            # if self.viewPlusOne:
+            #     self.plot_kin.removeWidget(self.viewPlusOne)
+            #
+            # self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
+            # self.axes = self.viewPlusOne.figure.subplots()
+            # self.toolbar = NavigationToolbar(self.viewPlusOne, self)
+            # self.plot_kin.addWidget(self.viewPlusOne)
+            # self.con_img = self.axes.imshow(chosenDataPlusOne, cmap='jet', interpolation='gaussian',
+            #                                 aspect=(yend / xend), extent=[0, xend, 0, yend])
+            # plt.colorbar(self.con_img)
+            # self.viewPlusOne.draw()
+
         self.chosenData = theChosenData
+        self.chosenDataPlusOne = theChosenDataPlusOne
+
         self.zmax.setValue(0)
 
     # --- Executes on button press in find_file.
@@ -1547,7 +1599,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # --- Executes on slider movement.
     def zmax_isotope_Callback(self):
         self.iso_max = self.zmax_truearr[self.zmax_isotope.sliderPosition()]
-        self.iso_min = self.zmax_truearr[self.zmin_isotope.sliderPosition()]
+        self.iso_min = self.zmax_truearr[self.zmin_isotope.sliderPosition()]  # TODO: Is this line necessary?
         self.max_iso.setText(str(('%s' % float('%.5g' % self.iso_max))))
         self.scale_iso_image()
 
@@ -1690,6 +1742,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def ROI_listbox_Callback(self, item):
         # this should tell me which number in list is selected
         # now I need the outline of the ROI to appear
+        if isIM:
+            self.ROI_listselect_text = item.text()
+            return 0
 
         self.ROI_listselect_text = item.text()
         self.ROI_listselect_array = self.ROI[item.text()]
@@ -1703,9 +1758,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         Y = (xy[:, 0] * pixely) - pixely  # makes image appear in right spot
 
         if self.massplusone.isChecked():
-            self.includemassplustwo = 0
+            self.includemassplustwo = False
         elif self.massplustwo.isChecked():
-            self.includemassplustwo = 1
+            self.includemassplustwo = True
         if self.has_data:
             # get average spectrum
             # this finds all the pixels (i.e. rows) that are part of the ROI
@@ -1882,9 +1937,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
                 # now I need the mass spectrum average and the ratios to be given over to the right
             if self.massplusone.isChecked():
-                self.includemassplustwo = 0
+                self.includemassplustwo = False
             elif self.massplustwo.isChecked():
-                self.includemassplustwo = 1
+                self.includemassplustwo = True
             if self.has_data:
                 # get average spectrum
                 # this finds all the pixels (i.e. rows) that are part of the ROI
@@ -2061,11 +2116,20 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             img_mean = self.ROI_img_mean[self.ROI_listselect_text]
             path = QFileDialog.getSaveFileName(self, 'Save CSV', os.getenv('HOME'), 'CSV(*.csv)')
             if path[0] != '':
-                with open(path[0], 'w', newline='') as csv_file:
-                    writer = csv.writer(csv_file, dialect='excel', delimiter=',', lineterminator='\n')
-                    writer.writerow(('m/z', 'intensity'))
-                    for row in range(len(self.z)):
-                        writer.writerow((self.z[row], img_mean[row]))
+                if isIM:
+                    with open(path[0], 'w', newline='') as csv_file:
+                        writer = csv.writer(csv_file, dialect='excel', delimiter=',', lineterminator='\n')
+                        writer.writerow(["M/Z Value", "Intensity", "Drift Time", "Line", "Frame Num"])
+                        for line in self.ROIData:
+                            writer.writerow(line)
+                else:
+                    with open(path[0], 'w', newline='') as csv_file:
+                        writer = csv.writer(csv_file, dialect='excel', delimiter=',', lineterminator='\n')
+                        writer.writerow(('m/z', 'intensity'))
+                        for row in range(len(self.z)):
+                            writer.writerow((self.z[row], img_mean[row]))
+            else:
+                print("No location selected. Please select a location")
 
     def deleteROIbutton_Callback(self):
         if self.ROIcount == 0:
