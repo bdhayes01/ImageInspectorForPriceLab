@@ -1187,9 +1187,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.axes = self.viewPlusOne.figure.subplots()
             self.toolbar = NavigationToolbar(self.viewPlusOne, self)
             self.plot_kin.addWidget(self.viewPlusOne)
-            self.con_img = self.axes.imshow(chosenDataPlusOne, cmap='inferno',
+            self.con_img2 = self.axes.imshow(chosenDataPlusOne, cmap='inferno',
                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
-            plt.colorbar(self.con_img)
+            plt.colorbar(self.con_img2)
             self.viewPlusOne.draw()
 
             self.max_iso.setText(str(maxIntensityPlusOne))
@@ -1213,9 +1213,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.axes = self.viewPlusTwo.figure.subplots()
             self.toolbar = NavigationToolbar(self.viewPlusTwo, self)
             self.plot_kin.addWidget(self.viewPlusTwo)
-            self.con_img = self.axes.imshow(chosenDataPlusTwo, cmap='inferno', interpolation='gaussian',
+            self.con_img2 = self.axes.imshow(chosenDataPlusTwo, cmap='inferno', interpolation='gaussian',
                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
-            plt.colorbar(self.con_img)
+            plt.colorbar(self.con_img2)
             self.viewPlusTwo.draw()
 
             self.max_iso.setText(str(maxIntensityPlusTwo))
@@ -1656,6 +1656,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # --- Executes on slider movement.
     def zmax_isotope_Callback(self):
         if isIM:
+            self.max_iso.setText(str(self.zmax_isotope.sliderPosition()))
             return 0
         self.iso_max = self.zmax_truearr[self.zmax_isotope.sliderPosition()]
         self.iso_min = self.zmax_truearr[self.zmin_isotope.sliderPosition()]  # TODO: Is this line necessary?
@@ -1706,6 +1707,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # --- Executes on slider movement.
     def zmin_isotope_Callback(self):
         if isIM:
+            self.min_iso.setText(str(self.zmin_isotope.sliderPosition()))
             return 0
         self.iso_max = self.zmax_truearr[self.zmax_isotope.sliderPosition()]
         self.iso_min = self.zmax_truearr[self.zmin_isotope.sliderPosition()]
