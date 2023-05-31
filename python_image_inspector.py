@@ -923,13 +923,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.ROIData = filtered
 
-        with open("ROI.csv", 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(["M/Z Value", "Intensity", "Drift Time", "Line", "Frame Num"])
-
-            for line in filtered:
-                writer.writerow(line)
-        print("Done writing to .csv")
+        # with open("ROI.csv", 'w', newline='') as file:
+        #     writer = csv.writer(file)
+        #     writer.writerow(["M/Z Value", "Intensity", "Drift Time", "Line", "Frame Num"])
+        #
+        #     for line in filtered:
+        #         writer.writerow(line)
+        # print("Done writing to .csv")
         # Need to find the m/z and not just the intensity at every single point. how to do this?
         # Have the whole m/z spectra and then be able to select just 1 m/z
 
@@ -1652,6 +1652,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.Map_listbox.addItem(listboxitems[i])
 
     def exportROI_Callback(self):
+        if isIM:
+            self.ROIcount = self.ROIcount + 1
+            self.ROIcountbox.setText(str(self.ROIcount))
+            self.ROI[self.exportROIfilename.text()] = self.binI
+            ROI = self.ROI
+            ROIcount = self.ROIcount
+            self.refreshROIlistbox()
+            return 0
+
         # when clicking on the exportROI button, it will increase the ROIcount by 1
         # and it will save the filename and binI to the ROI cell variable
         # then it will save them to the actual cubefilename to be retrievable next
