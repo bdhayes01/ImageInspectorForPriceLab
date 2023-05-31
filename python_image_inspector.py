@@ -128,6 +128,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.chosenDataIso = None
         self.view = None
         self.viewPlusOne = None
         self.viewPlusTwo = None
@@ -1230,8 +1231,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.zmax_isotope.setValue(int(maxIntensityPlusTwo))
 
         self.chosenData = theChosenData
-        self.chosenDataPlusOne = theChosenDataPlusOne
-        self.chosenDataPlusTwo = theChosenDataPlusTwo
+        if self.massplusone:
+            self.chosenDataIso = theChosenDataPlusOne
+        else:
+            self.chosenDataIso = theChosenDataPlusTwo
 
         self.zmax.setValue(0)
         self.zmin_isotope.setValue(0)
@@ -1657,14 +1660,68 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def zmax_isotope_Callback(self):
         if isIM:
             self.max_iso.setText(str(self.zmax_isotope.sliderPosition()))
+            self.scale_iso_image()
             return 0
         self.iso_max = self.zmax_truearr[self.zmax_isotope.sliderPosition()]
         self.iso_min = self.zmax_truearr[self.zmin_isotope.sliderPosition()]  # TODO: Is this line necessary?
         self.max_iso.setText(str(('%s' % float('%.5g' % self.iso_max))))
         self.scale_iso_image()
 
+    # --- Executes on slider movement.
+    def zmin_isotope_Callback(self):
+        if isIM:
+            self.min_iso.setText(str(self.zmin_isotope.sliderPosition()))
+            self.scale_iso_image()
+            return 0
+        self.iso_max = self.zmax_truearr[self.zmax_isotope.sliderPosition()]
+        self.iso_min = self.zmax_truearr[self.zmin_isotope.sliderPosition()]
+        self.min_iso.setText(str(('%s' % float('%.5g' % self.iso_min))))
+        self.scale_iso_image()
+
     # This function updates the image to the current index
     def scale_iso_image(self):
+        if isIM:
+            if self.chosenDataIso is None:  # This will be triggered only at the beginning
+                return 0
+            x = self.chosenDataIso
+            data = []
+            highest = self.zmax_isotope.sliderPosition()
+            lowest = self.zmin_isotope.sliderPosition()
+
+            for line in x:
+                newLine = []
+                for frame in line:
+                    newFrame = 0
+                    valAdded = False
+                    if frame != 0:
+                        for val in frame:
+                            if highest >= val[1] >= lowest:
+                                valAdded = True
+                                newFrame += val[1]
+                        if not valAdded:
+                            newFrame = 0
+                    newLine.append(newFrame)
+                data.append(newLine)
+
+            numY = len(data)
+            numX = len(data[0])
+            xend = numX * .075
+            yend = numY * .15
+
+            if self.viewPlusOne:
+                self.plot_kin.removeWidget(self.viewPlusOne)
+            if self.viewPlusTwo:
+                self.plot_kin.removeWidget(self.viewPlusTwo)
+
+            self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
+            self.axes = self.viewPlusOne.figure.subplots()
+            self.toolbar = NavigationToolbar(self.view, self)
+            self.plot_kin.addWidget(self.viewPlusOne)
+            self.con_img2 = self.axes.imshow(data, cmap='inferno',
+                                            aspect=(yend / xend), extent=[0, xend, 0, yend])
+            plt.colorbar(self.con_img2)
+            self.viewPlusOne.draw()
+            return 0
         if self.massplustwo.isChecked():
             if self._kin_ax:
                 self.IsotopeMapData = [np.flip(self.mplusonenormintratiowithmassplustwo, axis=0), self.x_end,
@@ -1703,16 +1760,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.exIsotopeflag = True
             else:
                 pass
-
-    # --- Executes on slider movement.
-    def zmin_isotope_Callback(self):
-        if isIM:
-            self.min_iso.setText(str(self.zmin_isotope.sliderPosition()))
-            return 0
-        self.iso_max = self.zmax_truearr[self.zmax_isotope.sliderPosition()]
-        self.iso_min = self.zmax_truearr[self.zmin_isotope.sliderPosition()]
-        self.min_iso.setText(str(('%s' % float('%.5g' % self.iso_min))))
-        self.scale_iso_image()
 
     def export_ConcMap_Callback(self):
         # when clicking on the exportConcMap button, it will save the filename and concentration the map
@@ -1807,6 +1854,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # now I need the outline of the ROI to appear
         if isIM:
             self.ROI_listselect_text = item.text()
+            self.ROI_listselect_array = self.ROI[item.text()]
+            self.ROI_img_mean[item.text()] = self.img_mean
             return 0
 
         self.ROI_listselect_text = item.text()
