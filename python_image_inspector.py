@@ -1162,7 +1162,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         yend = numY * .15
 
         self.max_int.setText(str(maxIntensity))
-        self.temp_max.setText(str(maxIntensity))
+        self.temp_max.setText(str(0))
         self.zmax.setMinimum(0)
         self.zmax.setMaximum(int(maxIntensity))
 
@@ -1173,7 +1173,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes = self.view.figure.subplots()
         self.toolbar = NavigationToolbar(self.view, self)
         self.plot_con.addWidget(self.view)
-        self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
+        self.con_img = self.axes.imshow(chosenData, cmap='jet',
                                         aspect=(yend / xend), extent=[0, xend, 0, yend])
         plt.colorbar(self.con_img)
         self.view.draw()
