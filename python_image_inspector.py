@@ -2259,6 +2259,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     print('plot removed')
                 else:
                     print('Item does not exist. Please double click on another item')
+            if isIM:
+                if self.ROI_listselect_text in self.ROIplots:
+                    self.ROIplots[self.ROI_listselect_text].pop(0).remove()
+                    del self.ROIplots[self.ROI_listselect_text]
+                    del self.ROI[self.ROI_listselect_text]
+                    del self.ROI_img_mean[self.ROI_listselect_text]
+                    self.ROIcount = self.ROIcount - 1
+                    self.ROIcountbox.setText(str(self.ROIcount))
+                    self.refreshROIlistbox()
 
     # --- Executes on button press in find_file_mzOI.
     def find_file_mzOI_Callback(self):
