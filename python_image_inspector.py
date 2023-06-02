@@ -1856,6 +1856,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.ROI_listselect_text = item.text()
             self.ROI_listselect_array = self.ROI[item.text()]
             self.ROI_img_mean[item.text()] = self.img_mean
+            self._con_ax = 1
+            self.ROIplots[self.ROI_listselect_text] = item  # What am I doing here??
+            # self.ROI[self.ROI_listselect_text] =
             return 0
 
         self.ROI_listselect_text = item.text()
@@ -2249,7 +2252,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         else:
             if self._con_ax:
                 if self.ROI_listselect_text in self.ROIplots:
-                    self.ROIplots[self.ROI_listselect_text].pop(0).remove()
+                    # How to get the plot removed from the graph?
+                    if not isIM:
+                        self.ROIplots[self.ROI_listselect_text].pop(0).remove()
                     del self.ROIplots[self.ROI_listselect_text]
                     del self.ROI[self.ROI_listselect_text]
                     del self.ROI_img_mean[self.ROI_listselect_text]
@@ -2257,17 +2262,34 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     self.ROIcountbox.setText(str(self.ROIcount))
                     self.refreshROIlistbox()
                     print('plot removed')
+                    if isIM:
+                        self.im_point()
+                        # This is in order to remove the blue lines from the figure.
+                        # If the blue lines aren't a problem, this can be taken out.
+                        # for i in range(2):
+                        #     self.h.lines.pop(-1).remove()
+                        #     self.h.xcoords.pop()
+                        #     self.h.ycoords.pop()
+                        #     self.h.previous_point = self.h.xcoords[-1], self.h.ycoords[-1]
+                        #     self.h.line = self.h.lines[-1]
+                        #     if len(self.h.lines) == 0:
+                        #         self.h.line = None
+                        #         return
+                        # self.h.lines.pop(-1).remove()
+                        # self.h.xcoords.pop()
+                        # self.h.ycoords.pop()
+                        # self.h.disconnect()
                 else:
                     print('Item does not exist. Please double click on another item')
-            if isIM:
-                if self.ROI_listselect_text in self.ROIplots:
-                    self.ROIplots[self.ROI_listselect_text].pop(0).remove()
-                    del self.ROIplots[self.ROI_listselect_text]
-                    del self.ROI[self.ROI_listselect_text]
-                    del self.ROI_img_mean[self.ROI_listselect_text]
-                    self.ROIcount = self.ROIcount - 1
-                    self.ROIcountbox.setText(str(self.ROIcount))
-                    self.refreshROIlistbox()
+            # if isIM:
+            #     if self.ROI_listselect_text in self.ROIplots:
+            #         self.ROIplots[self.ROI_listselect_text].pop(0).remove()
+            #         del self.ROIplots[self.ROI_listselect_text]
+            #         del self.ROI[self.ROI_listselect_text]
+            #         del self.ROI_img_mean[self.ROI_listselect_text]
+            #         self.ROIcount = self.ROIcount - 1
+            #         self.ROIcountbox.setText(str(self.ROIcount))
+            #         self.refreshROIlistbox()
 
     # --- Executes on button press in find_file_mzOI.
     def find_file_mzOI_Callback(self):
