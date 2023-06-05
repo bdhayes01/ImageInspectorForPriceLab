@@ -1336,6 +1336,19 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 theVal = 0
                 numFrames += 1
 
+        if self._spectra_ax:
+            self.plot_spectra.removeWidget(self.spectra_toolbar)
+            self.plot_spectra.removeWidget(self.spectra_canvas)
+        if self.viewPlusOne:
+            self.plot_kin.removeWidget(self.viewPlusOne)
+            self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
+            # self.viewPlusOne = None
+        elif self.viewPlusTwo:
+            self.plot_kin.removeWidget(self.viewPlusTwo)
+            self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
+            # self.plot_kin.addWidget(None)
+            # del self.viewPlusTwo
+
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.spectra_canvas.setFocus()
