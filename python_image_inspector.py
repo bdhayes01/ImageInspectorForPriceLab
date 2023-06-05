@@ -515,9 +515,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # plot the image
         if self.con_canvas:
             self.plot_con.removeWidget(self.con_canvas)
+
             # self.con_cbar.remove()
             # Remove the colorbar
         if self._con_ax:
+
             self._con_ax.cla()
 
 
