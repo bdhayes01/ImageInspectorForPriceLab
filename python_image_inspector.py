@@ -519,6 +519,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             # Remove the colorbar
         if self._con_ax:
             self._con_ax.cla()
+
+
             # self.con_cbar.remove()  # Could the error be that there isn't a position set beforehand?
             # I don't know why this error is ocurring
             # Could it be that the colorbar should be replaced, not removed?
