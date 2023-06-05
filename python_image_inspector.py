@@ -516,6 +516,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if self.con_canvas:
             self.plot_con.removeWidget(self.con_canvas)
             # self.con_cbar.remove()
+            # Remove the colorbar
         if self._con_ax:
             self._con_ax.cla()
             # self.con_cbar.remove()  # Could the error be that there isn't a position set beforehand?
