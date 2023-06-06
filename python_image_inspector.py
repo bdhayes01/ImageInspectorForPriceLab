@@ -1363,9 +1363,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self._spectra_ax = self.spectra_canvas.figure.subplots()
         x = self._spectra_ax.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75, picker=True)
         plt.colorbar(x).set_label('Drift times')
-
-        # self.cbar = self._spectra_ax.colorbar() # TODO: How to set a colorbar??
-        # self.cbar.set_label('Drift times')
         self._spectra_ax.set_title('Points In Selected Region')
         self._spectra_ax.set_xlabel('m/z')
         self._spectra_ax.set_ylabel('intensity')
@@ -2415,11 +2412,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             theY = event.mouseevent.lastevent.ydata
 
             self.start.setText("%.5f" % theXmOverZ)
-            # self.msindex.setText(str(self.index))
-            # thisline = event.artist
-            # self.x_picked = thisline.get_xdata()
-            # self.y_picked = thisline.get_ydata()
-            what = 'to do here'
+            if isIM:
+                self.IM_spectra_annotation(theXmOverZ)
+                return 0
+
+    def IM_spectra_annotation(self, x_coord):
+        self._spectra_ax.annotate("X = 19293", xy=(x_coord, 1200), xycoords='data', va='bottom', ha='left',
+                                  bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
+        self.spectra_canvas.draw()
+        # self._spectra_ax.plot()
 
     def data_cursor_key(self, event):
         if (event.key == 'left'):
