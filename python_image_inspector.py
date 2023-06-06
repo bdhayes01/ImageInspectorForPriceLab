@@ -2543,7 +2543,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         return indicies_array
 
     ##########################################
-    # Multi Map Compare functions (thinks related to the 2nd window)
+    # Multi Map Compare functions (things related to the 2nd window)
     def MultiMapCompare_Display_Callback(self):
         self.mmcWindow.Map_listbox_mmcWindow.clear()
         listboxitems = list(self.Maps.keys())
