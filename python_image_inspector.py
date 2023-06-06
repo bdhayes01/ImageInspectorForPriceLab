@@ -128,6 +128,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.mzVals = None
+        self.intensity = None
+        self.drifts = None
         self.chosenDataIso = None
         self.view = None
         self.viewPlusOne = None
@@ -1347,12 +1350,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if self.viewPlusOne:
             self.plot_kin.removeWidget(self.viewPlusOne)
             self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
-            # self.viewPlusOne = None
         elif self.viewPlusTwo:
             self.plot_kin.removeWidget(self.viewPlusTwo)
             self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
-            # self.plot_kin.addWidget(None)
-            # del self.viewPlusTwo
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -1373,6 +1373,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # it is x, y
         plt.ylabel('intensity')
         plt.xlabel('m/z')
+
+        self.mzVals = mzVals
+        self.intensity = intensity
+        self.drifts = drifts
 
         numY = len(chosenData)
         numX = len(chosenData[0])
@@ -2413,11 +2417,40 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
             self.start.setText("%.5f" % theXmOverZ)
             if isIM:
-                self.IM_spectra_annotation(theXmOverZ)
+                self.IM_spectra_annotation(theXmOverZ, theY)
                 return 0
 
-    def IM_spectra_annotation(self, x_coord):
-        self._spectra_ax.annotate("X = 19293", xy=(x_coord, 1200), xycoords='data', va='bottom', ha='left',
+    def IM_spectra_annotation(self, mz, intensity):
+        if self._spectra_ax:
+            self.plot_spectra.removeWidget(self.spectra_toolbar)
+            self.plot_spectra.removeWidget(self.spectra_canvas)
+        if self.viewPlusOne:
+            self.plot_kin.removeWidget(self.viewPlusOne)
+            self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
+        elif self.viewPlusTwo:
+            self.plot_kin.removeWidget(self.viewPlusTwo)
+            self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
+
+        self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
+        self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.spectra_canvas.setFocus()
+        self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
+        self.plot_spectra.addWidget(self.spectra_toolbar)
+        self.plot_spectra.addWidget(self.spectra_canvas)
+        self._spectra_ax = self.spectra_canvas.figure.subplots()
+        x = self._spectra_ax.scatter(self.mzVals, self.intensity, s=.01, c=self.drifts, cmap="Greens", alpha=0.75, picker=True)
+        plt.colorbar(x).set_label('Drift times')
+        self._spectra_ax.set_title('Points In Selected Region')
+        self._spectra_ax.set_xlabel('m/z')
+        self._spectra_ax.set_ylabel('intensity')
+        self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
+        self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
+        self.exSpecflag = True
+        # plt.yscale('log')
+        # it is x, y
+        plt.ylabel('intensity')
+        plt.xlabel('m/z')
+        self._spectra_ax.annotate("X = {0:.4f}\nY = {1:.4f}".format(mz, intensity), xy=(mz, intensity), xycoords='data', va='bottom', ha='left',
                                   bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
         self.spectra_canvas.draw()
         # self._spectra_ax.plot()
