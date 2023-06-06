@@ -1361,7 +1361,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.plot_spectra.addWidget(self.spectra_toolbar)
         self.plot_spectra.addWidget(self.spectra_canvas)
         self._spectra_ax = self.spectra_canvas.figure.subplots()
-        self._spectra_ax.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75, picker=True)
+        x = self._spectra_ax.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75, picker=True)
+        plt.colorbar(x).set_label('Drift times')
+
         # self.cbar = self._spectra_ax.colorbar() # TODO: How to set a colorbar??
         # self.cbar.set_label('Drift times')
         self._spectra_ax.set_title('Points In Selected Region')
