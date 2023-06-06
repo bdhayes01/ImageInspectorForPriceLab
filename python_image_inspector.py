@@ -2450,10 +2450,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # it is x, y
         plt.ylabel('intensity')
         plt.xlabel('m/z')
+
+        if self.ids_pd is not None:
+            y = self.ids_pd['m/z']
+            if mz in y:
+                print("here!")
+
         self._spectra_ax.annotate("X = {0:.4f}\nY = {1:.4f}".format(mz, intensity), xy=(mz, intensity), xycoords='data', va='bottom', ha='left',
                                   bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
         self.spectra_canvas.draw()
-        # self._spectra_ax.plot()
 
     def data_cursor_key(self, event):
         if (event.key == 'left'):
