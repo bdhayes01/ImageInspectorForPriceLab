@@ -1639,7 +1639,7 @@ background-color: rgb(84, 252, 0);</string>
      <rect>
       <x>200</x>
       <y>650</y>
-      <width>1261</width>
+      <width>1161</width>
       <height>281</height>
      </rect>
     </property>
@@ -2015,6 +2015,16 @@ background-color: rgb(84, 252, 0);</string>
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
+   </widget>
+   <widget class="QSpinBox" name="ppm_min">
+    <property name="geometry">
+     <rect>
+      <x>1380</x>
+      <y>660</y>
+      <width>81</width>
+      <height>22</height>
+     </rect>
+    </property>
    </widget>
   </widget>
  </widget>

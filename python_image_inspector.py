@@ -2419,6 +2419,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.IM_spectra_annotation(theXmOverZ, theY)
                 return 0
 
+    def ppm_calc(self, mzVal, compVal):
+        frac = abs(mzVal - compVal) / mzVal
+        tot = frac * 1000000
+        if tot > self.ppm_min.value():
+            return True
+        return False
+
     def IM_spectra_annotation(self, mz, intensity):
         lipid_map = {}
         lipid_id = "not defined"
@@ -2436,11 +2443,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         mz_vals = np.asarray(self.mzVals)
         drifts = np.asarray(self.drifts)
-
         vals = np.where(mz + 1 > mz_vals, mz_vals, 0)
+        vals = np.where(mz - 1 < vals, drifts, 0)
         # TODO: These +- need to be the line between m/z.
         #  How far apart should they be to be considered different lipids?
-        vals = np.where(mz - 1 < vals, drifts, 0)
+        # vals = np.where(self.ppm_calc(mz, mz_vals), drifts, 0)
 
         abc = vals.nonzero()
 
