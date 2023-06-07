@@ -2434,17 +2434,20 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             key = min(lipid_map.keys())
             lipid_id = lipid_map[key]
 
-        # TODO: Add in the drift times found here!
-
-        ccc = [83, 42, 10, 4, 3]
-        ccc = np.arange(10)
-        ccc = np.asarray(self.mzVals)
-        bbb = 83
-        aaa = np.where(ccc < 5, ccc, 0)
-
         mz_vals = np.asarray(self.mzVals)
+        drifts = np.asarray(self.drifts)
 
-        vals = np.where(mz == self.mzVals, self.mzVals, 0).nonzero()
+        vals = np.where(mz + .5 > mz_vals, mz_vals, 0)
+        # TODO: These +- 1 need to be the line between m/z.
+        #  How far apart should they be to be considered different lipids?
+        vals = np.where(mz - .5 < vals, drifts, 0)
+
+        abc = vals.nonzero()
+
+        finals = drifts[abc]
+
+        a = max(finals)
+        b = min(finals)
 
         self.ID_Output_Box.setText(lipid_id)
 
@@ -2452,7 +2455,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.annotation.remove()
 
         self.annotation = self._spectra_ax.annotate(
-            "X = {0:.4f}\nY = {1:.4f}\nID = {2}".format(mz, intensity, lipid_id), xy=(mz, intensity), xycoords='data',
+            "X = {0:.4f}\nY = {1:.4f}\nID = {2}\nDrift Range = {3}-{4}".format
+            (mz, intensity, lipid_id, min(finals), max(finals)), xy=(mz, intensity), xycoords='data',
             va='bottom', ha='left',
             bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
         self.spectra_canvas.draw()
