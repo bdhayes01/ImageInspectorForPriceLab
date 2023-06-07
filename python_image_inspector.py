@@ -2437,10 +2437,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         mz_vals = np.asarray(self.mzVals)
         drifts = np.asarray(self.drifts)
 
-        vals = np.where(mz + .5 > mz_vals, mz_vals, 0)
-        # TODO: These +- 1 need to be the line between m/z.
+        vals = np.where(mz + 1 > mz_vals, mz_vals, 0)
+        # TODO: These +- need to be the line between m/z.
         #  How far apart should they be to be considered different lipids?
-        vals = np.where(mz - .5 < vals, drifts, 0)
+        vals = np.where(mz - 1 < vals, drifts, 0)
 
         abc = vals.nonzero()
 
