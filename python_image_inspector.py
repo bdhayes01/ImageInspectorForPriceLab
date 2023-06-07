@@ -128,6 +128,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.annotation = None
         self.mzVals = None
         self.intensity = None
         self.drifts = None
@@ -522,9 +523,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             # self.con_cbar.remove()
             # Remove the colorbar
         if self._con_ax:
-
             self._con_ax.cla()
-
 
             # self.con_cbar.remove()  # Could the error be that there isn't a position set beforehand?
             # I don't know why this error is ocurring
@@ -1197,7 +1196,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.toolbar = NavigationToolbar(self.viewPlusOne, self)
             self.plot_kin.addWidget(self.viewPlusOne)
             self.con_img2 = self.axes.imshow(chosenDataPlusOne, cmap='inferno',
-                                            aspect=(yend / xend), extent=[0, xend, 0, yend])
+                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
             plt.colorbar(self.con_img2)
             self.viewPlusOne.draw()
 
@@ -1223,7 +1222,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.toolbar = NavigationToolbar(self.viewPlusTwo, self)
             self.plot_kin.addWidget(self.viewPlusTwo)
             self.con_img2 = self.axes.imshow(chosenDataPlusTwo, cmap='inferno', interpolation='gaussian',
-                                            aspect=(yend / xend), extent=[0, xend, 0, yend])
+                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
             plt.colorbar(self.con_img2)
             self.viewPlusTwo.draw()
 
@@ -1739,7 +1738,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.toolbar = NavigationToolbar(self.view, self)
             self.plot_kin.addWidget(self.viewPlusOne)
             self.con_img2 = self.axes.imshow(data, cmap='inferno',
-                                            aspect=(yend / xend), extent=[0, xend, 0, yend])
+                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
             plt.colorbar(self.con_img2)
             self.viewPlusOne.draw()
             return 0
@@ -2421,43 +2420,31 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 return 0
 
     def IM_spectra_annotation(self, mz, intensity):
-        if self._spectra_ax:
-            self.plot_spectra.removeWidget(self.spectra_toolbar)
-            self.plot_spectra.removeWidget(self.spectra_canvas)
-        if self.viewPlusOne:
-            self.plot_kin.removeWidget(self.viewPlusOne)
-            self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
-        elif self.viewPlusTwo:
-            self.plot_kin.removeWidget(self.viewPlusTwo)
-            self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
-
-        self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
-        self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.spectra_canvas.setFocus()
-        self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
-        self.plot_spectra.addWidget(self.spectra_toolbar)
-        self.plot_spectra.addWidget(self.spectra_canvas)
-        self._spectra_ax = self.spectra_canvas.figure.subplots()
-        x = self._spectra_ax.scatter(self.mzVals, self.intensity, s=.01, c=self.drifts, cmap="Greens", alpha=0.75, picker=True)
-        plt.colorbar(x).set_label('Drift times')
-        self._spectra_ax.set_title('Points In Selected Region')
-        self._spectra_ax.set_xlabel('m/z')
-        self._spectra_ax.set_ylabel('intensity')
-        self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-        self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
-        self.exSpecflag = True
-        # plt.yscale('log')
-        # it is x, y
-        plt.ylabel('intensity')
-        plt.xlabel('m/z')
-
+        lipid_map = {}
+        lipid_id = "not defined"
         if self.ids_pd is not None:
-            y = self.ids_pd['m/z']
-            if mz in y:
-                print("here!")
+            mz_vals = self.ids_pd['m/z']
+            lipid_ids = self.ids_pd['Lipid ID']
+            for i in range(mz_vals.size):
+                x = mz_vals[i]
+                if (mz + .5) > x > (mz - .5):
+                    diff = abs(mz - x)
+                    lipid_map[diff] = lipid_ids[i]
+        if len(lipid_map.keys()) > 0:
+            key = min(lipid_map.keys())
+            lipid_id = lipid_map[key]
 
-        self._spectra_ax.annotate("X = {0:.4f}\nY = {1:.4f}".format(mz, intensity), xy=(mz, intensity), xycoords='data', va='bottom', ha='left',
-                                  bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
+        # TODO: Add in the drift times found here!
+
+        self.ID_Output_Box.setText(lipid_id)
+
+        if self.annotation is not None:
+            self.annotation.remove()
+
+        self.annotation = self._spectra_ax.annotate(
+            "X = {0:.4f}\nY = {1:.4f}\nID = {2}".format(mz, intensity, lipid_id), xy=(mz, intensity), xycoords='data',
+            va='bottom', ha='left',
+            bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
         self.spectra_canvas.draw()
 
     def data_cursor_key(self, event):
