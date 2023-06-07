@@ -2436,6 +2436,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         # TODO: Add in the drift times found here!
 
+        ccc = [83, 42, 10, 4, 3]
+        ccc = np.arange(10)
+        ccc = np.asarray(self.mzVals)
+        bbb = 83
+        aaa = np.where(ccc < 5, ccc, 0)
+
+        mz_vals = np.asarray(self.mzVals)
+
+        vals = np.where(mz == self.mzVals, self.mzVals, 0).nonzero()
+
         self.ID_Output_Box.setText(lipid_id)
 
         if self.annotation is not None:
