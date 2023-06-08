@@ -2428,10 +2428,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if self.ppm_min.value() == 0:
             return 0  # is this correct??
         frac = (mzVal * self.ppm_min.value()) / 1000000  # This is the ppm function engineered to find a value.
+
         # Before I had this, but it wasn't what I needed
         # y = mzVal - frac
         # return y
-        return frac
+        return frac  # Is this right??
 
     def IM_spectra_annotation(self, mz, intensity):
         lipid_map = {}
@@ -2450,6 +2451,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         mz_vals = np.asarray(self.mzVals)
         drifts = np.asarray(self.drifts)
+
         diff = self.ppm_calc(mz)
         vals = np.where(mz + diff > mz_vals, mz_vals, 0)
         vals = np.where(mz - diff < vals, drifts, 0)
