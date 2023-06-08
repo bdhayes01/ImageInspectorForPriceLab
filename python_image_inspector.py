@@ -137,6 +137,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.viewPlusOne = None
         self.viewPlusTwo = None
         self.con_cbar = None
+        self.currMap = None
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint)
 
@@ -1238,6 +1239,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.zmax_isotope.setValue(int(maxIntensityPlusTwo))
 
         self.chosenData = theChosenData
+        self.currMap = theChosenData
         if self.massplusone:
             self.chosenDataIso = theChosenDataPlusOne
         else:
@@ -1645,6 +1647,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
             plt.colorbar(self.con_img)
             self.view.draw()
+            self.currMap = data
             return 0
         # plot the image
         bkg = np.zeros((len(self.y), len(self.x)))  # creates matrix for self.Background
@@ -1787,6 +1790,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def export_ConcMap_Callback(self):
         # when clicking on the exportConcMap button, it will save the filename and concentration the map
+        if isIM:
+            self.Maps[self.exportConcMapname.text()] = self.currMap
+            self.refreshMaplistbox()
+            self.Mapcount += 1
+
         if self.exConcflag:
             self.Maps[self.exportConcMapname.text()] = self.ConcMapData
             self.refreshMaplistbox()
