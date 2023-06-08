@@ -2026,6 +2026,19 @@ background-color: rgb(84, 252, 0);</string>
      </rect>
     </property>
    </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>1380</x>
+      <y>680</y>
+      <width>81</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Minimum ppm </string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

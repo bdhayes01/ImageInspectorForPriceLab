@@ -2435,6 +2435,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         return frac  # Is this right??
 
     def IM_spectra_annotation(self, mz, intensity):
+
+        diff = self.ppm_calc(mz)
         lipid_map = {}
         lipid_id = "not defined"
         if self.ids_pd is not None:
@@ -2442,21 +2444,17 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             lipid_ids = self.ids_pd['Lipid ID']
             for i in range(mz_vals.size):
                 x = mz_vals[i]
-                if (mz + .5) > x > (mz - .5):
-                    diff = abs(mz - x)
-                    lipid_map[diff] = lipid_ids[i]
+                if (mz + diff) > x > (mz - diff):
+                    difference = abs(mz - x)
+                    lipid_map[difference] = lipid_ids[i]
         if len(lipid_map.keys()) > 0:
             key = min(lipid_map.keys())
             lipid_id = lipid_map[key]
 
         mz_vals = np.asarray(self.mzVals)
         drifts = np.asarray(self.drifts)
-
-        diff = self.ppm_calc(mz)
         vals = np.where(mz + diff > mz_vals, mz_vals, 0)
         vals = np.where(mz - diff < vals, drifts, 0)
-        # TODO: These +- need to be the line between m/z.
-        #  How far apart should they be to be considered different lipids?
 
         abc = vals.nonzero()
 
