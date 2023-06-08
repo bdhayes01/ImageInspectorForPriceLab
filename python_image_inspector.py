@@ -2393,6 +2393,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.msindex.setText(str(self.index))
             self.Noise_Output_Box.setText(str(self.img_std[self.index]))
 
+            ID_in = 'not defined'
             if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
                 threshold = float(self.pick_IDthreshold.text())
                 for i in range(len(self.ids_pd['m/z'])):
@@ -2401,8 +2402,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     if (err < threshold):
                         ID_in = self.ids_pd['Lipid ID'][i]
                         break
-                    else:
-                        ID_in = 'not defined'
                 self.ID_Output_Box.setText(str(ID_in))
                 # Annotate
                 x_sig = '%s' % float('%.6g' % self.x_picked[ind][0])
