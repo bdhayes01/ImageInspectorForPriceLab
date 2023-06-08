@@ -1265,6 +1265,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # micrometers, entered as either 'um' or 'microns', and cm.
         # self.IMDataButton
 
+        self.ppm_min.setMinimum(1)
+        self.ppm_min.setMaximum(10000)
+        self.ppm_min.setValue(100)
+
         self.cubefilename = self.fName[0]
         filename = self.cubefilename
         print("Working to read datacube")
@@ -2419,12 +2423,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.IM_spectra_annotation(theXmOverZ, theY)
                 return 0
 
-    def ppm_calc(self, mzVal, compVal):
-        frac = abs(mzVal - compVal) / mzVal
-        tot = frac * 1000000
-        if tot > self.ppm_min.value():
-            return True
-        return False
+    # This is a function that calculates how far away a value must be to be defined as a different lipid.
+    def ppm_calc(self, mzVal):
+        if self.ppm_min.value() == 0:
+            return 0  # is this correct??
+        frac = (mzVal * self.ppm_min.value()) / 1000000  # This is the ppm function engineered to find a value.
+        # Before I had this, but it wasn't what I needed
+        # y = mzVal - frac
+        # return y
+        return frac
 
     def IM_spectra_annotation(self, mz, intensity):
         lipid_map = {}
@@ -2443,18 +2450,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         mz_vals = np.asarray(self.mzVals)
         drifts = np.asarray(self.drifts)
-        vals = np.where(mz + 1 > mz_vals, mz_vals, 0)
-        vals = np.where(mz - 1 < vals, drifts, 0)
+        diff = self.ppm_calc(mz)
+        vals = np.where(mz + diff > mz_vals, mz_vals, 0)
+        vals = np.where(mz - diff < vals, drifts, 0)
         # TODO: These +- need to be the line between m/z.
         #  How far apart should they be to be considered different lipids?
-        # vals = np.where(self.ppm_calc(mz, mz_vals), drifts, 0)
 
         abc = vals.nonzero()
 
         finals = drifts[abc]
-
-        a = max(finals)
-        b = min(finals)
+        if len(finals) != 0:
+            range_low = min(finals)
+            range_high = max(finals)
+        else:
+            range_low = 0
+            range_high = "Error. Try a lower minimum ppm."
 
         self.ID_Output_Box.setText(lipid_id)
 
@@ -2463,7 +2473,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.annotation = self._spectra_ax.annotate(
             "X = {0:.4f}\nY = {1:.4f}\nID = {2}\nDrift Range = {3}-{4}".format
-            (mz, intensity, lipid_id, min(finals), max(finals)), xy=(mz, intensity), xycoords='data',
+            (mz, intensity, lipid_id, range_low, range_high), xy=(mz, intensity), xycoords='data',
             va='bottom', ha='left',
             bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
         self.spectra_canvas.draw()
