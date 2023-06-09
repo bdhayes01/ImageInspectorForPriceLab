@@ -168,6 +168,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ROI_listbox.itemDoubleClicked.connect(self.ROI_listbox_Callback)
         self.importROI.clicked.connect(self.importROI_Callback)
         self.deleteROIbutton.clicked.connect(self.deleteROIbutton_Callback)
+        self.clearROIbutton.clicked.connect(self.clearROI_Callback)
         self.exportROI_val.clicked.connect(self.exportROI_spectra_val_Callback)
         self.find_IDlist.clicked.connect(self.find_IDlist_Callback)
         self.Map_listbox.itemDoubleClicked.connect(self.Map_listbox_Callback)
@@ -2319,6 +2320,25 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             #         self.ROIcount = self.ROIcount - 1
             #         self.ROIcountbox.setText(str(self.ROIcount))
             #         self.refreshROIlistbox()
+
+    def clearROI_Callback(self):
+        self.ROIplots.clear()
+        self.ROI.clear()
+        self.ROI_img_mean.clear()
+        self.ROIcount = 0
+        self.ROIcountbox.setText("0")
+        self.refreshROIlistbox()
+        if isIM:
+            self.im_point()
+
+        for roi in self.ROIplots.keys():
+            del self.ROIplots[roi]
+            del self.ROI[roi]
+            del self.ROI_img_mean[roi]
+            self.ROIcount -= 1
+            self.ROIcountbox.setText(str(self.ROIcount))
+            self.refreshROIlistbox()
+
 
     # --- Executes on button press in find_file_mzOI.
     def find_file_mzOI_Callback(self):

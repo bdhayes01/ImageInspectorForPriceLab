@@ -494,7 +494,7 @@
       <rect>
        <x>10</x>
        <y>240</y>
-       <width>171</width>
+       <width>111</width>
        <height>31</height>
       </rect>
      </property>
@@ -542,6 +542,27 @@
      </property>
      <property name="text">
       <string>Export ROI spectra as .csv</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="clearROIbutton">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>240</y>
+       <width>51</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Arial</family>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(255, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string>Clear</string>
      </property>
     </widget>
    </widget>
@@ -1851,7 +1872,7 @@ background-color: rgb(84, 252, 0);</string>
       <rect>
        <x>10</x>
        <y>150</y>
-       <width>71</width>
+       <width>91</width>
        <height>31</height>
       </rect>
      </property>
@@ -1870,9 +1891,9 @@ background-color: rgb(84, 252, 0);</string>
     <widget class="QPushButton" name="clearMapListboxbutton">
      <property name="geometry">
       <rect>
-       <x>90</x>
+       <x>110</x>
        <y>150</y>
-       <width>71</width>
+       <width>51</width>
        <height>31</height>
       </rect>
      </property>
@@ -1886,7 +1907,7 @@ background-color: rgb(84, 252, 0);</string>
       <string notr="true">background-color: rgb(255, 0, 0);</string>
      </property>
      <property name="text">
-      <string>Clear listbox</string>
+      <string>Clear</string>
      </property>
     </widget>
    </widget>
