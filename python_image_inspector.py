@@ -2646,7 +2646,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 pathfile = os.path.join(dirpath, name + '.csv')
                 df.to_csv(pathfile, index=False)
             else:
-                print('Please a directory')
+                print('Please choose a directory')
             return 0
         if pickeditem:
             df = pd.DataFrame(self.Maps[pickeditem.text()][0])
@@ -2656,7 +2656,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 pathfile = os.path.join(dirpath, name + '.csv')
                 df.to_csv(pathfile, index=False)
             else:
-                print('Please a directory')
+                print('Please choose a directory')
 
     # executes when a load button is clicked
     def MultiMapCompare_LoadMap_Callback(self, button):
