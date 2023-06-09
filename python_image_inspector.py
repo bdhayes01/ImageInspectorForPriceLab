@@ -2648,6 +2648,52 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("Choose an item from the listbox")
 
     def MultiMapCompare_LoadMap_func(self, pickeditem, num):
+        if isIM:
+            item = pickeditem.text()
+            self.mmcWindow.map_packet[num][6].setText(item)
+            thePlot = self.Maps[item]
+
+            chosenMap = []
+
+            for row in thePlot:
+                tempRow = []
+                for frame in row:
+                    if frame != 0:
+                        tot = 0
+                        for eachBin in frame:
+                            tot += eachBin[1]
+                        tempRow.append(tot)
+                    else:
+                        tempRow.append(0)
+                chosenMap.append(tempRow)
+
+
+
+            numY = len(chosenMap)
+            numX = len(chosenMap[0])
+            xend = numX * .075
+            yend = numY * .15
+
+            self.mmcWindow.map_packet[num][0] = FigureCanvas(plt.figure(tight_layout=True))
+            self.mmcWindow.map_packet[num][3] = NavigationToolbar(self.mmcWindow.map_packet[num][0], self)
+            self.mmcWindow.map_packet[num][5].addWidget(self.mmcWindow.map_packet[num][3])
+            self.mmcWindow.map_packet[num][5].addWidget(self.mmcWindow.map_packet[num][0])
+            self.mmcWindow.map_packet[num][1] = self.mmcWindow.map_packet[num][0].figure.subplots()
+
+            self.mmcWindow.map_packet[num][2] = self.mmcWindow.map_packet[num][1].imshow(chosenMap, cmap='jet',
+                interpolation='gaussian', aspect=(yend / xend), extent=[0, xend, 0, yend])
+
+            self.mmcWindow.map_packet[num][1].set_xlabel('x, mm')
+            self.mmcWindow.map_packet[num][1].set_ylabel('y, mm')
+            self.mmcWindow.map_packet[num][4] = self.mmcWindow.map_packet[num][0].figure.colorbar(
+                self.mmcWindow.map_packet[num][2])
+            # self.mmcWindow.map_packet[num][1].invert_yaxis()
+            # self.mmcWindow.map_packet[num][1].set_aspect('equal')
+            return 0
+
+            # [self.map_canvas1, self.map_ax1, self.map_img1, self.map_toolbar1, self.map_cbar1, self.slot1_plot,
+            #  self.slot1_name]
+
         self.mmcWindow.map_packet[num][6].setText(pickeditem.text())
         x_end = self.Maps[pickeditem.text()][1]
         y_end = self.Maps[pickeditem.text()][2]
