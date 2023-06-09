@@ -1401,6 +1401,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # self.axes.set_xlabel('m/z')
         # self.axes.set_ylabel('intensity')
         self.view.draw()
+        self.currMap = chosenData
 
         self.has_data = 1
         # plt.show()
@@ -2660,19 +2661,24 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 for frame in row:
                     if frame != 0:
                         tot = 0
-                        for eachBin in frame:
-                            tot += eachBin[1]
+                        if isinstance(frame, np.float64):
+                            tot = frame
+                        else:
+                            for eachBin in frame:
+                                tot += eachBin[1]
                         tempRow.append(tot)
                     else:
                         tempRow.append(0)
                 chosenMap.append(tempRow)
 
-
-
             numY = len(chosenMap)
             numX = len(chosenMap[0])
             xend = numX * .075
             yend = numY * .15
+
+            if self.mmcWindow.map_packet[num][5]:
+                self.mmcWindow.map_packet[num][5].removeWidget(self.mmcWindow.map_packet[num][3])
+                self.mmcWindow.map_packet[num][5].removeWidget(self.mmcWindow.map_packet[num][0])
 
             self.mmcWindow.map_packet[num][0] = FigureCanvas(plt.figure(tight_layout=True))
             self.mmcWindow.map_packet[num][3] = NavigationToolbar(self.mmcWindow.map_packet[num][0], self)
@@ -2687,8 +2693,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.mmcWindow.map_packet[num][1].set_ylabel('y, mm')
             self.mmcWindow.map_packet[num][4] = self.mmcWindow.map_packet[num][0].figure.colorbar(
                 self.mmcWindow.map_packet[num][2])
-            # self.mmcWindow.map_packet[num][1].invert_yaxis()
-            # self.mmcWindow.map_packet[num][1].set_aspect('equal')
             return 0
 
             # [self.map_canvas1, self.map_ax1, self.map_img1, self.map_toolbar1, self.map_cbar1, self.slot1_plot,
