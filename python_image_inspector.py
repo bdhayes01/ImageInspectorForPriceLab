@@ -2331,10 +2331,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if isIM:
             self.im_point()
 
-        for roi in self.ROIplots.keys():
-            del self.ROIplots[roi]
-            del self.ROI[roi]
-            del self.ROI_img_mean[roi]
+        for theRoi in self.ROIplots.keys():
+            del self.ROIplots[theRoi]
+            del self.ROI[theRoi]
+            del self.ROI_img_mean[theRoi]
             self.ROIcount -= 1
             self.ROIcountbox.setText(str(self.ROIcount))
             self.refreshROIlistbox()
@@ -2636,6 +2636,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def MultiMapCompare_exportMapData_Callback(self):
         pickeditem = self.mmcWindow.pickitem
+        if isIM:
+            theMap = self.Maps[pickeditem.text()]
+            one = theMap[0]
+            df = pd.DataFrame(theMap)
+            name = self.mmcWindow.exportMapData_filename.text()
+            dirpath = QFileDialog.getExistingDirectory(self, 'Select a directory to export')
+            if dirpath != '':
+                pathfile = os.path.join(dirpath, name + '.csv')
+                df.to_csv(pathfile, index=False)
+            else:
+                print('Please a directory')
+            return 0
         if pickeditem:
             df = pd.DataFrame(self.Maps[pickeditem.text()][0])
             name = self.mmcWindow.exportMapData_filename.text()
