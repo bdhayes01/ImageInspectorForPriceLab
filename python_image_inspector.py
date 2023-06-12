@@ -5,6 +5,14 @@ Created on Wed Feb 10 15:58:09 2021
 @author: wtd14
 """
 
+# Colors: 022b3a-1f7a8c-bfdbf7-e1e5f2-ffffff
+# 01161e-124559-598392-aec3b0-eff6e0 S votes for this one
+# 5c9ead-ffffff-326273-eeeeee-e39774
+# 5d737e-64b6ac-c0fdfb-daffef-fcfffd
+# bdd9bf-2e4052-ffc857-ffffff-412234
+# e53d00-ffe900-fcfff7-21a0a0-046865
+# f7f0f5-decbb7-8f857d-5c5552-433633
+
 import os
 import sys
 from PyQt5 import QtWidgets
