@@ -1054,6 +1054,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # 2. You probably shouldn't do all of these calculations over again,
         # probably should pull them out of chosen data.
 
+        picked_point = float(self.start.text())
+        max_diff = self.ppm_calc(picked_point)
+
         self.massbox.setText(self.start.text())
 
         fileID = open(self.cubefilename)
@@ -1113,22 +1116,19 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     driftTime = data[i + 1]
                     i += 2
                     for a in range(int(numValues)):
-                        if (data[i] >= (float(self.start.text()) - .5)) and (
-                                data[i] < (float(self.start.text()) + .5)):
+                        if picked_point - max_diff <= data[i] < picked_point + max_diff:
                             theVal += data[i + 1]
                             otherVal.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAdded = True
                             if data[i + 1] > maxIntensity:
                                 maxIntensity = data[i + 1]
-                        if (data[i] >= (float(self.start.text()) + .5)) and (
-                                data[i] < (float(self.start.text()) + 1.5)):
+                        if picked_point + 1 - max_diff <= data[i] < picked_point + 1 + max_diff:
                             theValPlusOne += data[i + 1]
                             otherValPlusOne.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAddedPlusOne = True
                             if data[i + 1] > maxIntensityPlusOne:
                                 maxIntensityPlusOne = data[i + 1]
-                        if (data[i] >= (float(self.start.text()) + 1.5)) and (
-                                data[i] < (float(self.start.text()) + 2.5)):
+                        if picked_point + 2 - max_diff <= data[i] < picked_point + 2 + max_diff:
                             theValPlusTwo += data[i + 1]
                             otherValPlusTwo.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAddedPlusTwo = True
@@ -1242,7 +1242,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.chosenData = theChosenData
         self.ConcMapData = theChosenData
-        if self.massplusone:
+        if self.massplusone.isChecked():
             self.chosenDataIso = theChosenDataPlusOne
             self.IsotopeMapData = theChosenDataPlusOne
         else:
