@@ -1054,6 +1054,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # 2. You probably shouldn't do all of these calculations over again,
         # probably should pull them out of chosen data.
 
+        self.massbox.setText(self.start.text())
+
         fileID = open(self.cubefilename)
         data = np.fromfile(fileID, dtype=np.float32)
         frameNum = data[0]
