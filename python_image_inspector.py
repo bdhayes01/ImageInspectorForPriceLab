@@ -2349,6 +2349,28 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.fName_mzOI_flag = True
 
     def mzOI_extractMap_Callback(self):
+        if isIM:
+            if self._spectra_ax:
+                self.plot_spectra.removeWidget(self.spectra_toolbar)
+                self.plot_spectra.removeWidget(self.spectra_canvas)
+            self.spectra_canvas = FigureCanvas(plt.Figure(tight_layout=True))
+            self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+            self.spectra_canvas.setFocus()
+            self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
+            self.plot_spectra.addWidget(self.spectra_toolbar)
+            self.plot_spectra.addWidget(self.spectra_canvas)
+            self._spectra_ax = self.spectra_canvas.figure.subplots()
+            x = self._spectra_ax.scatter(self.mzVals, self.drifts, s=.01, c=self.intensity, cmap="Greens", alpha=0.75, picker=True)
+            plt.colorbar(x).set_label("Intensities")
+            self._spectra_ax.set_title("Points in selected region")
+            self._spectra_ax.set_xlabel("m/z")
+            self._spectra_ax.set_ylabel("drifts")
+            self.spectra_canvas.mpl_connect("pick_event", self.data_cursor_click)
+            self.spectra_canvas.mpl_connect("key_press_event", self.data_cursor_key)
+            self.exSpecflag = True
+
+            return 0
+
         if self.exSpecflag:
             if self.fName_mzOI_flag:
                 filename_mzOI = self.fName_mzOI[0]
@@ -2451,17 +2473,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # This is a function that calculates how far away a value must be to be defined as a different lipid.
     def ppm_calc(self, mzVal):
-        if self.ppm_min.value() == 0:
+        if float(self.pick_IDthreshold.text()) == 0:
             return 0  # is this correct??
-        frac = (mzVal * self.ppm_min.value()) / 1000000  # This is the ppm function engineered to find a value.
-
-        # Before I had this, but it wasn't what I needed
-        # y = mzVal - frac
-        # return y
-        return frac  # Is this right??
+        return mzVal * float(self.pick_IDthreshold.text()) / 1e6
 
     def IM_spectra_annotation(self, mz, intensity):
-
         diff = self.ppm_calc(mz)
         lipid_map = {}
         lipid_id = "not defined"
@@ -2490,7 +2506,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             range_high = max(finals)
         else:
             range_low = 0
-            range_high = "Error. Try a lower minimum ppm."
+            range_high = "Error. Try a higher minimum ppm."
 
         self.ID_Output_Box.setText(lipid_id)
 
