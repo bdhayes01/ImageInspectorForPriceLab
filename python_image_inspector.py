@@ -2350,6 +2350,19 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def mzOI_extractMap_Callback(self):
         if isIM:
+            chosen_val = float(self.start.text())
+            diff = self.ppm_calc(chosen_val)
+
+            mzVals = []
+            drifts = []
+            intensity = []
+            for i in range(len(self.mzVals)):
+                if chosen_val + diff >= self.mzVals[i] >= chosen_val - diff:
+                    mzVals.append(self.mzVals[i])
+                    drifts.append(self.drifts[i])
+                    intensity.append(self.intensity[i])
+
+
             if self._spectra_ax:
                 self.plot_spectra.removeWidget(self.spectra_toolbar)
                 self.plot_spectra.removeWidget(self.spectra_canvas)
@@ -2360,8 +2373,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.plot_spectra.addWidget(self.spectra_toolbar)
             self.plot_spectra.addWidget(self.spectra_canvas)
             self._spectra_ax = self.spectra_canvas.figure.subplots()
-            x = self._spectra_ax.scatter(self.mzVals, self.drifts, s=.01, c=self.intensity, cmap="Greens", alpha=0.75, picker=True)
-            plt.colorbar(x).set_label("Intensities")
+            x = self._spectra_ax.scatter(mzVals, drifts, s=.01, alpha=0.75, picker=True)
+            # , c = intensity, cmap = "Greens"
+            # plt.colorbar(x).set_label("Intensities")
             self._spectra_ax.set_title("Points in selected region")
             self._spectra_ax.set_xlabel("m/z")
             self._spectra_ax.set_ylabel("drifts")
