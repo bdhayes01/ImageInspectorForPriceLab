@@ -1271,10 +1271,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # micrometers, entered as either 'um' or 'microns', and cm.
         # self.IMDataButton
 
-        self.ppm_min.setMinimum(1)
-        self.ppm_min.setMaximum(10000)
-        self.ppm_min.setValue(100)
-
         self.cubefilename = self.fName[0]
         filename = self.cubefilename
         print("Working to read datacube")
