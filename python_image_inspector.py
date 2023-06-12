@@ -34,8 +34,8 @@ from matplotlib.figure import Figure
 # imported file
 import ROI_class as roi  # ROI_class.py
 
-MW_width = 1491
-MW_height = 951
+MW_width = 1591
+MW_height = 1051
 isIM = None
 
 
@@ -220,6 +220,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.fName_mzOI_flag = False
         self.micrometer.setChecked(True)
         self.massplusone.setChecked(True)
+        self.all_drift_times.setChecked(True)
         self.ideal_ratio.setText('1')
         QListWidgetItem('ROI list appears here', self.ROI_listbox)
         QListWidgetItem('Map list appears here', self.Map_listbox)
