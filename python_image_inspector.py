@@ -1056,6 +1056,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         picked_point = float(self.start.text())
         max_diff = self.ppm_calc(picked_point)
+        ideal_ratio = float(self.ideal_ratio.text())
 
         self.massbox.setText(self.start.text())
 
@@ -1079,6 +1080,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         maxIntensity = 0
         maxIntensityPlusOne = 0
         maxIntensityPlusTwo = 0
+
 
         while numFiles < fileNum:
             if frameDone:
@@ -1122,13 +1124,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                             valAdded = True
                             if data[i + 1] > maxIntensity:
                                 maxIntensity = data[i + 1]
-                        if picked_point + 1 - max_diff <= data[i] < picked_point + 1 + max_diff:
+                        if picked_point + (1/ideal_ratio) - max_diff <= data[i] < picked_point + (1/ideal_ratio) + max_diff:
                             theValPlusOne += data[i + 1]
                             otherValPlusOne.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAddedPlusOne = True
                             if data[i + 1] > maxIntensityPlusOne:
                                 maxIntensityPlusOne = data[i + 1]
-                        if picked_point + 2 - max_diff <= data[i] < picked_point + 2 + max_diff:
+                        if picked_point + (2/ideal_ratio) - max_diff <= data[i] < picked_point + (2/ideal_ratio) + max_diff:
                             theValPlusTwo += data[i + 1]
                             otherValPlusTwo.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAddedPlusTwo = True
@@ -1165,6 +1167,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 theValPlusOne = 0
                 theValPlusTwo = 0
                 numFrames += 1
+
+        firstSum = maxIntensityPlusOne / (maxIntensityPlusOne + maxIntensity)
+        secondSum = maxIntensityPlusTwo / (maxIntensity + maxIntensityPlusOne + maxIntensityPlusTwo)
+
+        self.Mplusonesumratio.setText(str(firstSum))
+        self.Mplustwosumratio.setText(str(secondSum))
 
         numY = len(chosenData)
         numX = len(chosenData[0])
