@@ -1176,9 +1176,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 theValPlusOne = 0
                 theValPlusTwo = 0
                 numFrames += 1
-
-        firstSum = maxIntensityPlusOne / (maxIntensityPlusOne + maxIntensity)
-        secondSum = maxIntensityPlusTwo / (maxIntensity + maxIntensityPlusOne + maxIntensityPlusTwo)
+        firstSum = 0
+        secondSum = 0
+        if maxIntensityPlusOne + maxIntensity != 0:
+            firstSum = maxIntensityPlusOne / (maxIntensityPlusOne + maxIntensity)
+            secondSum = maxIntensityPlusTwo / (maxIntensity + maxIntensityPlusOne + maxIntensityPlusTwo)
 
         self.Mplusonesumratio.setText(str(firstSum))
         self.Mplustwosumratio.setText(str(secondSum))
@@ -1412,7 +1414,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.toolbar = NavigationToolbar(self.view, self)
         self.plot_con.addWidget(self.view)
         self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
-                                        aspect=(yend / xend), extent=[0, xend, 0, yend])
+                                        aspect=(yend / xend), extent=[0, xend/100, 0, yend/100])
+        # The key to units is here... picture will be the same, but it will be 5mm vs .5 cm
         plt.colorbar(self.con_img)
         # self.axes.set_title('Points In Selected Region')
         # self.axes.set_xlabel('m/z')
