@@ -1407,6 +1407,17 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         xend = numX * .075
         yend = numY * .15
 
+
+        if self.micrometer.isChecked():
+            scalefact = 1e3
+            label = 'μm'
+        elif self.millimeter.isChecked():
+            scalefact = 1
+            label = 'mm'
+        elif self.centimeter.isChecked():
+            scalefact = 0.1
+            label = 'cm'
+
         if self.view:
             self.plot_con.removeWidget(self.view)
         self.view = FigureCanvas(Figure(figsize=(5, 3)))
@@ -1414,12 +1425,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.toolbar = NavigationToolbar(self.view, self)
         self.plot_con.addWidget(self.view)
         self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
-                                        aspect=(yend / xend), extent=[0, xend/100, 0, yend/100])
-        # The key to units is here... picture will be the same, but it will be 5mm vs .5 cm
+                                        aspect=(yend / xend), extent=[0, xend*scalefact, 0, yend*scalefact])
+        # TODO: Ask esteban if this is right. If it is, add it to the other graphs.
         plt.colorbar(self.con_img)
         # self.axes.set_title('Points In Selected Region')
-        # self.axes.set_xlabel('m/z')
-        # self.axes.set_ylabel('intensity')
+        self.axes.set_xlabel(label)
+        self.axes.set_ylabel(label)
         self.view.draw()
         self.ConcMapData = chosenData
 
