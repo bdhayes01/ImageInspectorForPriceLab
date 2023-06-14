@@ -309,7 +309,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ConcMapData = 0  # map data, x_end, y_end, ()
         self.IsotopeMapData = 0  # # map data, x_end, y_end, (iso_min, iso_max)
 
-
         # Style sheets
         self.micrometer.setStyleSheet("QRadioButton{border:None}"
                                       "QRadioButton::indicator:checked{"
