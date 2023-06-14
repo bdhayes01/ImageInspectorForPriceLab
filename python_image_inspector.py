@@ -49,7 +49,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-mainWindow_ui_path = resource_path("python_image_inspector_layout.ui")
+mainWindow_ui_path = resource_path("image_inspector_layout.ui")
 mmcWindow_ui_path = resource_path("python_image_inspector_multicomp.ui")
 DESI_ID_path = resource_path("DESI_ID_File.csv")
 
@@ -146,7 +146,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.viewPlusOne = None
         self.viewPlusTwo = None
         self.con_cbar = None
-        self._spectra_ax = None
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint)
 
@@ -335,7 +334,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.plot_spectra.removeWidget(self.spectra_canvas)
                 del self.spectra_canvas
                 del self.spectra_toolbar
-                # del self._spectra_ax
             else:
                 return 0
 
@@ -382,7 +380,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.plot_spectra.removeWidget(self.spectra_canvas)
             del self.spectra_canvas
             del self.spectra_toolbar
-            # del self._spectra_ax
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
