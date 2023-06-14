@@ -1429,8 +1429,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # TODO: Ask esteban if this is right. If it is, add it to the other graphs.
         plt.colorbar(self.con_img)
         # self.axes.set_title('Points In Selected Region')
-        self.axes.set_xlabel(label)
-        self.axes.set_ylabel(label)
+        self.axes.set_xlabel("x, " + label)
+        self.axes.set_ylabel("y, " + label)
         self.view.draw()
         self.ConcMapData = chosenData
 
