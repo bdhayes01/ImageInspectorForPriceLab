@@ -335,6 +335,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.plot_spectra.removeWidget(self.spectra_canvas)
                 del self.spectra_canvas
                 del self.spectra_toolbar
+                # del self._spectra_ax
             else:
                 return 0
 
@@ -381,6 +382,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.plot_spectra.removeWidget(self.spectra_canvas)
             del self.spectra_canvas
             del self.spectra_toolbar
+            # del self._spectra_ax
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -1448,10 +1450,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 theVal = 0
                 numFrames += 1
 
-        self.drift_scrollbar.setMinimum(min(drifts))
-        self.drift_scrollbar.setMaximum(max(drifts))
-        self.drift_time.setMinimum(min(drifts))
-        self.drift_time.setMaximum(max(drifts))
+        self.drift_scrollbar.setMinimum(int(min(drifts)))
+        self.drift_scrollbar.setMaximum(int(max(drifts)))
+        self.drift_time.setMinimum(int(min(drifts)))
+        self.drift_time.setMaximum(int(max(drifts)))
 
         if self._spectra_ax:
             self.plot_spectra.removeWidget(self.spectra_toolbar)
