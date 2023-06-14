@@ -149,6 +149,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint)
 
+        # plots
+        self._spectra_ax = None
+        self._con_ax = None
+        self._kin_ax = None
+
         # load in default ID file
         self.ids_pd = pd.read_csv(DESI_ID_path)
 
@@ -293,11 +298,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.spectra_canvas = None
         self.con_canvas = None
         self.kin_canvas = None
-
-        # plots
-        self._spectra_ax = None
-        self._con_ax = None
-        self._kin_ax = None
 
         # ROI
         self.h = None
@@ -2197,6 +2197,34 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def importROI_Callback(self):
         if (self.ROI_listselect_text == ""):
             print("No item selected")
+        elif isIM:
+            x = self.ROIData
+            mzVals = []
+            intensity = []
+            drifts = []
+            for val in x:
+                mzVals.append(val[0])
+                intensity.append(val[1])
+                drifts.append(val[2])
+
+            if self._spectra_ax:
+                self.plot_spectra.removeWidget(self.spectra_toolbar)
+                self.plot_spectra.removeWidget(self.spectra_canvas)
+            self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
+            self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+            self.spectra_canvas.setFocus()
+            self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
+            self.plot_spectra.addWidget(self.spectra_toolbar)
+            self.plot_spectra.addWidget(self.spectra_canvas)
+            self._spectra_ax = self.spectra_canvas.figure.subplots()
+            x = self._spectra_ax.scatter(mzVals, intensity, s=1, c=drifts, cmap="Greens", alpha=0.75, picker=True)
+            plt.colorbar(x).set_label('Drift times')
+            self._spectra_ax.set_title('Points In Selected Region')
+            self._spectra_ax.set_xlabel('m/z')
+            self._spectra_ax.set_ylabel('intensity')
+            self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
+            self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
+            return 0
         else:
             self.rgflag = False
             self.ptflag = False
