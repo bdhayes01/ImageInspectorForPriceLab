@@ -136,6 +136,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.spectra_toolbar = None
         self.annotation = None
         self.mzVals = None
         self.intensity = None
@@ -145,6 +146,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.viewPlusOne = None
         self.viewPlusTwo = None
         self.con_cbar = None
+        self._spectra_ax = None
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint)
 
@@ -185,6 +187,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.deleteMapbutton.clicked.connect(self.deleteMapbutton_Callback)
         self.clearMapListboxbutton.clicked.connect(self.clearMapbutton_Callback)
         self.extract_Map_mzOI.clicked.connect(self.mzOI_extractMap_Callback)
+        self.drift_scrollbar.sliderMoved.connect(self.drift_scrollbar_callback)
+        self.drift_time.valueChanged.connect(self.drift_time_callback)
+        self.one_drift_time.toggled.connect(self.button_changed_callback)
+        self.all_drift_times.toggled.connect(self.button_changed_callback)
 
         # imButton = self.find_el
         self.IMDataButton.clicked.connect(self.setIM)
@@ -318,6 +324,80 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # --- Executes on button press in mass_up.
     # When the button is clicked, the mass index is incremented by 1
     # and the image for the new mass is displayed
+
+    def button_changed_callback(self):
+        if self.one_drift_time.isChecked():
+            val = self.drift_time.value()
+            self.show_mz_map(val)
+        else:
+            if self._spectra_ax:
+                self.plot_spectra.removeWidget(self.spectra_toolbar)
+                self.plot_spectra.removeWidget(self.spectra_canvas)
+                del self.spectra_canvas
+                del self.spectra_toolbar
+            else:
+                return 0
+
+            self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
+            self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+            self.spectra_canvas.setFocus()
+            self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
+            self.plot_spectra.addWidget(self.spectra_toolbar)
+            self.plot_spectra.addWidget(self.spectra_canvas)
+            self._spectra_ax = self.spectra_canvas.figure.subplots()
+            x = self._spectra_ax.scatter(self.mzVals, self.intensity, s=.01, c=self.drifts,
+                                         cmap="Greens", alpha=0.75, picker=True)
+            plt.colorbar(x).set_label('Drift times')
+            self._spectra_ax.set_title('Points In Selected Region')
+            self._spectra_ax.set_xlabel('m/z')
+            self._spectra_ax.set_ylabel('intensity')
+            self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
+            self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
+        return 0
+
+    def drift_time_callback(self):
+        val = self.drift_time.value()
+        self.drift_scrollbar.setValue(val)
+        if self.one_drift_time.isChecked():
+            self.show_mz_map(val)
+
+    def drift_scrollbar_callback(self):
+        val = self.drift_scrollbar.sliderPosition()
+        self.drift_time.setValue(val)
+        if self.one_drift_time.isChecked():
+            self.show_mz_map(val)
+
+    def show_mz_map(self, val):
+        theDrifts = np.asarray(self.drifts)
+        drift_vals = np.where(val == theDrifts, self.drifts, 0)
+        drift_vals = drift_vals.nonzero()
+
+        mzVals = np.asarray(self.mzVals)[drift_vals]
+        intensity = np.asarray(self.intensity)[drift_vals]
+        drifts = np.asarray(self.drifts)[drift_vals]
+
+        if self._spectra_ax:
+            self.plot_spectra.removeWidget(self.spectra_toolbar)
+            self.plot_spectra.removeWidget(self.spectra_canvas)
+            del self.spectra_canvas
+            del self.spectra_toolbar
+
+        self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
+        self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.spectra_canvas.setFocus()
+        self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
+        self.plot_spectra.addWidget(self.spectra_toolbar)
+        self.plot_spectra.addWidget(self.spectra_canvas)
+        self._spectra_ax = self.spectra_canvas.figure.subplots()
+        self._spectra_ax.scatter(mzVals, intensity, s=.1, alpha=0.75, picker=True)
+        self._spectra_ax.set_title('Points In Selected Region')
+        self._spectra_ax.set_xlabel('m/z')
+        self._spectra_ax.set_ylabel('intensity')
+        self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
+        self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
+        return 0
+
+
     def mass_up_Callback(self):
         if isIM:
             val = float(self.start.text()) + 1.0
@@ -1367,6 +1447,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 valAdded = False
                 theVal = 0
                 numFrames += 1
+
+        self.drift_scrollbar.setMinimum(min(drifts))
+        self.drift_scrollbar.setMaximum(max(drifts))
+        self.drift_time.setMinimum(min(drifts))
+        self.drift_time.setMaximum(max(drifts))
 
         if self._spectra_ax:
             self.plot_spectra.removeWidget(self.spectra_toolbar)
