@@ -309,6 +309,32 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ConcMapData = 0  # map data, x_end, y_end, ()
         self.IsotopeMapData = 0  # # map data, x_end, y_end, (iso_min, iso_max)
 
+
+        # Style sheets
+        self.micrometer.setStyleSheet("QRadioButton{border:None}"
+                                      "QRadioButton::indicator:checked{"
+                                      "background-color : #598392}")
+        self.millimeter.setStyleSheet("QRadioButton{border:None}"
+                                      "QRadioButton::indicator:checked{"
+                                      "background-color : #598392}")
+        self.centimeter.setStyleSheet("QRadioButton{border:None}"
+                                      "QRadioButton::indicator:checked{"
+                                      "background-color : #598392}")
+        self.IMDataButton.setStyleSheet("QRadioButton{border:None}"
+                                        "QRadioButton::indicator:checked{"
+                                        "width : 25px; height : 12px; border-radius : 7px;"
+                                        "background-color : #598392}")
+        self.MSDataButton.setStyleSheet("QRadioButton{border:None}"
+                                      "QRadioButton::indicator:checked{"
+                                      "background-color : #598392}")
+        self.massplusone.setStyleSheet("QRadioButton::indicator"
+                                        "{"
+                                        "border : 1px solid black;"
+                                        "width : 25px;"
+                                        "height : 12px;"
+                                        "border-radius : 7px;"
+                                        "}")
+
     # --- Executes on button press in find_IDlist.
     # can load a new ID list the consists of two columns
     # must be .csv file
