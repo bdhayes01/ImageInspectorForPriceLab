@@ -38,6 +38,19 @@ MW_width = 1591
 MW_height = 1051
 isIM = None
 
+button_style_sheet = ("QRadioButton{border:None}"
+                      "QRadioButton::indicator:unchecked{"
+                      "border : 1px solid black;"
+                      "width : 25px;"
+                      "height : 12px;"
+                      "border-radius : 7px;}"
+                      "QRadioButton::indicator:checked{"
+                      "border : 1px solid black;"
+                      "width : 25px;"
+                      "height : 12px;"
+                      "border-radius : 7px;"
+                      "background-color : #598392}")
+
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -310,40 +323,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.IsotopeMapData = 0  # # map data, x_end, y_end, (iso_min, iso_max)
 
         # Style sheets
-        self.micrometer.setStyleSheet("QRadioButton{border:None}"
-                                      "QRadioButton::indicator:unchecked{"
-                                      "border : 1px solid black;"
-                                      "width : 25px;"
-                                      "height : 12px;"
-                                      "border-radius : 7px;}"
-                                      "QRadioButton::indicator:checked{"
-                                      "border : 1px solid black;"
-                                      "width : 25px;"
-                                      "height : 12px;"
-                                      "border-radius : 7px;"
-                                      "background-color : #598392}")
-        self.millimeter.setStyleSheet("QRadioButton{border:None}"
-                                      "QRadioButton::indicator:checked{"
-                                      "border-radius : 10px;"
-                                      "background-color : #598392}")
-        self.centimeter.setStyleSheet("QRadioButton{border:None}"
-                                      "QRadioButton::indicator:checked{"
-                                      "border-radius : 10px;"
-                                      "background-color : #598392}")
-        self.IMDataButton.setStyleSheet("QRadioButton{border:None}"
-                                        "QRadioButton::indicator:checked{"
-                                        "border-radius : 10px;"
-                                        "background-color : #598392}")
-        self.MSDataButton.setStyleSheet("QRadioButton{border:None}"
-                                        "QRadioButton::indicator:checked{"
-                                        "border-radius : 10px;"
-                                        "background-color : #598392}")
-        self.massplusone.setStyleSheet("QRadioButton::indicator{"
-                                       "border : 1px solid black;"
-                                       "width : 25px;"
-                                       "height : 12px;"
-                                       "border-radius : 7px;"
-                                       "}")
+        self.micrometer.setStyleSheet(button_style_sheet)
+        self.millimeter.setStyleSheet(button_style_sheet)
+        self.centimeter.setStyleSheet(button_style_sheet)
+        self.IMDataButton.setStyleSheet(button_style_sheet)
+        self.MSDataButton.setStyleSheet(button_style_sheet)
+        self.massplusone.setStyleSheet(button_style_sheet)
+        self.massplustwo.setStyleSheet(button_style_sheet)
+        self.one_drift_time.setStyleSheet(button_style_sheet)
+        self.all_drift_times.setStyleSheet(button_style_sheet)
 
     # --- Executes on button press in find_IDlist.
     # can load a new ID list the consists of two columns
@@ -409,11 +397,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         mzVals = np.asarray(self.mzVals)[drift_vals]
         intensity = np.asarray(self.intensity)[drift_vals]
-        drifts = np.asarray(self.drifts)[drift_vals]
 
         if self._spectra_ax:
             self.plot_spectra.removeWidget(self.spectra_toolbar)
             self.plot_spectra.removeWidget(self.spectra_canvas)
+            # self.spectra_canvas.close()
+            # self.spectra_toolbar.close()
+            plt.close('all')
             del self.spectra_canvas
             del self.spectra_toolbar
 
@@ -424,7 +414,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.plot_spectra.addWidget(self.spectra_toolbar)
         self.plot_spectra.addWidget(self.spectra_canvas)
         self._spectra_ax = self.spectra_canvas.figure.subplots()
-        self._spectra_ax.scatter(mzVals, intensity, s=.1, alpha=0.75, picker=True)
+        self._spectra_ax.scatter(mzVals, intensity, s=.3, alpha=0.75, picker=True)
         self._spectra_ax.set_title('Points In Selected Region')
         self._spectra_ax.set_xlabel('m/z')
         self._spectra_ax.set_ylabel('intensity')
