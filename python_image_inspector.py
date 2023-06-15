@@ -311,28 +311,39 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         # Style sheets
         self.micrometer.setStyleSheet("QRadioButton{border:None}"
+                                      "QRadioButton::indicator:unchecked{"
+                                      "border : 1px solid black;"
+                                      "width : 25px;"
+                                      "height : 12px;"
+                                      "border-radius : 7px;}"
                                       "QRadioButton::indicator:checked{"
+                                      "border : 1px solid black;"
+                                      "width : 25px;"
+                                      "height : 12px;"
+                                      "border-radius : 7px;"
                                       "background-color : #598392}")
         self.millimeter.setStyleSheet("QRadioButton{border:None}"
                                       "QRadioButton::indicator:checked{"
+                                      "border-radius : 10px;"
                                       "background-color : #598392}")
         self.centimeter.setStyleSheet("QRadioButton{border:None}"
                                       "QRadioButton::indicator:checked{"
+                                      "border-radius : 10px;"
                                       "background-color : #598392}")
         self.IMDataButton.setStyleSheet("QRadioButton{border:None}"
                                         "QRadioButton::indicator:checked{"
-                                        "width : 25px; height : 12px; border-radius : 7px;"
+                                        "border-radius : 10px;"
                                         "background-color : #598392}")
         self.MSDataButton.setStyleSheet("QRadioButton{border:None}"
-                                      "QRadioButton::indicator:checked{"
-                                      "background-color : #598392}")
-        self.massplusone.setStyleSheet("QRadioButton::indicator"
-                                        "{"
-                                        "border : 1px solid black;"
-                                        "width : 25px;"
-                                        "height : 12px;"
-                                        "border-radius : 7px;"
-                                        "}")
+                                        "QRadioButton::indicator:checked{"
+                                        "border-radius : 10px;"
+                                        "background-color : #598392}")
+        self.massplusone.setStyleSheet("QRadioButton::indicator{"
+                                       "border : 1px solid black;"
+                                       "width : 25px;"
+                                       "height : 12px;"
+                                       "border-radius : 7px;"
+                                       "}")
 
     # --- Executes on button press in find_IDlist.
     # can load a new ID list the consists of two columns
@@ -420,7 +431,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
         self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
         return 0
-
 
     def mass_up_Callback(self):
         if isIM:
@@ -1194,7 +1204,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         maxIntensityPlusOne = 0
         maxIntensityPlusTwo = 0
 
-
         while numFiles < fileNum:
             if frameDone:
                 chosenData.append(lineData)
@@ -1237,13 +1246,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                             valAdded = True
                             if data[i + 1] > maxIntensity:
                                 maxIntensity = data[i + 1]
-                        if picked_point + (1/ideal_ratio) - max_diff <= data[i] < picked_point + (1/ideal_ratio) + max_diff:
+                        if picked_point + (1 / ideal_ratio) - max_diff <= data[i] < picked_point + (
+                                1 / ideal_ratio) + max_diff:
                             theValPlusOne += data[i + 1]
                             otherValPlusOne.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAddedPlusOne = True
                             if data[i + 1] > maxIntensityPlusOne:
                                 maxIntensityPlusOne = data[i + 1]
-                        if picked_point + (2/ideal_ratio) - max_diff <= data[i] < picked_point + (2/ideal_ratio) + max_diff:
+                        if picked_point + (2 / ideal_ratio) - max_diff <= data[i] < picked_point + (
+                                2 / ideal_ratio) + max_diff:
                             theValPlusTwo += data[i + 1]
                             otherValPlusTwo.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAddedPlusTwo = True
@@ -1516,7 +1527,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         xend = numX * .075
         yend = numY * .15
 
-
         if self.micrometer.isChecked():
             scalefact = 1e3
             label = 'μm'
@@ -1534,7 +1544,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.toolbar = NavigationToolbar(self.view, self)
         self.plot_con.addWidget(self.view)
         self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
-                                        aspect=(yend / xend), extent=[0, xend*scalefact, 0, yend*scalefact])
+                                        aspect=(yend / xend), extent=[0, xend * scalefact, 0, yend * scalefact])
         # TODO: Ask esteban if this is right. If it is, add it to the other graphs.
         plt.colorbar(self.con_img)
         # self.axes.set_title('Points In Selected Region')
@@ -2505,7 +2515,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.ROIcountbox.setText(str(self.ROIcount))
             self.refreshROIlistbox()
 
-
     # --- Executes on button press in find_file_mzOI.
     def find_file_mzOI_Callback(self):
         self.fName_mzOI = QFileDialog.getOpenFileName(self, 'Pick list: m/z of interest', filter='*.csv')
@@ -2525,7 +2534,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     mzVals.append(self.mzVals[i])
                     drifts.append(self.drifts[i])
                     intensity.append(self.intensity[i])
-
 
             if self._spectra_ax:
                 self.plot_spectra.removeWidget(self.spectra_toolbar)
@@ -2911,7 +2919,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.mmcWindow.map_packet[num][1] = self.mmcWindow.map_packet[num][0].figure.subplots()
 
             self.mmcWindow.map_packet[num][2] = self.mmcWindow.map_packet[num][1].imshow(chosenMap, cmap='jet',
-                interpolation='gaussian', aspect=(yend / xend), extent=[0, xend, 0, yend])
+                                                                                         interpolation='gaussian',
+                                                                                         aspect=(yend / xend),
+                                                                                         extent=[0, xend, 0, yend])
 
             self.mmcWindow.map_packet[num][1].set_xlabel('x, mm')
             self.mmcWindow.map_packet[num][1].set_ylabel('y, mm')
