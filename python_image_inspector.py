@@ -443,7 +443,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             y_mass_up_type = '%s' % float('%.6g' % y_mass_up_val)
 
             if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-                threshold = float(self.pick_IDthreshold.text())
+                threshold = float(self.pick_IDthreshold.value())
                 for i in range(len(self.ids_pd['m/z'])):
                     err = abs((x_mass_up_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
                     # print(err)
@@ -481,7 +481,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             y_mass_down_type = '%s' % float('%.6g' % y_mass_down_val)
 
             if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-                threshold = float(self.pick_IDthreshold.text())
+                threshold = float(self.pick_IDthreshold.value())
                 for i in range(len(self.ids_pd['m/z'])):
                     err = abs((x_mass_down_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
                     # print(err)
@@ -528,7 +528,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             y_start_type = '%s' % float('%.6g' % y_start_val)
 
             if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-                threshold = float(self.pick_IDthreshold.text())
+                threshold = float(self.pick_IDthreshold.value())
                 for i in range(len(self.ids_pd['m/z'])):
                     err = abs((x_start_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
                     # print(err)
@@ -572,7 +572,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             y_msindex_type = '%s' % float('%.6g' % y_msindex_val)
 
             if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-                threshold = float(self.pick_IDthreshold.text())
+                threshold = float(self.pick_IDthreshold.value())
                 for i in range(len(self.ids_pd['m/z'])):
                     err = abs((x_msindex_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
                     # print(err)
@@ -1547,6 +1547,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.has_data = 1
         # plt.show()
         # print("Process the IM Data")
+        self.pick_IDthreshold.setValue(20)
+        self.pick_mzthreshold.setValue(20)
 
     def cubeAsMSData(self, filename):
         fileID = open(filename)
@@ -2558,7 +2560,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 err = 0
                 self.mzOI_index = np.zeros(len(data))
                 temp_mzOI_index = []
-                threshold = float(self.pick_mzthreshold.text())
+                threshold = float(self.pick_mzthreshold.value())
                 for i in range(len(data)):
                     for j in range(len(self.spectra_df['max'])):
                         if (pd.notnull(self.spectra_df['max'][j])) and (self.spectra_df['max'][j] != 0):
@@ -2621,7 +2623,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
             ID_in = 'not defined'
             if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-                threshold = float(self.pick_IDthreshold.text())
+                threshold = float(self.pick_IDthreshold.value())
                 for i in range(len(self.ids_pd['m/z'])):
                     err = abs((self.x_picked[ind][0] - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
                     # print(err)
@@ -2650,9 +2652,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # This is a function that calculates how far away a value must be to be defined as a different lipid.
     def ppm_calc(self, mzVal):
-        if float(self.pick_IDthreshold.text()) == 0:
+        if float(self.pick_IDthreshold.value()) == 0:
             return 0  # is this correct??
-        return mzVal * float(self.pick_IDthreshold.text()) / 1e6
+        return mzVal * float(self.pick_IDthreshold.value()) / 1e6
 
     def IM_spectra_annotation(self, mz, intensity):
         diff = self.ppm_calc(mz)
@@ -2709,7 +2711,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             y_key = '%s' % float('%.6g' % y_val)
 
             if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-                threshold = float(self.pick_IDthreshold.text())
+                threshold = float(self.pick_IDthreshold.value())
                 for i in range(len(self.ids_pd['m/z'])):
                     err = abs((x_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
                     # print(err)
@@ -2735,7 +2737,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             y_key = '%s' % float('%.6g' % y_val)
 
             if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-                threshold = float(self.pick_IDthreshold.text())
+                threshold = float(self.pick_IDthreshold.value())
                 for i in range(len(self.ids_pd['m/z'])):
                     err = abs((x_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
                     # print(err)
