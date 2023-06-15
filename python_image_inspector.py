@@ -1483,7 +1483,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.plot_spectra.removeWidget(self.spectra_canvas)
         if self.viewPlusOne:
             self.plot_kin.removeWidget(self.viewPlusOne)
-            # self.plot_kin.addWidget(None)
             # self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
             # I took this out because it was creating a second plot.
         elif self.viewPlusTwo:

@@ -30,11 +30,17 @@
    </property>
    <property name="font">
     <font>
-     <family>Arial</family>
+     <family>Times New Roman</family>
+     <pointsize>8</pointsize>
+     <weight>50</weight>
+     <italic>false</italic>
+     <bold>false</bold>
     </font>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(238, 238, 238);</string>
+    <string notr="true">background-color: rgb(211, 213, 207);
+font: 8pt &quot;Times New Roman&quot;;
+border: 1px solid black;</string>
    </property>
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
@@ -112,7 +118,8 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
+     <string notr="true">background-color: rgb(238, 204, 204);
+border: 1px solid black;</string>
     </property>
     <property name="text">
      <string>Map name</string>
@@ -132,8 +139,15 @@
     </property>
     <property name="font">
      <font>
-      <family>Arial</family>
+      <family>Times New Roman</family>
+      <pointsize>8</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
      </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: 1px solid black;</string>
     </property>
     <property name="title">
      <string>Map listbox</string>
@@ -148,7 +162,7 @@
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 255, 255);</string>
+      <string notr="true">background-color: rgb(174, 195, 176);border: 1px solid black;</string>
      </property>
     </widget>
    </widget>
@@ -160,6 +174,9 @@
       <width>51</width>
       <height>21</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(204, 221, 214);</string>
     </property>
     <property name="text">
      <string>Load</string>
@@ -175,7 +192,8 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
+     <string notr="true">background-color: rgb(238, 204, 204);
+border: 1px solid black;</string>
     </property>
     <property name="text">
      <string>Map name</string>
@@ -193,6 +211,9 @@
       <height>21</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(204, 221, 214);</string>
+    </property>
     <property name="text">
      <string>Load</string>
     </property>
@@ -207,7 +228,8 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
+     <string notr="true">background-color: rgb(238, 204, 204);
+border: 1px solid black;</string>
     </property>
     <property name="text">
      <string>Map name</string>
@@ -225,6 +247,9 @@
       <height>21</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(204, 221, 214);</string>
+    </property>
     <property name="text">
      <string>Load</string>
     </property>
@@ -239,7 +264,8 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
+     <string notr="true">background-color: rgb(238, 204, 204);
+border: 1px solid black;</string>
     </property>
     <property name="text">
      <string>Map name</string>
@@ -257,6 +283,9 @@
       <height>21</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(204, 221, 214);</string>
+    </property>
     <property name="text">
      <string>Load</string>
     </property>
@@ -271,7 +300,8 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
+     <string notr="true">background-color: rgb(238, 204, 204);
+border: 1px solid black;</string>
     </property>
     <property name="text">
      <string>Map name</string>
@@ -289,6 +319,9 @@
       <height>21</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(204, 221, 214);</string>
+    </property>
     <property name="text">
      <string>Load</string>
     </property>
@@ -303,7 +336,8 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
+     <string notr="true">background-color: rgb(238, 204, 204);
+border: 1px solid black;</string>
     </property>
     <property name="text">
      <string>Map name</string>
@@ -321,6 +355,9 @@
       <height>21</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(204, 221, 214);</string>
+    </property>
     <property name="text">
      <string>Load</string>
     </property>
@@ -331,11 +368,15 @@
       <x>16</x>
       <y>412</y>
       <width>181</width>
-      <height>81</height>
+      <height>111</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(238, 204, 204);
+border: 1px solid black;</string>
+    </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Double click on the item in the &lt;/p&gt;&lt;p&gt;box and press load to display &lt;/p&gt;&lt;p&gt;the map&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Double click on the item in &lt;/p&gt;&lt;p&gt;the box and press load to &lt;/p&gt;&lt;p&gt;display the map&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QPushButton" name="exportMapData">
@@ -346,6 +387,9 @@
       <width>151</width>
       <height>28</height>
      </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(89, 131, 146);</string>
     </property>
     <property name="text">
      <string>Export Map Data</string>
@@ -361,7 +405,8 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
+     <string notr="true">background-color: rgb(238, 204, 204);
+border: 1px solid black;</string>
     </property>
     <property name="text">
      <string>filename (with no extensions)</string>
