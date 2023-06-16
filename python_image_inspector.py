@@ -1048,6 +1048,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         i = 0
 
+        self.numberpoints.setText(str(len(f)))
+
         for line in x:
             for frame in line:
                 if i in f and frame != 0:
