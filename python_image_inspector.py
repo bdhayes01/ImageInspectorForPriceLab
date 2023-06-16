@@ -398,6 +398,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         mzVals = np.asarray(self.mzVals)[drift_vals]
         intensity = np.asarray(self.intensity)[drift_vals]
 
+        theMax = self.max_mz.value()
+        theMin = self.min_mz.value()
+
+        in1 = np.where(theMax >= mzVals, mzVals, 0)
+        in1 = in1.nonzero()
+
+        mzVals = np.asarray(mzVals)[in1]
+        intensity = np.asarray(intensity)[in1]
+
+        in1 = np.where(mzVals >= theMin, mzVals, 0)
+        in1 = in1.nonzero()
+
+        mzVals = np.asarray(mzVals)[in1]
+        intensity = np.asarray(intensity)[in1]
+
         if self._spectra_ax:
             self.plot_spectra.removeWidget(self.spectra_toolbar)
             self.plot_spectra.removeWidget(self.spectra_canvas)
@@ -1549,6 +1564,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # print("Process the IM Data")
         self.pick_IDthreshold.setValue(20)
         self.pick_mzthreshold.setValue(20)
+        self.min_mz.setRange(min(mzVals), max(mzVals))
+        self.max_mz.setRange(min(mzVals), max(mzVals))
+        self.min_mz.setValue(min(mzVals))
+        self.max_mz.setValue(max(mzVals))
 
     def cubeAsMSData(self, filename):
         fileID = open(filename)

@@ -1285,7 +1285,7 @@ background-color: rgb(238, 204, 204);</string>
      <string notr="true">border: 1px solid black;</string>
     </property>
     <property name="title">
-     <string>Ideal Ratio</string>
+     <string>m/z spacing</string>
     </property>
     <widget class="QLineEdit" name="ideal_ratio">
      <property name="geometry">
@@ -2478,9 +2478,9 @@ background-color: rgb(204, 221, 214);</string>
     <property name="geometry">
      <rect>
       <x>1300</x>
-      <y>750</y>
+      <y>680</y>
       <width>31</width>
-      <height>181</height>
+      <height>171</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -2494,9 +2494,9 @@ background-color: rgb(204, 221, 214);</string>
     <property name="geometry">
      <rect>
       <x>1340</x>
-      <y>750</y>
+      <y>680</y>
       <width>141</width>
-      <height>181</height>
+      <height>171</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -2564,6 +2564,82 @@ Drift time</string>
     </property>
     <property name="text">
      <string>PushButton</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="max_mz">
+    <property name="geometry">
+     <rect>
+      <x>1410</x>
+      <y>870</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: 1px solid black;background-color: rgb(238, 204, 204);</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="min_mz">
+    <property name="geometry">
+     <rect>
+      <x>1310</x>
+      <y>870</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: 1px solid black;background-color: rgb(238, 204, 204);</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="text27_2">
+    <property name="geometry">
+     <rect>
+      <x>1320</x>
+      <y>890</y>
+      <width>41</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>8</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: None;background:transparent</string>
+    </property>
+    <property name="text">
+     <string>min m/z</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="text27_3">
+    <property name="geometry">
+     <rect>
+      <x>1420</x>
+      <y>890</y>
+      <width>41</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Times New Roman</family>
+      <pointsize>8</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: None;background:transparent</string>
+    </property>
+    <property name="text">
+     <string>max m/z</string>
     </property>
    </widget>
   </widget>
