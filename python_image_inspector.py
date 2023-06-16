@@ -1251,8 +1251,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                             theVal += data[i + 1]
                             otherVal.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAdded = True
-                            if data[i + 1] > maxIntensity:
-                                maxIntensity = data[i + 1]
+                            if theVal > maxIntensity:
+                                maxIntensity = theVal
                         if picked_point + (1 / ideal_ratio) - max_diff <= data[i] < picked_point + (
                                 1 / ideal_ratio) + max_diff:
                             theValPlusOne += data[i + 1]
@@ -1298,14 +1298,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 theValPlusOne = 0
                 theValPlusTwo = 0
                 numFrames += 1
-        firstSum = 0
-        secondSum = 0
-        if maxIntensityPlusOne + maxIntensity != 0:
-            firstSum = maxIntensityPlusOne / (maxIntensityPlusOne + maxIntensity)
-            secondSum = maxIntensityPlusTwo / (maxIntensity + maxIntensityPlusOne + maxIntensityPlusTwo)
+        m_zero_sum = 0
+        m_one_sum = 0
+        m_two_sum = 0
+        if maxIntensity != 0:
+            denom = maxIntensity + maxIntensityPlusOne + maxIntensityPlusTwo
+            m_zero_sum = round(maxIntensity / denom, 4)
+            m_one_sum = round(maxIntensityPlusOne / denom, 4)
+            m_two_sum = round(maxIntensityPlusTwo / denom, 4)
 
-        self.Mplusonesumratio.setText(str(firstSum))
-        self.Mplustwosumratio.setText(str(secondSum))
+        self.Msumratio.setText(str(m_zero_sum))
+        self.Mplusonesumratio.setText(str(m_one_sum))
+        self.Mplustwosumratio.setText(str(m_two_sum))
 
         numY = len(chosenData)
         numX = len(chosenData[0])
@@ -1328,6 +1332,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                                         aspect=(yend / xend), extent=[0, xend, 0, yend])
         plt.colorbar(self.con_img)
         self.view.draw()
+
+        num_pixels = len(chosenData) * len(chosenData[0])
+        self.numberpoints.setText(str(num_pixels))
 
         if self.massplusone.isChecked():
             if self.viewPlusOne:
@@ -1358,7 +1365,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.zmin_isotope.setMinimum(0)
             self.zmin_isotope.setMaximum(int(themax))
             self.zmax_isotope.setValue(int(themax))
-
         elif self.massplustwo.isChecked():
             if self.viewPlusTwo:
                 self.plot_kin.removeWidget(self.viewPlusTwo)
@@ -1401,30 +1407,29 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.zmax.setValue(0)
         self.zmin_isotope.setValue(0)
 
-    def isotope_scalar(self, origData, isotopeData):
+    def isotope_scalar(self, m_zero_intensity, isotope_intensity):
         new_data = []
-        for i in range(len(origData)):
+        for i in range(len(m_zero_intensity)):
             theLine = []
-            orig_line = origData[i]
-            iso_line = isotopeData[i]
+            orig_line = m_zero_intensity[i]
+            iso_line = isotope_intensity[i]
             for j in range(len(orig_line)):
                 if orig_line[j] == 0:
-                    ratio = 0  # TODO: Ask esteban/JC What to do when the original data is 0
+                    ratio = 0
                 else:
                     if isinstance(orig_line[j], list):
-                        orig_vals = 0
+                        m_zero_intensity = 0
                         for line in orig_line[j]:
-                            orig_vals += line[1]
+                            m_zero_intensity += line[1]
                         if isinstance(iso_line[j], list):
-                            iso_vals = 0
+                            iso_intensity = 0
                             for line in iso_line[j]:
-                                iso_vals += line[1]
-                            ratio = iso_vals / orig_vals
+                                iso_intensity += line[1]
+                            ratio = iso_intensity / m_zero_intensity + iso_intensity
                         else:
-                            ratio = iso_line[j] / orig_vals
+                            ratio = iso_line[j] / m_zero_intensity + iso_line[j]
                     else:
-                        ratio = iso_line[j] / orig_line[j]
-                ratio = ratio * 100
+                        ratio = iso_line[j] / orig_line[j] + iso_line[j]
                 theLine.append(ratio)
             new_data.append(theLine)
         return new_data
@@ -1449,6 +1454,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # micrometers, entered as either 'um' or 'microns', and cm.
         # self.IMDataButton
 
+        # TODO: For testing purposes only!
+        # global isIM
+        # isIM = True
+        # self.cubefilename = "C:/Users/Brian/Desktop/Price Lab/Multiplexed-new.bin"
+
+        # TODO: Removed this but needs to be added back in after testing
         self.cubefilename = self.fName[0]
         filename = self.cubefilename
         print("Working to read datacube")
@@ -1461,7 +1472,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif filename.endswith('.bin'):
             print("File extension: .bin")
 
-            if isIM == False:
+            if not isIM:
                 self.cubeAsMSData(filename)
             elif isIM:
                 self.cubeAsIMData(filename)
