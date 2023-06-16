@@ -1346,16 +1346,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             plt.colorbar(self.con_img2)
             self.viewPlusOne.draw()
 
-            self.max_iso.setText(str(maxIntensityPlusOne))
-            self.max_int_iso.setText(str(maxIntensityPlusOne))
+            themax = round((maxIntensityPlusOne / maxIntensity) * 100, 3)
+
+            self.max_iso.setText(str(themax))
+            self.max_int_iso.setText(str(themax))
             self.zmax_isotope.setMinimum(0)
-            self.zmax_isotope.setMaximum(int(maxIntensityPlusOne))
+            self.zmax_isotope.setMaximum(int(themax))
 
             self.min_iso.setText(str(0))
             self.min_int_iso.setText(str(0))
             self.zmin_isotope.setMinimum(0)
-            self.zmin_isotope.setMaximum(int(maxIntensityPlusOne))
-            self.zmax_isotope.setValue(int(maxIntensityPlusOne))
+            self.zmin_isotope.setMaximum(int(themax))
+            self.zmax_isotope.setValue(int(themax))
 
         elif self.massplustwo.isChecked():
             if self.viewPlusTwo:
@@ -1374,16 +1376,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             plt.colorbar(self.con_img2)
             self.viewPlusTwo.draw()
 
-            self.max_iso.setText(str(maxIntensityPlusTwo))
-            self.max_int_iso.setText(str(maxIntensityPlusTwo))
+            themax = round((maxIntensityPlusTwo / maxIntensity) * 100, 3)
+
+            self.max_iso.setText(str(themax))
+            self.max_int_iso.setText(str(themax))
             self.zmax_isotope.setMinimum(0)
-            self.zmax_isotope.setMaximum(int(maxIntensityPlusTwo))
+            self.zmax_isotope.setMaximum(int(themax))
 
             self.min_iso.setText(str(0))
             self.min_int_iso.setText(str(0))
             self.zmin_isotope.setMinimum(0)
-            self.zmin_isotope.setMaximum(int(maxIntensityPlusTwo))
-            self.zmax_isotope.setValue(int(maxIntensityPlusTwo))
+            self.zmin_isotope.setMaximum(int(themax))
+            self.zmax_isotope.setValue(int(themax))
 
         self.chosenData = theChosenData
         self.ConcMapData = theChosenData
