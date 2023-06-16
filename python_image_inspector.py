@@ -1258,15 +1258,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                             theValPlusOne += data[i + 1]
                             otherValPlusOne.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAddedPlusOne = True
-                            if data[i + 1] > maxIntensityPlusOne:
-                                maxIntensityPlusOne = data[i + 1]
+                            if theValPlusOne > maxIntensityPlusOne:
+                                maxIntensityPlusOne = theValPlusOne
                         if picked_point + (2 / ideal_ratio) - max_diff <= data[i] < picked_point + (
                                 2 / ideal_ratio) + max_diff:
                             theValPlusTwo += data[i + 1]
                             otherValPlusTwo.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
                             valAddedPlusTwo = True
-                            if data[i + 1] > maxIntensityPlusTwo:
-                                maxIntensityPlusTwo = data[i + 1]
+                            if theValPlusTwo > maxIntensityPlusTwo:
+                                maxIntensityPlusTwo = theValPlusTwo
                         i += 2
                     currdriftBin += 1
 
