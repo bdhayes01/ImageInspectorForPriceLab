@@ -1407,7 +1407,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 if orig_line[j] == 0:
                     ratio = 0  # TODO: Ask esteban/JC What to do when the original data is 0
                 else:
-                    ratio = iso_line[j] / orig_line[j]
+                    if isinstance(orig_line[j], list):
+                        vals = 0
+                        for line in orig_line[j]:
+                            vals += line[1]
+                        ratio = iso_line[j] / vals
+                    else:
+                        ratio = iso_line[j] / orig_line[j]
                 ratio = ratio * 100
                 theLine.append(ratio)
             new_data.append(theLine)
