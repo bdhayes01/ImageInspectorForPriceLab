@@ -1412,10 +1412,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     ratio = 0  # TODO: Ask esteban/JC What to do when the original data is 0
                 else:
                     if isinstance(orig_line[j], list):
-                        vals = 0
+                        orig_vals = 0
                         for line in orig_line[j]:
-                            vals += line[1]
-                        ratio = iso_line[j] / vals
+                            orig_vals += line[1]
+                        if isinstance(iso_line[j], list):
+                            iso_vals = 0
+                            for line in iso_line[j]:
+                                iso_vals += line[1]
+                            ratio = iso_vals / orig_vals
+                        else:
+                            ratio = iso_line[j] / orig_vals
                     else:
                         ratio = iso_line[j] / orig_line[j]
                 ratio = ratio * 100
@@ -1998,7 +2004,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def export_IsotopeMap_Callback(self):
         # when clicking on the exportConcMap button, it will save the filename and concentration the map
         if self.exIsotopeflag or isIM:
-            self.Maps[self.exportIsotopeMapname.text()] = self.isotope_scalar(self.chosenData, self.IsotopeMapData)
+            x = self.isotope_scalar(self.chosenData, self.IsotopeMapData)
+            self.Maps[self.exportIsotopeMapname.text()] = x
             self.refreshMaplistbox()
             self.Mapcount += 1
 
