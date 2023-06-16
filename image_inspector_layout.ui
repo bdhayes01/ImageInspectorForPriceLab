@@ -84,7 +84,7 @@ font: 8pt &quot;Times New Roman&quot;;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(204, 221, 214);</string>
+      <string notr="true">background-color: rgb(204, 221, 214);border-radius:7px;</string>
      </property>
      <property name="text">
       <string>Point</string>
@@ -109,7 +109,7 @@ font: 8pt &quot;Times New Roman&quot;;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(204, 221, 214);</string>
+      <string notr="true">background-color: rgb(204, 221, 214);border-radius:7px;</string>
      </property>
      <property name="text">
       <string>select ROI</string>
@@ -134,7 +134,7 @@ font: 8pt &quot;Times New Roman&quot;;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(204, 221, 214);</string>
+      <string notr="true">background-color: rgb(204, 221, 214);border-radius:7px;</string>
      </property>
      <property name="text">
       <string>Export ROI</string>
@@ -187,7 +187,7 @@ font: 8pt &quot;Times New Roman&quot;;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(204, 221, 214);</string>
+      <string notr="true">background-color: rgb(204, 221, 214);border-radius:7px;</string>
      </property>
      <property name="text">
       <string>process ROI</string>
@@ -237,7 +237,7 @@ font: 8pt &quot;Times New Roman&quot;;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(174, 195, 176);</string>
+      <string notr="true">border-radius:7px;background-color: rgb(174, 195, 176);</string>
      </property>
      <property name="text">
       <string>Decrement Mass</string>
@@ -368,7 +368,7 @@ font: 8pt &quot;Times New Roman&quot;;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(89, 131, 146);</string>
+      <string notr="true">border-radius:7px;background-color: rgb(89, 131, 146);</string>
      </property>
      <property name="text">
       <string>Increment Mass</string>
@@ -421,7 +421,7 @@ font: 8pt &quot;Times New Roman&quot;;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(204, 221, 214);</string>
+      <string notr="true">border-radius:7px;background-color: rgb(204, 221, 214);</string>
      </property>
      <property name="text">
       <string>Export Conc. Map</string>
@@ -446,7 +446,7 @@ font: 8pt &quot;Times New Roman&quot;;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(204, 221, 214);</string>
+      <string notr="true">border-radius:7px;background-color: rgb(204, 221, 214);</string>
      </property>
      <property name="text">
       <string>Export Isotope Map</string>
@@ -524,7 +524,7 @@ font: 8pt &quot;Times New Roman&quot;;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">border: 1px solid black;background-color: rgb(204, 221, 214);</string>
+      <string notr="true">border-radius:7px;border: 1px solid black;background-color: rgb(204, 221, 214);</string>
      </property>
      <property name="text">
       <string>Load selected ROI spectra</string>
@@ -549,7 +549,7 @@ font: 8pt &quot;Times New Roman&quot;;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(174, 195, 176);border: 1px solid black;</string>
+      <string notr="true">border-radius:7px;background-color: rgb(174, 195, 176);border: 1px solid black;</string>
      </property>
      <property name="text">
       <string>Delete ROI</string>
@@ -588,7 +588,7 @@ border: 1px solid black;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">border: 1px solid black;background-color: rgb(204, 221, 214);</string>
+      <string notr="true">border-radius:7px;border: 1px solid black;background-color: rgb(204, 221, 214);</string>
      </property>
      <property name="text">
       <string>Export ROI spectra as .csv</string>
@@ -613,7 +613,7 @@ border: 1px solid black;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">border: 1px solid black;background-color: rgb(174, 195, 176);</string>
+      <string notr="true">border-radius:7px;border: 1px solid black;background-color: rgb(174, 195, 176);</string>
      </property>
      <property name="text">
       <string>Clear</string>
@@ -707,7 +707,8 @@ border: 1px solid black;</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(89, 131, 146);</string>
+      <string notr="true">background-color: rgb(89, 131, 146);
+border-radius:7px;</string>
      </property>
      <property name="text">
       <string>Browse</string>
@@ -835,7 +836,8 @@ accent-color: green;</string>
      </property>
      <property name="styleSheet">
       <string notr="true">font: 75 14pt &quot;Arial&quot;;
-background-color: rgb(89, 131, 146);</string>
+background-color: rgb(89, 131, 146);
+border-radius:7px;</string>
      </property>
      <property name="text">
       <string>GO</string>
@@ -2111,7 +2113,7 @@ background-color: rgb(238, 204, 204);</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(204, 221, 214);</string>
+      <string notr="true">background-color: rgb(204, 221, 214);border-radius:7px;</string>
      </property>
      <property name="text">
       <string>Browse</string>
@@ -2178,7 +2180,8 @@ background-color: rgb(238, 204, 204);</string>
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">border: 1px solid black;
+     <string notr="true">border-radius:7px;
+border: 1px solid black;
 background-color: rgb(204, 221, 214);</string>
     </property>
     <property name="text">
@@ -2241,7 +2244,8 @@ background-color: rgb(204, 221, 214);</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">border: 1px solid black;
+      <string notr="true">border-radius:7px;
+border: 1px solid black;
 background-color: rgb(174, 195, 176);</string>
      </property>
      <property name="text">
@@ -2267,7 +2271,8 @@ background-color: rgb(174, 195, 176);</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">border: 1px solid black;
+      <string notr="true">border-radius:7px;
+border: 1px solid black;
 background-color: rgb(174, 195, 176);</string>
      </property>
      <property name="text">
@@ -2347,7 +2352,8 @@ background-color: rgb(238, 204, 204);</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">border: 1px solid black;
+      <string notr="true">border-radius:7px;
+border: 1px solid black;
 background-color: rgb(204, 221, 214);</string>
      </property>
      <property name="text">
@@ -2373,7 +2379,7 @@ background-color: rgb(204, 221, 214);</string>
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(204, 221, 214);</string>
+      <string notr="true">border-radius:7px;background-color: rgb(204, 221, 214);</string>
      </property>
      <property name="text">
       <string>Load Map: m/z of interest</string>
