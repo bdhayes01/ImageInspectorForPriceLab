@@ -1344,6 +1344,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
             iso_data = self.isotope_scalar(chosenData, chosenDataPlusOne)
 
+            iso_for_deviation = np.asarray(iso_data)
+            iso_for_deviation = iso_for_deviation.flatten()
+
+            std_deviation = round(np.std(iso_for_deviation), 4)
+            self.Mplusonesumstandard_error.setText(str(std_deviation))
+
             self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
             self.axes = self.viewPlusOne.figure.subplots()
             self.toolbar = NavigationToolbar(self.viewPlusOne, self)
