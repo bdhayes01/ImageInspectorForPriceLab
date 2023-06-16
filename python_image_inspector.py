@@ -1998,7 +1998,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def export_IsotopeMap_Callback(self):
         # when clicking on the exportConcMap button, it will save the filename and concentration the map
         if self.exIsotopeflag or isIM:
-            self.Maps[self.exportIsotopeMapname.text()] = self.IsotopeMapData
+            self.Maps[self.exportIsotopeMapname.text()] = self.isotope_scalar(self.chosenData, self.IsotopeMapData)
             self.refreshMaplistbox()
             self.Mapcount += 1
 
