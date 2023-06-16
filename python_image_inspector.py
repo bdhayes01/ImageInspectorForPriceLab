@@ -1335,11 +1335,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             if self.viewPlusTwo:
                 self.plot_kin.removeWidget(self.viewPlusTwo)
 
+            iso_data = self.isotope_scalar(chosenData, chosenDataPlusOne)
+
             self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
             self.axes = self.viewPlusOne.figure.subplots()
             self.toolbar = NavigationToolbar(self.viewPlusOne, self)
             self.plot_kin.addWidget(self.viewPlusOne)
-            self.con_img2 = self.axes.imshow(chosenDataPlusOne, cmap='inferno',
+            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno',
                                              aspect=(yend / xend), extent=[0, xend, 0, yend])
             plt.colorbar(self.con_img2)
             self.viewPlusOne.draw()
@@ -1361,11 +1363,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             if self.viewPlusOne:
                 self.plot_kin.removeWidget(self.viewPlusOne)
 
+            iso_data = self.isotope_scalar(chosenData, chosenDataPlusTwo)
+
             self.viewPlusTwo = FigureCanvas(Figure(figsize=(5, 3)))
             self.axes = self.viewPlusTwo.figure.subplots()
             self.toolbar = NavigationToolbar(self.viewPlusTwo, self)
             self.plot_kin.addWidget(self.viewPlusTwo)
-            self.con_img2 = self.axes.imshow(chosenDataPlusTwo, cmap='inferno', interpolation='gaussian',
+            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno', interpolation='gaussian',
                                              aspect=(yend / xend), extent=[0, xend, 0, yend])
             plt.colorbar(self.con_img2)
             self.viewPlusTwo.draw()
@@ -1392,6 +1396,23 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.zmax.setValue(0)
         self.zmin_isotope.setValue(0)
+
+    def isotope_scalar(self, origData, isotopeData):
+        new_data = []
+        for i in range(len(origData)):
+            theLine = []
+            orig_line = origData[i]
+            iso_line = isotopeData[i]
+            for j in range(len(orig_line)):
+                if orig_line[j] == 0:
+                    ratio = 0  # TODO: Ask esteban/JC What to do when the original data is 0
+                else:
+                    ratio = iso_line[j] / orig_line[j]
+                ratio = ratio * 100
+                theLine.append(ratio)
+            new_data.append(theLine)
+        return new_data
+
 
     # --- Executes on button press in find_file.
     def find_file_Callback(self):
@@ -1553,7 +1574,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.plot_con.addWidget(self.view)
         self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
                                         aspect=(yend / xend), extent=[0, xend * scalefact, 0, yend * scalefact])
-        # TODO: Ask esteban if this is right. If it is, add it to the other graphs.
+        # TODO: Add it to other graphs
         plt.colorbar(self.con_img)
         # self.axes.set_title('Points In Selected Region')
         self.axes.set_xlabel("x, " + label)
@@ -1566,6 +1587,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # print("Process the IM Data")
         self.pick_IDthreshold.setValue(20)
         self.pick_mzthreshold.setValue(20)
+        self.pick_IDthreshold.setMaximum(1000)
+        self.pick_mzthreshold.setMaximum(1000)
         self.min_mz.setRange(min(mzVals), max(mzVals))
         self.max_mz.setRange(min(mzVals), max(mzVals))
         self.min_mz.setValue(min(mzVals))
@@ -1905,11 +1928,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             if self.viewPlusTwo:
                 self.plot_kin.removeWidget(self.viewPlusTwo)
 
+            scaled_data = self.isotope_scalar(self.chosenData, data)
+
             self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
             self.axes = self.viewPlusOne.figure.subplots()
             self.toolbar = NavigationToolbar(self.view, self)
             self.plot_kin.addWidget(self.viewPlusOne)
-            self.con_img2 = self.axes.imshow(data, cmap='inferno',
+            self.con_img2 = self.axes.imshow(scaled_data, cmap='inferno',
                                              aspect=(yend / xend), extent=[0, xend, 0, yend])
             plt.colorbar(self.con_img2)
             self.viewPlusOne.draw()
