@@ -1447,7 +1447,7 @@ background-color: rgb(238, 204, 204);</string>
      <string notr="true">border: 1px solid black;</string>
     </property>
     <property name="title">
-     <string>M/sum Ratio</string>
+     <string>M+1/sum Ratio</string>
     </property>
     <widget class="QLabel" name="Mplusonesumratio">
      <property name="geometry">

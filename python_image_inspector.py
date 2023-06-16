@@ -181,7 +181,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mass_up.clicked.connect(self.mass_up_Callback)
         self.mass_down.clicked.connect(self.mass_down_Callback)
         self.start.returnPressed.connect(self.start_Callback)
-        self.msindex.returnPressed.connect(self.msindex_Callback)
+        # self.msindex.returnPressed.connect(self.msindex_Callback)
         self.zmax.sliderMoved.connect(self.zmax_Callback)
         self.zmax.valueChanged.connect(self.zmax_Callback)
         self.temp_max.returnPressed.connect(self.temp_max_Callback)
@@ -449,7 +449,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.refresh_image()
             # Update the mass and index boxes
             self.start.setText(str(self.z[self.index]))
-            self.msindex.setText(str(self.index))
+            # self.msindex.setText(str(self.index))
             self.Noise_Output_Box.setText(str(self.img_std[self.index]))
             # Update spectra annotation
             x_mass_up_val = self.z[self.index]
@@ -487,7 +487,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.refresh_image()
             # Update the mass and index boxes
             self.start.setText(str(self.z[self.index]))
-            self.msindex.setText(str(self.index))
+            # self.msindex.setText(str(self.index))
             self.Noise_Output_Box.setText(str(self.img_std[self.index]))
             # Update spectra annotation
             x_mass_down_val = self.z[self.index]
@@ -525,14 +525,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 isNum = False
             if isNum == False:
                 self.index = 1
-                self.msindex.setText(str(self.index))
+                # self.msindex.setText(str(self.index))
                 print("Wrong Input Mass")
             else:
                 set_mass = float(set_mass)
                 # finds the index of the closest value to the set_mass value
                 self.index = np.where(abs(self.z - set_mass) == (abs(self.z - set_mass)).min())[0][0]
             self.start.setText(str(self.z[self.index]))
-            self.msindex.setText(str(self.index))
+            # self.msindex.setText(str(self.index))
             self.refresh_image()
             # Update the Noise boxes
             self.Noise_Output_Box.setText(str(self.img_std[self.index]))
@@ -562,7 +562,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # correspond to that index.
     def msindex_Callback(self):
         if self.has_data:
-            temp = self.msindex.text()
+            # temp = self.msindex.text()
             isNum = True
             try:
                 float(temp)
@@ -570,12 +570,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 isNum = False
             if isNum == False:
                 self.index = 1
-                self.msindex.setText(str(self.index))
+                # self.msindex.setText(str(self.index))
             else:
                 self.index = np.int32(temp)
             if self.index > len(self.z):
                 self.index = len(self.z - 1)
-                self.msindex.setText(str(self.index))
+                # self.msindex.setText(str(self.index))
             self.start.setText(str(self.z[self.index]))
             self.refresh_image()
             # Update the Noise boxes
@@ -1090,7 +1090,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif self.massplustwo.isChecked():
             self.includemassplustwo = True
         self.start.setText(str(self.z[self.index]))
-        self.msindex.setText(str(self.index))
+        # self.msindex.setText(str(self.index))
         self.Noise_Output_Box.setText(str(self.img_std[self.index]))
         self.refresh_image()
         # calculating the area and plotting the isotope image
@@ -1759,7 +1759,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.index = np.uint32(len(imgZ) / 2) - 1
         # Put the corresponding values in the mass, index, and handles.Noise windows
         self.start.setText(str(imgZ[self.index]))
-        self.msindex.setText(str(self.index))
+        # self.msindex.setText(str(self.index))
         self.Noise_Output_Box.setText(str(self.img_std[self.index]))
         # pull the maximum value from the image and put it in the boxes
         self.z_max, self.z_min = self.arrlims(self.intens[:, :, (round(len(imgZ) / 2 - 1))])
@@ -2681,7 +2681,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             ind = event.ind
             self.index = np.where(self.z == self.x_picked[ind][0])[0][0]
             self.start.setText(str(self.z[self.index]))
-            self.msindex.setText(str(self.index))
+            # self.msindex.setText(str(self.index))
             self.Noise_Output_Box.setText(str(self.img_std[self.index]))
 
             ID_in = 'not defined'
@@ -2766,7 +2766,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if (event.key == 'left'):
             self.index = self.index - 1
             self.start.setText(str(self.z[self.index]))
-            self.msindex.setText(str(self.index))
+            # self.msindex.setText(str(self.index))
             self.Noise_Output_Box.setText(str(self.img_std[self.index]))
             x_val = self.z[self.index]
             y_val = self.img_mean[self.index]
@@ -2792,7 +2792,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif (event.key == 'right'):
             self.index = self.index + 1
             self.start.setText(str(self.z[self.index]))
-            self.msindex.setText(str(self.index))
+            # self.msindex.setText(str(self.index))
             self.Noise_Output_Box.setText(str(self.img_std[self.index]))
             x_val = self.z[self.index]
             y_val = self.img_mean[self.index]
