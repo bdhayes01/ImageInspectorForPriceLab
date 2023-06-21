@@ -149,6 +149,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.label = None
+        self.scalefact = None
         self.spectra_toolbar = None
         self.annotation = None
         self.mzVals = None
@@ -1477,9 +1479,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return
         elif filename.endswith('.bin'):
             print("File extension: .bin")
+            self.functionsCommonToAll()
 
             if not isIM:
-                self.cubeAsMSData(filename)
+                self.cubeAsMSData2()
             elif isIM:
                 self.cubeAsIMData(filename)
             else:
@@ -1489,6 +1492,110 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         else:
             print('Unexpected file extension')
             return
+
+    def functionsCommonToAll(self):
+        if self.micrometer.isChecked():
+            self.scalefact = 1e3
+            self.label = 'μm'
+        elif self.millimeter.isChecked():
+            self.scalefact = 1
+            self.label = 'mm'
+        elif self.centimeter.isChecked():
+            self.scalefact = 0.1
+            self.label = 'cm'
+
+    def displayMap(self, mapData, pixelSizeX, pixelSizeY):
+        xend = len(mapData[0]) * (pixelSizeX / 1000)
+        yend = len(mapData) * (pixelSizeY / 1000)
+
+        if self.view:
+            self.plot_con.removeWidget(self.view)
+        self.view = FigureCanvas(Figure(figsize=(5, 3)))
+        self.axes = self.view.figure.subplots()
+        self.toolbar = NavigationToolbar(self.view, self)
+        self.plot_con.addWidget(self.view)
+        self.con_img = self.axes.imshow(mapData, cmap='jet', aspect=(yend / xend),
+                                        extent=[0, xend * self.scalefact, 0, yend * self.scalefact])
+        plt.colorbar(self.con_img)
+        self.axes.set_title('Points In Selected Region')
+        self.axes.set_xlabel("x, " + self.label)
+        self.axes.set_ylabel("y, " + self.label)
+        self.view.draw()
+        self.ConcMapData = mapData
+
+    def displayScatter(self, mzVals, intensity, drifts):  # TODO: Ask Esteban if he wants the peaks or the scatter plot
+        if self._spectra_ax:
+            self.plot_spectra.removeWidget(self.spectra_toolbar)
+            self.plot_spectra.removeWidget(self.spectra_canvas)
+        if self.viewPlusOne:
+            self.plot_kin.removeWidget(self.viewPlusOne)
+            # self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
+            # I took this out because it was creating a second plot.
+        elif self.viewPlusTwo:
+            self.plot_kin.removeWidget(self.viewPlusTwo)
+            # self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
+
+        self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
+        self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.spectra_canvas.setFocus()
+        self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
+        self.plot_spectra.addWidget(self.spectra_toolbar)
+        self.plot_spectra.addWidget(self.spectra_canvas)
+        self._spectra_ax = self.spectra_canvas.figure.subplots()
+        if isIM:
+            x = self._spectra_ax.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75, picker=True)
+            plt.colorbar(x).set_label('Drift times')
+        else:
+            self._spectra_ax.scatter(mzVals, intensity, s=.01, alpha=0.75, picker=True)  # Can change to peaks here
+        self._spectra_ax.set_title('Points In Selected Region')
+        self._spectra_ax.set_xlabel('m/z')
+        self._spectra_ax.set_ylabel('intensity')
+        self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
+        self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
+        self.exSpecflag = True
+        # plt.yscale('log')
+        # it is x, y
+        plt.ylabel('intensity')
+        plt.xlabel('m/z')
+
+    def cubeAsMSData2(self):
+        file = open(self.cubefilename)
+        data = np.fromfile(file, dtype=np.float32)
+        file.close()
+
+        mzVals = []
+        intensities = []
+
+        numLines = data[0]
+        numScans = data[1]
+        pixelSizeX = data[2]
+        pixelSizeY = data[3]
+
+        lineNum = 0
+        i = 4
+
+        mapData = []
+
+        while lineNum < numLines:
+            scanNum = 0
+            line = []
+            while scanNum < numScans:
+                scan = 0
+                numDataPoints = data[i]
+                i += 1
+                currDataPoint = 0
+                while currDataPoint < numDataPoints:
+                    currDataPoint += 1
+                    mzVals.append(data[i])
+                    intensities.append(data[i + 1])
+                    scan += data[i + 1]
+                    i += 2
+                scanNum += 1
+                line.append(scan)
+            lineNum += 1
+            mapData.append(line)
+        self.displayMap(mapData, pixelSizeX, pixelSizeY)
+        self.displayScatter(mzVals, intensities, None)
 
     def cubeAsIMData(self, filename):
         fileID = open(filename)
@@ -1549,75 +1656,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.drift_time.setMinimum(int(min(drifts)))
         self.drift_time.setMaximum(int(max(drifts)))
 
-        if self._spectra_ax:
-            self.plot_spectra.removeWidget(self.spectra_toolbar)
-            self.plot_spectra.removeWidget(self.spectra_canvas)
-        if self.viewPlusOne:
-            self.plot_kin.removeWidget(self.viewPlusOne)
-            # self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
-            # I took this out because it was creating a second plot.
-        elif self.viewPlusTwo:
-            self.plot_kin.removeWidget(self.viewPlusTwo)
-            # self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
-
-        self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
-        self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.spectra_canvas.setFocus()
-        self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
-        self.plot_spectra.addWidget(self.spectra_toolbar)
-        self.plot_spectra.addWidget(self.spectra_canvas)
-        self._spectra_ax = self.spectra_canvas.figure.subplots()
-        x = self._spectra_ax.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75, picker=True)
-        plt.colorbar(x).set_label('Drift times')
-        self._spectra_ax.set_title('Points In Selected Region')
-        self._spectra_ax.set_xlabel('m/z')
-        self._spectra_ax.set_ylabel('intensity')
-        self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-        self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
-        self.exSpecflag = True
-        # plt.yscale('log')
-        # it is x, y
-        plt.ylabel('intensity')
-        plt.xlabel('m/z')
+        self.displayScatter(mzVals, intensity, drifts)
 
         self.mzVals = mzVals
         self.intensity = intensity
         self.drifts = drifts
 
-        numY = len(chosenData)
-        numX = len(chosenData[0])
-        xend = numX * .075
-        yend = numY * .15
-
-        if self.micrometer.isChecked():
-            scalefact = 1e3
-            label = 'μm'
-        elif self.millimeter.isChecked():
-            scalefact = 1
-            label = 'mm'
-        elif self.centimeter.isChecked():
-            scalefact = 0.1
-            label = 'cm'
-
-        if self.view:
-            self.plot_con.removeWidget(self.view)
-        self.view = FigureCanvas(Figure(figsize=(5, 3)))
-        self.axes = self.view.figure.subplots()
-        self.toolbar = NavigationToolbar(self.view, self)
-        self.plot_con.addWidget(self.view)
-        self.con_img = self.axes.imshow(chosenData, cmap='jet', interpolation='gaussian',
-                                        aspect=(yend / xend), extent=[0, xend * scalefact, 0, yend * scalefact])
-        # TODO: Add it to other graphs
-        plt.colorbar(self.con_img)
-        # self.axes.set_title('Points In Selected Region')
-        self.axes.set_xlabel("x, " + label)
-        self.axes.set_ylabel("y, " + label)
-        self.view.draw()
-        self.ConcMapData = chosenData
+        self.displayMap(chosenData, 75, 150)
 
         self.has_data = 1
-        # plt.show()
-        # print("Process the IM Data")
+
         self.pick_IDthreshold.setValue(20)
         self.pick_mzthreshold.setValue(20)
         self.pick_IDthreshold.setMaximum(1000)
