@@ -1523,7 +1523,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.view.draw()
         self.ConcMapData = mapData
 
-    def displayScatter(self, mzVals, intensity, drifts):  # TODO: Ask Esteban if he wants the peaks or the scatter plot
+    def displayScatter(self, mzVals, intensity, drifts):
         if self._spectra_ax:
             self.plot_spectra.removeWidget(self.spectra_toolbar)
             self.plot_spectra.removeWidget(self.spectra_canvas)
@@ -3102,10 +3102,20 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def setIM(self):
         global isIM
         isIM = True
+        self.all_drift_times.setCheckable(True)
+        self.all_drift_times.setChecked(True)
+        self.one_drift_time.setCheckable(True)
+        self.drift_time.setDisabled(False)
+        self.drift_scrollbar.setDisabled(False)
 
     def setMS(self):
         global isIM
         isIM = False
+        self.all_drift_times.setCheckable(False)
+        self.all_drift_times.setChecked(False)
+        self.one_drift_time.setCheckable(False)
+        self.drift_time.setDisabled(True)
+        self.drift_scrollbar.setDisabled(True)
 
 
 if __name__ == "__main__":
