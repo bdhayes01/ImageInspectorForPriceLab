@@ -1739,32 +1739,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     print('plot removed')
                     if isIM:
                         self.im_point()
-                        # This is in order to remove the blue lines from the figure.
-                        # If the blue lines aren't a problem, this can be taken out.
-                        # for i in range(2):
-                        #     self.h.lines.pop(-1).remove()
-                        #     self.h.xcoords.pop()
-                        #     self.h.ycoords.pop()
-                        #     self.h.previous_point = self.h.xcoords[-1], self.h.ycoords[-1]
-                        #     self.h.line = self.h.lines[-1]
-                        #     if len(self.h.lines) == 0:
-                        #         self.h.line = None
-                        #         return
-                        # self.h.lines.pop(-1).remove()
-                        # self.h.xcoords.pop()
-                        # self.h.ycoords.pop()
-                        # self.h.disconnect()
                 else:
                     print('Item does not exist. Please double click on another item')
-            # if isIM:
-            #     if self.ROI_listselect_text in self.ROIplots:
-            #         self.ROIplots[self.ROI_listselect_text].pop(0).remove()
-            #         del self.ROIplots[self.ROI_listselect_text]
-            #         del self.ROI[self.ROI_listselect_text]
-            #         del self.ROI_img_mean[self.ROI_listselect_text]
-            #         self.ROIcount = self.ROIcount - 1
-            #         self.ROIcountbox.setText(str(self.ROIcount))
-            #         self.refreshROIlistbox()
 
     def clearROI_Callback(self):
         self.ROIplots.clear()
@@ -1971,46 +1947,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                                                          bbox=dict(boxstyle="square, pad=0.3", facecolor="white"),
                                                          )
             self.spectra_canvas.draw()
-
-    def boundary_tracer(self, arr):
-        indices_list = []
-        for i in range(np.shape(arr)[0]):
-            for j in range(np.shape(arr)[1]):
-                if arr[i, j] == 1:
-                    if i == 0 and j == 0:
-                        if (arr[i + 1, j] == 0) or (arr[i, j + 1] == 0):
-                            indices_list.append([i, j])
-                    elif (i == 0) and (j == np.shape(arr)[1] - 1):
-                        if (arr[i, j - 1] == 0) or (arr[i + 1, j] == 0):
-                            indices_list.append([i, j])
-                    elif (i == (np.shape(arr)[0] - 1)) and j == 0:
-                        if (arr[i - 1, j] == 0) or (arr[i, j + 1] == 0):
-                            indices_list.append([i, j])
-                    elif (i == np.shape(arr)[0] - 1) and (j == np.shape(arr)[1] - 1):
-                        if (arr[i - 1, j] == 0) or (arr[i, j - 1] == 0):
-                            indices_list.append([i, j])
-                    elif (i in range(1, np.shape(arr)[0] - 1)) and (j == 0):
-                        if (arr[i - 1, j] == 0) or (arr[i, j + 1] == 0) or (arr[i + 1, j] == 0):
-                            indices_list.append([i, j])
-                    elif (i in range(1, np.shape(arr)[0] - 1)) and (j == np.shape(arr)[1] - 1):
-                        if (arr[i - 1, j] == 0) or (arr[i, j - 1] == 0) or (arr[i + 1, j] == 0):
-                            indices_list.append([i, j])
-                    elif (i == 0) and (j in range(1, np.shape(arr)[1] - 1)):
-                        if (arr[i, j - 1] == 0) or (arr[i, j + 1] == 0) or (arr[i + 1, j] == 0):
-                            indices_list.append([i, j])
-                    elif (i == np.shape(arr)[0] - 1) and (j in range(1, np.shape(arr)[1] - 1)):
-                        if (arr[i - 1, j] == 0) or (arr[i, j - 1] == 0) or (arr[i, j + 1] == 0):
-                            indices_list.append([i, j])
-                    else:
-                        if (arr[i - 1, j] == 0) or (arr[i + 1, j] == 0) or (arr[i, j - 1] == 0) or (arr[i, j + 1] == 0):
-                            indices_list.append([i, j])
-        indicies_array = np.array(indices_list)
-        x_all = indicies_array[:, 1]
-        x_init_bw = np.min(np.where(x_all == np.min(x_all)))
-        init_coor = np.reshape(indicies_array[x_init_bw, :], (1, 2))
-        indicies_array = np.vstack((indicies_array, init_coor))
-
-        return indicies_array
 
     ##########################################
     # Multi Map Compare functions (things related to the 2nd window)
