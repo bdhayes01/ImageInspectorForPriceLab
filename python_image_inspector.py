@@ -1041,7 +1041,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self._spectra_ax.set_xlabel('m/z')
         self._spectra_ax.set_ylabel('intensity')
         self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-        self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
+        # self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
         self.exSpecflag = True
         # plt.yscale('log')
         # it is x, y
