@@ -1053,6 +1053,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         theMin, theMax = self.find_min_max_image(imageData)
         self.max_int.setText(str(theMax))
         self.min_int.setText(str(theMin))
+        self.temp_max.setText(str(theMax))
+        self.temp_min.setText(str(theMin))
 
 
     def find_min_max_image(self, imageData):
