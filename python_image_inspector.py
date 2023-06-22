@@ -996,7 +996,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.label = 'cm'
 
     def displayIsoImage(self, zero_image, imageData, pixelSizeX, pixelSizeY):
-        # TODO: Change this to plot the isotope image
         xend = len(imageData[0]) * (pixelSizeX / 1000)
         yend = len(imageData) * (pixelSizeY / 1000)
 
@@ -1006,7 +1005,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.plot_kin.removeWidget(self.viewPlusTwo)
 
         iso_data = self.isotope_scalar(zero_image, imageData)
-
+        # TODO: Change this to plot the isotope image
 
         if self.view:
             self.plot_con.removeWidget(self.view)
