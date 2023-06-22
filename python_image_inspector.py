@@ -1005,22 +1005,32 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.plot_kin.removeWidget(self.viewPlusTwo)
 
         iso_data = self.isotope_scalar(zero_image, imageData)
-        # TODO: Change this to plot the isotope image
 
-        if self.view:
-            self.plot_con.removeWidget(self.view)
-        self.view = FigureCanvas(Figure(figsize=(5, 3)))
-        self.axes = self.view.figure.subplots()
-        self.toolbar = NavigationToolbar(self.view, self)
-        self.plot_con.addWidget(self.view)
-        self.con_img = self.axes.imshow(imageData, cmap='jet', aspect=(yend / xend),
-                                        extent=[0, xend * self.scalefact, 0, yend * self.scalefact])
-        plt.colorbar(self.con_img)
-        self.axes.set_title('Points In Selected Region')
-        self.axes.set_xlabel("x, " + self.label)
-        self.axes.set_ylabel("y, " + self.label)
-        self.view.draw()
-        self.ConcMapData = imageData
+        iso_for_deviation = np.asarray(iso_data)
+        iso_for_deviation = iso_for_deviation.flatten()
+
+        std_deviation = round(np.std(iso_for_deviation), 4)
+
+        if self.massplusone.isChecked():
+            self.Mplusonesumstandard_error.setText(str(std_deviation))
+            self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
+            self.axes = self.viewPlusOne.figure.subplots()
+            self.toolbar = NavigationToolbar(self.viewPlusOne, self)
+            self.plot_kin.addWidget(self.viewPlusOne)
+            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno',
+                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
+            plt.colorbar(self.con_img2)
+            self.viewPlusOne.draw()
+        elif self.massplustwo.isChecked():
+            self.Mplustwosumstandard_error.setText(str(std_deviation))
+            self.viewPlusTwo = FigureCanvas(Figure(figsize=(5, 3)))
+            self.axes = self.viewPlusTwo.figure.subplots()
+            self.toolbar = NavigationToolbar(self.viewPlusTwo, self)
+            self.plot_kin.addWidget(self.viewPlusTwo)
+            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno',
+                                             aspect=(yend/xend), extent=[0, xend, 0, yend])
+            plt.colorbar(self.con_img2)
+            self.viewPlusTwo.draw()
 
     def displayImage(self, imageData, pixelSizeX, pixelSizeY):
         xend = len(imageData[0]) * (pixelSizeX / 1000)
