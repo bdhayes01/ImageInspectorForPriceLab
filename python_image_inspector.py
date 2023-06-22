@@ -433,7 +433,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self._spectra_ax.set_xlabel('m/z')
         self._spectra_ax.set_ylabel('intensity')
         self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-        self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
+        # self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
         return 0
 
     def mass_up_Callback(self):
@@ -1453,7 +1453,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self._spectra_ax.set_xlabel('m/z')
             self._spectra_ax.set_ylabel('intensity')
             self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-            self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
+            # self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
             return 0
 
     def exportROI_spectra_val_Callback(self):
@@ -1544,7 +1544,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self._spectra_ax.set_xlabel("m/z")
             self._spectra_ax.set_ylabel("drifts")
             self.spectra_canvas.mpl_connect("pick_event", self.data_cursor_click)
-            self.spectra_canvas.mpl_connect("key_press_event", self.data_cursor_key)
+            # self.spectra_canvas.mpl_connect("key_press_event", self.data_cursor_key)
             self.exSpecflag = True
 
             return 0
