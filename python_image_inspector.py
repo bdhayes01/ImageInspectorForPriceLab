@@ -1075,7 +1075,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             # self.refresh_isotoperatio()
             return 0
         else:
-
+            self.ms_point()
             return 0
         # # choose what masspluswhat peak
         # if self.massplusone.isChecked():
@@ -1407,7 +1407,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.zmin_isotope.setValue(0)
 
     def ms_point(self):
-        picked_point = float(self.start_text())
+        picked_point = float(self.start.text())
         max_diff = self.ppm_calc(picked_point)
         ideal_ratio = float(self.ideal_ratio.text())
 
@@ -1421,9 +1421,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             lineVals = []
             for scan in line:
                 intensity = 0
-                for vals in scan:
-                    if vals[0] + max_diff >= picked_point >= vals[0] - max_diff:
-                        intensity += vals[1]
+                if scan[0] + max_diff >= picked_point >= scan[0] - max_diff:
+                    intensity += scan[1]
                 lineVals.append(intensity)
             imageData.append(lineVals)
 
@@ -1609,6 +1608,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         while lineNum < numLines:
             scanNum = 0
             line = []
+            mapLine = []
             while scanNum < numScans:
                 scan = 0
                 numDataPoints = data[i]
@@ -1619,12 +1619,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     mzVals.append(data[i])
                     intensities.append(data[i + 1])
                     scan += data[i + 1]
-                    mapData.append([data[i], data[i + 1]])
+                    mapLine.append([data[i], data[i + 1]])
                     i += 2
                 scanNum += 1
                 line.append(scan)
             lineNum += 1
             imageData.append(line)
+            mapData.append(mapLine)
         self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
         self.displayScatter(mzVals, intensities, None)
         self.mapData = mapData
