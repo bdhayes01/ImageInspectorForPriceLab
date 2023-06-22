@@ -1421,13 +1421,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             lineVals = []
             for scan in line:
                 intensity = 0
-                if scan[0] + max_diff >= picked_point >= scan[0] - max_diff:
-                    intensity += scan[1]
+                for val in scan:
+                    if val[0] + max_diff >= picked_point >= val[0] - max_diff:
+                        intensity += val[1]
                 lineVals.append(intensity)
             imageData.append(lineVals)
 
         self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
-        # TODO: Start here on 6/22: Try to generate the map of a clicked point
         return 0
 
     def isotope_scalar(self, m_zero_intensity, isotope_intensity):
@@ -1614,15 +1614,17 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 numDataPoints = data[i]
                 i += 1
                 currDataPoint = 0
+                scanVal = []
                 while currDataPoint < numDataPoints:
                     currDataPoint += 1
                     mzVals.append(data[i])
                     intensities.append(data[i + 1])
                     scan += data[i + 1]
-                    mapLine.append([data[i], data[i + 1]])
+                    scanVal.append([data[i], data[i + 1]])
                     i += 2
                 scanNum += 1
                 line.append(scan)
+                mapLine.append(scanVal)
             lineNum += 1
             imageData.append(line)
             mapData.append(mapLine)
