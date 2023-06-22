@@ -910,6 +910,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
 
+        if self.massplusone.isChecked():
+            self.displayIsoImage(imageData, image_plus_one, self.pixelSizeX, self.pixelSizeY)
+        if self.massplustwo.isChecked():
+            self.displayIsoImage(imageData, image_plus_two, self.pixelSizeX, self.pixelSizeY)
+
         return 0
 
     def isotope_scalar(self, m_zero_intensity, isotope_intensity):
@@ -989,6 +994,34 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif self.centimeter.isChecked():
             self.scalefact = 0.1
             self.label = 'cm'
+
+    def displayIsoImage(self, zero_image, imageData, pixelSizeX, pixelSizeY):
+        # TODO: Change this to plot the isotope image
+        xend = len(imageData[0]) * (pixelSizeX / 1000)
+        yend = len(imageData) * (pixelSizeY / 1000)
+
+        if self.viewPlusOne:
+            self.plot_kin.removeWidget(self.viewPlusOne)
+        if self.viewPlusTwo:
+            self.plot_kin.removeWidget(self.viewPlusTwo)
+
+        iso_data = self.isotope_scalar(zero_image, imageData)
+
+
+        if self.view:
+            self.plot_con.removeWidget(self.view)
+        self.view = FigureCanvas(Figure(figsize=(5, 3)))
+        self.axes = self.view.figure.subplots()
+        self.toolbar = NavigationToolbar(self.view, self)
+        self.plot_con.addWidget(self.view)
+        self.con_img = self.axes.imshow(imageData, cmap='jet', aspect=(yend / xend),
+                                        extent=[0, xend * self.scalefact, 0, yend * self.scalefact])
+        plt.colorbar(self.con_img)
+        self.axes.set_title('Points In Selected Region')
+        self.axes.set_xlabel("x, " + self.label)
+        self.axes.set_ylabel("y, " + self.label)
+        self.view.draw()
+        self.ConcMapData = imageData
 
     def displayImage(self, imageData, pixelSizeX, pixelSizeY):
         xend = len(imageData[0]) * (pixelSizeX / 1000)
