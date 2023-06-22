@@ -1416,18 +1416,33 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         mapData = self.mapData
 
         imageData = []
+        image_plus_one = []
+        image_plus_two = []
 
         for line in mapData:
             lineVals = []
+            line_plus_one = []
+            line_plus_two = []
             for scan in line:
                 intensity = 0
+                intensity_plus_one = 0
+                intensity_plus_two = 0
                 for val in scan:
                     if val[0] + max_diff >= picked_point >= val[0] - max_diff:
                         intensity += val[1]
+                    elif val[0] + (1 / ideal_ratio) + max_diff >= picked_point >= val[0] + (1 / ideal_ratio) - max_diff:
+                        intensity_plus_one += val[1]
+                    elif val[0] + (2 / ideal_ratio) + max_diff >= picked_point >= val[0] + (2 / ideal_ratio) - max_diff:
+                        intensity_plus_two += val[1]
                 lineVals.append(intensity)
+                line_plus_one.append(intensity_plus_one)
+                line_plus_two.append(intensity_plus_two)
             imageData.append(lineVals)
+            image_plus_one.append(line_plus_one)
+            image_plus_two.append(line_plus_two)
 
         self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
+
         return 0
 
     def isotope_scalar(self, m_zero_intensity, isotope_intensity):
