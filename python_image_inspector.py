@@ -1032,6 +1032,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             plt.colorbar(self.con_img2)
             self.viewPlusTwo.draw()
 
+        theMin, theMax = self.find_min_max_image(imageData)
+        self.max_int_iso.setText(str(theMax))
+        self.min_int_iso.setText(str(theMin))
+        self.max_iso.setText(str(theMax))
+        self.min_iso.setText(str(theMin))
+        self.zmax_isotope.setMaximum(math.ceil(theMax))
+        self.zmax_isotope.setMinimum(math.floor(theMin))
+        self.zmin_isotope.setMaximum(math.ceil(theMax))
+        self.zmin_isotope.setMinimum(math.floor(theMin))
+        self.zmax_isotope.setValue(math.ceil(theMax))
+        self.zmin_isotope.setValue(math.floor(theMin))
+
     def displayImage(self, imageData, pixelSizeX, pixelSizeY):
         xend = len(imageData[0]) * (pixelSizeX / 1000)
         yend = len(imageData) * (pixelSizeY / 1000)
@@ -1055,7 +1067,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.min_int.setText(str(theMin))
         self.temp_max.setText(str(theMax))
         self.temp_min.setText(str(theMin))
-
+        self.zmax.setMaximum(math.ceil(theMax))
+        self.zmax.setMinimum(math.floor(theMin))
+        self.zmin.setMaximum(math.ceil(theMax))
+        self.zmin.setMinimum(math.floor(theMin))
+        self.zmax.setValue(math.ceil(theMax))
+        self.zmin.setValue(math.floor(theMin))
 
     def find_min_max_image(self, imageData):
         theMin = sys.maxsize
