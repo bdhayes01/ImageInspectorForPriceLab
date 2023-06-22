@@ -149,6 +149,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.mapData = None
         self.label = None
         self.scalefact = None
         self.spectra_toolbar = None
@@ -1044,8 +1045,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         x = self.chosenData
 
-        # raveled = np.ravel(self.chosenData, order='F')
-
         theList = []
 
         i = 0
@@ -1065,16 +1064,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 filtered.append(val2)
 
         self.ROIData = filtered
-
-        # with open("ROI.csv", 'w', newline='') as file:
-        #     writer = csv.writer(file)
-        #     writer.writerow(["M/Z Value", "Intensity", "Drift Time", "Line", "Frame Num"])
-        #
-        #     for line in filtered:
-        #         writer.writerow(line)
-        # print("Done writing to .csv")
-        # Need to find the m/z and not just the intensity at every single point. how to do this?
-        # Have the whole m/z spectra and then be able to select just 1 m/z
 
     # This function plots a mass spectrum corresponing to a selected point
     # on the displayed image, or an image corresponding to a selected point
@@ -1418,6 +1407,27 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.zmin_isotope.setValue(0)
 
     def ms_point(self):
+        picked_point = float(self.start_text())
+        max_diff = self.ppm_calc(picked_point)
+        ideal_ratio = float(self.ideal_ratio.text())
+
+        self.massbox.setText(self.start.text())
+
+        mapData = self.mapData
+
+        imageData = []
+
+        for line in mapData:
+            lineVals = []
+            for scan in line:
+                intensity = 0
+                for vals in scan:
+                    if vals[0] + max_diff >= picked_point >= vals[0] - max_diff:
+                        intensity += vals[1]
+                lineVals.append(intensity)
+            imageData.append(lineVals)
+
+        self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
         # TODO: Start here on 6/22: Try to generate the map of a clicked point
         return 0
 
@@ -1510,9 +1520,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.scalefact = 0.1
             self.label = 'cm'
 
-    def displayMap(self, mapData, pixelSizeX, pixelSizeY):
-        xend = len(mapData[0]) * (pixelSizeX / 1000)
-        yend = len(mapData) * (pixelSizeY / 1000)
+    def displayImage(self, imageData, pixelSizeX, pixelSizeY):
+        xend = len(imageData[0]) * (pixelSizeX / 1000)
+        yend = len(imageData) * (pixelSizeY / 1000)
 
         if self.view:
             self.plot_con.removeWidget(self.view)
@@ -1520,14 +1530,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes = self.view.figure.subplots()
         self.toolbar = NavigationToolbar(self.view, self)
         self.plot_con.addWidget(self.view)
-        self.con_img = self.axes.imshow(mapData, cmap='jet', aspect=(yend / xend),
+        self.con_img = self.axes.imshow(imageData, cmap='jet', aspect=(yend / xend),
                                         extent=[0, xend * self.scalefact, 0, yend * self.scalefact])
         plt.colorbar(self.con_img)
         self.axes.set_title('Points In Selected Region')
         self.axes.set_xlabel("x, " + self.label)
         self.axes.set_ylabel("y, " + self.label)
         self.view.draw()
-        self.ConcMapData = mapData
+        self.ConcMapData = imageData
 
     def displayScatter(self, mzVals, intensity, drifts):
         if self._spectra_ax:
@@ -1551,6 +1561,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if isIM:
             x = self._spectra_ax.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75, picker=True)
             plt.colorbar(x).set_label('Drift times')
+            self.drift_scrollbar.setMinimum(int(min(drifts)))
+            self.drift_scrollbar.setMaximum(int(max(drifts)))
+            self.drift_time.setMinimum(int(min(drifts)))
+            self.drift_time.setMaximum(int(max(drifts)))
         else:
             self._spectra_ax.scatter(mzVals, intensity, s=.01, alpha=0.75, picker=True)  # Can change to peaks here
         self._spectra_ax.set_title('Points In Selected Region')
@@ -1564,6 +1578,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         plt.ylabel('intensity')
         plt.xlabel('m/z')
 
+        self.pick_IDthreshold.setValue(20)
+        self.pick_mzthreshold.setValue(20)
+        self.pick_IDthreshold.setMaximum(1000)
+        self.pick_mzthreshold.setMaximum(1000)
+        self.min_mz.setRange(min(mzVals), max(mzVals))
+        self.max_mz.setRange(min(mzVals), max(mzVals))
+        self.min_mz.setValue(min(mzVals))
+        self.max_mz.setValue(max(mzVals))
+
     def cubeAsMSData2(self):
         file = open(self.cubefilename)
         data = np.fromfile(file, dtype=np.float32)
@@ -1574,12 +1597,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         numLines = data[0]
         numScans = data[1]
-        pixelSizeX = data[2]
-        pixelSizeY = data[3]
+        self.pixelSizeX = data[2]
+        self.pixelSizeY = data[3]
 
         lineNum = 0
         i = 4
 
+        imageData = []
         mapData = []
 
         while lineNum < numLines:
@@ -1595,13 +1619,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     mzVals.append(data[i])
                     intensities.append(data[i + 1])
                     scan += data[i + 1]
+                    mapData.append([data[i], data[i + 1]])
                     i += 2
                 scanNum += 1
                 line.append(scan)
             lineNum += 1
-            mapData.append(line)
-        self.displayMap(mapData, pixelSizeX, pixelSizeY)
+            imageData.append(line)
+        self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
         self.displayScatter(mzVals, intensities, None)
+        self.mapData = mapData
 
     def cubeAsIMData(self, filename):
         fileID = open(filename)
@@ -1657,29 +1683,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 theVal = 0
                 numFrames += 1
 
-        self.drift_scrollbar.setMinimum(int(min(drifts)))
-        self.drift_scrollbar.setMaximum(int(max(drifts)))
-        self.drift_time.setMinimum(int(min(drifts)))
-        self.drift_time.setMaximum(int(max(drifts)))
-
         self.displayScatter(mzVals, intensity, drifts)
 
         self.mzVals = mzVals
         self.intensity = intensity
         self.drifts = drifts
 
-        self.displayMap(chosenData, 75, 150)
+        self.displayImage(chosenData, 75, 150)
 
         self.has_data = 1
-
-        self.pick_IDthreshold.setValue(20)
-        self.pick_mzthreshold.setValue(20)
-        self.pick_IDthreshold.setMaximum(1000)
-        self.pick_mzthreshold.setMaximum(1000)
-        self.min_mz.setRange(min(mzVals), max(mzVals))
-        self.max_mz.setRange(min(mzVals), max(mzVals))
-        self.min_mz.setValue(min(mzVals))
-        self.max_mz.setValue(max(mzVals))
 
     def cubeAsMSData(self, filename):
         fileID = open(filename)
