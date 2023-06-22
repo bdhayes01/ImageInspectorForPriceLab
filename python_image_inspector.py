@@ -641,7 +641,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # When cleaning up, this must be factored into several different functions.
 
         # A couple more notes:
-        # 1. How far apart should we accept? Surely not the only val that was selected? +- .5 m/z??
         # 2. You probably shouldn't do all of these calculations over again,
         # probably should pull them out of chosen data.
 
@@ -950,15 +949,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # --- Executes on button press in start_cube.
 
     def start_cube_Callback(self):
-        # hObject    handle to start_cube (see GCBO)
-        # eventdata  reserved - to be defined in a future version of MATLAB
-        # handles    structure with handles and user data (see GUIDATA)
-        # The following statements load the data cube into the data structure
-        # shared by the functions that serve the GUI
-        # These lines set determine which units were used for the x and y
-        # coordinates. The default is mm. Other possible units include
-        # micrometers, entered as either 'um' or 'microns', and cm.
-        # self.IMDataButton
 
         # TODO: For testing purposes only!
         # global isIM
@@ -978,15 +968,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif filename.endswith('.bin'):
             print("File extension: .bin")
             self.functionsCommonToAll()
-
             if not isIM:
-                self.cubeAsMSData2()
+                self.cubeAsMSData()
             elif isIM:
                 self.cubeAsIMData(filename)
             else:
                 print("Please select whether the file is IM or MS Data")
                 return
-
         else:
             print('Unexpected file extension')
             return
@@ -1069,7 +1057,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.min_mz.setValue(min(mzVals))
         self.max_mz.setValue(max(mzVals))
 
-    def cubeAsMSData2(self):
+    def cubeAsMSData(self):
         file = open(self.cubefilename)
         data = np.fromfile(file, dtype=np.float32)
         file.close()
@@ -1179,208 +1167,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.has_data = 1
 
-    def cubeAsMSData(self, filename):
-        fileID = open(filename)
-        data = np.fromfile(fileID, dtype=np.float32)
-        x = int(data[0])
-        y = int(data[1])
-        z = int(data[2])
-        end = len(data)
-        imgZ = data[end - z:end]
-        img = data[3:x * y * z + 3]
-        del data
-        img = img.reshape(z, x, y, order='F')
-        img = img.transpose(2, 1, 0)
-        img = np.flip(img, 0)
-        # These two lines of code set the pixel size to 75*150
-        imgX = np.arange(37.5, 75 * x + 37.5, 75)
-        imgY = np.arange(75, 150 * y + 75, 150)
-        fileID.close()
-
-        print("Working to display data\n")
-
-        # if statement that checks if ROI with a certain value exists. Not sure how it accepts ROI values yet
-        # below belongs to the "else" part
-        ROIcount = 0
-        if (self.ROI and self.ROIcount):
-            self.ROIcount = ROIcount
-            self.ROIcountbox.setText(str(self.ROIcount))
-        else:
-            ROIcount = 0
-            self.ROIcount = ROIcount
-            self.ROIcountbox.setText(str(self.ROIcount))
-
-        self.has_data = 1
-        if self.micrometer.isChecked():
-            scalefact = 1e3
-        elif self.millimeter.isChecked():
-            scalefact = 1
-        elif self.centimeter.isChecked():
-            scalefact = 0.1
-        # Note that x and y units are converted to mm, and the
-        # origin for the plot is set to the corner of the image.
-        # Note also that the x and y arrays for images have to be
-        # double precision for the data cursor to work.
-        self.x = abs((imgX - imgX[0]) / scalefact)
-        xm, xn = 1, len(imgX)
-        if xm > xn:
-            self.x = self.x.conj().T
-        self.x_end = self.x[len(self.x) - 1]
-        self.y = abs((imgY - imgY[0]) / scalefact)
-        ym, yn = 1, len(imgY)
-        if ym < yn:
-            self.y = self.y.conj().T
-        self.y_end = self.y[len(self.y) - 1]
-        self.z = imgZ
-        zm, zn = len(self.z), 1
-        if zm < zn:
-            self.z = self.z.conj().T
-        self.ptflag = False
-        self.rgflag = False
-        self.rgflagROI = False
-        self.intens = img
-        # this transforms the datacube into a 2D matrix,
-        # where the rows are the pixels and columns are the m/z values
-        self.a, self.b, self.c = np.shape(self.intens)[0:3]
-        self.reshaped = np.reshape(self.intens, (self.a * self.b, self.c), order="F")
-        # Plot the mass spectrum averaged over the entire image.
-        self.img_mean = np.mean(self.reshaped, axis=0)
-
-        # Now, we get the handles.Background handles.Noise by: First, finding the PS peak in the
-        # data. Then, we check if a scan is handles.Background by comparing it to the
-        # average PS peak (greater than 1/8 average PS intensity is brain, less than
-        # 1/8 average PS intensity is handles.Background) We can then find the handles.Noise at each
-        # m/z by taking the standard deviation of all the handles.Background intensities at
-        # each m/z.
-        self.PS_Peak_Intensity = 0
-        self.PS_Sum_Intensity = 0
-        imgYSize = int(len(imgY.astype(np.int32)) / 2)
-        imgXSize = int(len(imgX.astype(np.int32)) / 2)
-        for i in range(len(imgZ)):
-            if ((imgZ[i] > 834.4) and (imgZ[i] < 834.7)):  # PS is usually 834.55 and the
-                # Agilent should be accurate within a few hundreths of a m/z.
-                if img[imgYSize - 1, imgXSize - 1, i] > self.PS_Peak_Intensity:
-                    # I selected the middle point to test where the PS peak was in
-                    # hopes that the middle point is on the brain. If it is not,
-                    # this may cause us to filter by a contaminant peak not PS.
-                    self.PS_Peak_Intensity = img[imgYSize - 1, imgXSize - 1, i]
-                    self.PS_Index = i  # PS_Index should be smaller by 1 than that of in MATLAB
-        # this adds up all PS intensities in the whole image then divides by the
-        # number of pixels to get the average intensity.
-        for i in range(len(imgY)):
-            for j in range(len(imgX)):
-                self.PS_Sum_Intensity = self.PS_Sum_Intensity + img[i, j, self.PS_Index]
-        self.PS_Mean_Intensity = self.PS_Sum_Intensity / (len(imgY) * len(imgX))
-        # Now, we will create an array of the handles.Background by comparing each point to
-        # 1/8 of the handles.PS_Mean_Intensity. If it is a lower value, we will add it to
-        # the handles.Background array.
-        print("Calculating self.Noise\n")
-        self.Background = np.zeros(((len(imgY) * len(imgX)), len(imgZ)))
-        WhereIsBackground = np.zeros((len(imgY), len(imgX)))
-        k = 0
-        for i in range(len(imgY)):
-            for j in range(len(imgX)):
-                if img[i, j, self.PS_Index] < (self.PS_Mean_Intensity / 8):
-                    self.Background[k, :] = img[i, j, :]
-                    WhereIsBackground[i, j] = 1
-                    k = k + 1
-        self.Background = np.delete(self.Background, np.s_[k:(len(imgY) * len(imgX)) + 1], 0)
-        # Now we calculate the handles.Noise as the standard deviation of all intensities at
-        # an m/z in the handles.Noise. An arry of stdev's is created at each m/z
-
-        self.Noise = copy(imgZ)
-        for i in range(len(imgZ)):
-            self.Noise[i] = np.std(self.Background[:, i], ddof=1)
-            if (math.isnan(self.Noise[i])):
-                self.Noise[i] = 0
-        # Now we calculate the baseline signal at each m/z by averaging the
-        # handles.Background intensities.
-        self.Background_Signal = np.mean(self.Background, 0)
-        self.spectra_df = pd.DataFrame({'m/z': self.z, 'intensity': self.img_mean})
-        self.spectra_df['max'] = self.spectra_df.iloc[
-            signal.argrelextrema(self.spectra_df.intensity.values, np.greater_equal, order=self.checkpoint_maxima)[0]][
-            'intensity']
-        self.img_std = self.Noise
-        if self.spectra_canvas:
-            self._spectra_ax.cla()
-            self._spectra_ax.plot(self.z, self.img_mean, 'k', linewidth=0.3, picker=True)
-            self._spectra_ax.set_title('Average Spectrum Across Selected Region')
-            self._spectra_ax.set_xlabel('m/z')
-            self._spectra_ax.set_ylabel('intensity')
-        else:
-            self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
-            self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-            self.spectra_canvas.setFocus()
-            self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
-            self.plot_spectra.addWidget(self.spectra_toolbar)
-            self.plot_spectra.addWidget(self.spectra_canvas)
-            self._spectra_ax = self.spectra_canvas.figure.subplots()
-            self._spectra_ax.plot(self.z, self.img_mean, 'k', linewidth=0.3, picker=True)
-            self._spectra_ax.set_title('Average Spectrum Across Selected Region')
-            self._spectra_ax.set_xlabel('m/z')
-            self._spectra_ax.set_ylabel('intensity')
-            self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-            self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
-            self.exSpecflag = True
-
-        # Pick a point in the middle of the data set to start
-        # This means that the initial image will typically be junk
-        self.index = np.uint32(len(imgZ) / 2) - 1
-        # Put the corresponding values in the mass, index, and handles.Noise windows
-        self.start.setText(str(imgZ[self.index]))
-        # self.msindex.setText(str(self.index))
-        self.Noise_Output_Box.setText(str(self.img_std[self.index]))
-        # pull the maximum value from the image and put it in the boxes
-        self.z_max, self.z_min = self.arrlims(self.intens[:, :, (round(len(imgZ) / 2 - 1))])
-        self.max_int.setText(str(self.z_max))
-        self.temp_max.setText(str(self.z_max))
-        # set up the slider (scrollbar)
-        self.zmax.setMinimum(0)
-        self.zmax.setMaximum(math.ceil(self.z_max))
-        self.zmax.setValue(math.ceil(self.z_max))
-        self.zmax.setSingleStep(round(0.01 * self.z_max))
-        # concentration map storing variable
-        self.ConcMapData = [np.flip(img[:, :, round(len(imgZ) / 2) - 1], axis=0), self.x_end, self.y_end]
-        # set up the initial image
-        if self.con_canvas:
-            self.plot_con.removeWidget(self.con_canvas)
-            # self.con_cbar.remove()
-        if self.con_canvas:
-            self._con_ax.cla()
-            # self.con_cbar.remove()
-            self.con_img = self._con_ax.imshow(np.flip(img[:, :, round(len(imgZ) / 2) - 1], axis=0), cmap='jet',
-                                               aspect='auto', extent=[0, self.x_end, 0, self.y_end])
-            self._con_ax.set_xlabel('x, mm')
-            self._con_ax.set_ylabel('y, mm')
-            self.con_cbar = plt.colorbar(self.con_img)
-            self._con_ax.invert_yaxis()
-            self._con_ax.set_aspect('equal')
-            self.con_canvas.draw()
-            self.exConcflag = True
-        else:
-            self.con_canvas = FigureCanvas(plt.figure(tight_layout=True))
-            self.con_toolbar = NavigationToolbar(self.con_canvas, self)
-            self.plot_con.addWidget(self.con_toolbar)
-            self.plot_con.addWidget(self.con_canvas)
-            self._con_ax = self.con_canvas.figure.subplots()
-            self.con_img = self._con_ax.imshow(np.flip(img[:, :, round(len(imgZ) / 2) - 1], axis=0), cmap='jet',
-                                               aspect='auto', extent=[0, self.x_end, 0, self.y_end])
-            self._con_ax.set_xlabel('x, mm')
-            self._con_ax.set_ylabel('y, mm')
-            self.con_cbar = plt.colorbar(self.con_img)
-            self._con_ax.invert_yaxis()
-            self._con_ax.set_aspect('equal')
-            self.exConcflag = True
-
     # --- Executes on slider movement.
     def zmax_Callback(self):
         if isIM:
             self.temp_max.setText(str(self.zmax.sliderPosition()))
             self.scale_image()
             return 0
-        self.t_max = self.zmax.sliderPosition()
-        self.temp_max.setText(str(self.t_max))
-        self.scale_image()
 
     # This function updates the image to the current index
     def scale_image(self):
@@ -1422,39 +1214,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.view.draw()
             self.ConcMapData = data
             return 0
-        # plot the image
-        bkg = np.zeros((len(self.y), len(self.x)))  # creates matrix for self.Background
-        summarea = np.zeros((len(self.y), len(self.x)))  # creates matrix for the area sums
-        self.areas = np.zeros((len(self.y), len(self.x)))
-        numberpoints = 12
-        for i in range(len(self.y)):
-            for k in range(len(self.x)):
-                sumeach = np.sum(self.intens[i, k, np.arange(self.index - numberpoints, (self.index + 70 + 1))])
-                summarea[i, k] = sumeach
-                sumback = np.sum(
-                    self.intens[i, k, np.arange(self.index + numberpoints, (self.index + 2 * numberpoints + 1))])
-                bkg[i, k] = sumback
-                self.areas[i, k] = (sumeach - sumback)
-        self.ConcMapData = [np.flip(self.areas, axis=0), self.x_end, self.y_end, self.z_min, self.t_max]
-        if self._con_ax:
-            self._con_ax.cla()
-            # if self.con_cbar:
-            #     print("here")
-            # self.con_cbar.remove()
-            if self.con_canvas:
-                self.plot_con.removeWidget(self.con_canvas)
-                # self.con_cbar.remove()
-            clims = np.array([self.z_min, self.t_max])
-            self.con_img = self._con_ax.imshow(np.flip(self.areas, axis=0), cmap='jet', aspect='auto', vmin=clims[0],
-                                               vmax=clims[1], extent=[0, self.x_end, 0, self.y_end])
-            self._con_ax.set_xlabel('x, mm')
-            self._con_ax.set_ylabel('y, mm')
-            self.con_cbar = plt.colorbar(self.con_img)
-            # self.con_cbar = self.con_canvas.figure.colorbar(self.con_img)
-            self._con_ax.invert_yaxis()
-            self._con_ax.set_aspect('equal')
-            self.con_canvas.draw()
-            self.exConcflag = True
 
     # --- Executes on slider movement.
     def zmax_isotope_Callback(self):
@@ -1462,21 +1221,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.max_iso.setText(str(self.zmax_isotope.sliderPosition()))
             self.scale_iso_image()
             return 0
-        self.iso_max = self.zmax_truearr[self.zmax_isotope.sliderPosition()]
-        self.iso_min = self.zmax_truearr[self.zmin_isotope.sliderPosition()]  # TODO: Is this line necessary?
-        self.max_iso.setText(str(('%s' % float('%.5g' % self.iso_max))))
-        self.scale_iso_image()
 
     # --- Executes on slider movement.
     def zmin_isotope_Callback(self):
         if isIM:
             self.min_iso.setText(str(self.zmin_isotope.sliderPosition()))
             self.scale_iso_image()
-            return 0
-        self.iso_max = self.zmax_truearr[self.zmax_isotope.sliderPosition()]
-        self.iso_min = self.zmax_truearr[self.zmin_isotope.sliderPosition()]
-        self.min_iso.setText(str(('%s' % float('%.5g' % self.iso_min))))
-        self.scale_iso_image()
 
     # This function updates the image to the current index
     def scale_iso_image(self):
@@ -1524,44 +1274,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             plt.colorbar(self.con_img2)
             self.viewPlusOne.draw()
             return 0
-        if self.massplustwo.isChecked():
-            if self._kin_ax:
-                self.IsotopeMapData = [np.flip(self.mplusonenormintratiowithmassplustwo, axis=0), self.x_end,
-                                       self.y_end, self.iso_min, self.iso_max]
-                self._kin_ax.cla()
-                self.kin_cbar.remove()
-                clims = np.array([self.iso_min, self.iso_max])
-                self.kin_img = self._kin_ax.imshow(np.flip(self.mplusonenormintratiowithmassplustwo, axis=0),
-                                                   cmap='jet', aspect='auto', vmin=clims[0], vmax=clims[1],
-                                                   extent=[0, self.x_end, 0, self.y_end])
-                self._kin_ax.set_xlabel('x, mm')
-                self._kin_ax.set_ylabel('y, mm')
-                self.kin_cbar = self.kin_canvas.figure.colorbar(self.kin_img)
-                self._kin_ax.invert_yaxis()
-                self._kin_ax.set_aspect('equal')
-                self.kin_canvas.draw()
-                self.exIsotopeflag = True
-            else:
-                pass
-        else:
-            if self._kin_ax:
-                self.IsotopeMapData = [np.flip(self.mplusonenormintratio, axis=0), self.x_end, self.y_end, self.iso_min,
-                                       self.iso_max]
-                self._kin_ax.cla()
-                self.kin_cbar.remove()
-                clims = np.array([self.iso_min, self.iso_max])
-                self.kin_img = self._kin_ax.imshow(np.flip(self.mplusonenormintratio, axis=0), cmap='jet',
-                                                   aspect='auto', vmin=clims[0], vmax=clims[1],
-                                                   extent=[0, self.x_end, 0, self.y_end])
-                self._kin_ax.set_xlabel('x, mm')
-                self._kin_ax.set_ylabel('y, mm')
-                self.kin_cbar = self.kin_canvas.figure.colorbar(self.kin_img)
-                self._kin_ax.invert_yaxis()
-                self._kin_ax.set_aspect('equal')
-                self.kin_canvas.draw()
-                self.exIsotopeflag = True
-            else:
-                pass
 
     def export_ConcMap_Callback(self):
         # when clicking on the exportConcMap button, it will save the filename and concentration the map
@@ -1625,19 +1337,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             ROIcount = self.ROIcount
             self.refreshROIlistbox()
             return 0
-
-        # when clicking on the exportROI button, it will increase the ROIcount by 1
-        # and it will save the filename and binI to the ROI cell variable
-        # then it will save them to the actual cubefilename to be retrievable next
-        # time the cube is opened
-        if self.rgflagROI:  # only export a ROI if one has been selected
-            self.ROIcount = self.ROIcount + 1
-            self.ROIcountbox.setText(str(self.ROIcount))
-            self.ROI[self.exportROIfilename.text()] = self.binI
-            # Would I really need to save it?
-            ROI = self.ROI
-            ROIcount = self.ROIcount
-            self.refreshROIlistbox()
 
     def refreshROIlistbox(self):
         if len(self.ROI) == 0:
@@ -1752,14 +1451,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if isIM:
             self.im_point()
 
-        for theRoi in self.ROIplots.keys():
-            del self.ROIplots[theRoi]
-            del self.ROI[theRoi]
-            del self.ROI_img_mean[theRoi]
-            self.ROIcount -= 1
-            self.ROIcountbox.setText(str(self.ROIcount))
-            self.refreshROIlistbox()
-
     # --- Executes on button press in find_file_mzOI.
     def find_file_mzOI_Callback(self):
         self.fName_mzOI = QFileDialog.getOpenFileName(self, 'Pick list: m/z of interest', filter='*.csv')
@@ -1799,8 +1490,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.exSpecflag = True
 
             return 0
-        else:
-            print("spectra doesn't exist")
 
     def data_cursor_click(self, event):
         indexes = event.ind
@@ -1865,88 +1554,60 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
         self.spectra_canvas.draw()
 
-    def data_cursor_key(self, event):
-        if (event.key == 'left'):
-            self.index = self.index - 1
-            self.start.setText(str(self.z[self.index]))
-            # self.msindex.setText(str(self.index))
-            self.Noise_Output_Box.setText(str(self.img_std[self.index]))
-            x_val = self.z[self.index]
-            y_val = self.img_mean[self.index]
-            x_key = '%s' % float('%.6g' % x_val)
-            y_key = '%s' % float('%.6g' % y_val)
+    # def data_cursor_key(self, event):
+    #     if (event.key == 'left'):
+    #         self.index = self.index - 1
+    #         self.start.setText(str(self.z[self.index]))
+    #         # self.msindex.setText(str(self.index))
+    #         self.Noise_Output_Box.setText(str(self.img_std[self.index]))
+    #         x_val = self.z[self.index]
+    #         y_val = self.img_mean[self.index]
+    #         x_key = '%s' % float('%.6g' % x_val)
+    #         y_key = '%s' % float('%.6g' % y_val)
+    #
+    #         if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
+    #             threshold = float(self.pick_IDthreshold.value())
+    #             for i in range(len(self.ids_pd['m/z'])):
+    #                 err = abs((x_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
+    #                 # print(err)
+    #                 if (err < threshold):
+    #                     ID_in = self.ids_pd['Lipid ID'][i]
+    #                     break
+    #                 else:
+    #                     ID_in = 'not defined'
+    #             self.ID_Output_Box.setText(str(ID_in))
+    #             # Annotate
+    #             self.annotate_spectra_ID(x_key, y_key, ID_in)
+    #         else:
+    #             self.annotate_spectra(x_key, y_key)
+    #
+    #     elif (event.key == 'right'):
+    #         self.index = self.index + 1
+    #         self.start.setText(str(self.z[self.index]))
+    #         # self.msindex.setText(str(self.index))
+    #         self.Noise_Output_Box.setText(str(self.img_std[self.index]))
+    #         x_val = self.z[self.index]
+    #         y_val = self.img_mean[self.index]
+    #         x_key = '%s' % float('%.6g' % x_val)
+    #         y_key = '%s' % float('%.6g' % y_val)
+    #
+    #         if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
+    #             threshold = float(self.pick_IDthreshold.value())
+    #             for i in range(len(self.ids_pd['m/z'])):
+    #                 err = abs((x_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
+    #                 # print(err)
+    #                 if (err < threshold):
+    #                     ID_in = self.ids_pd['Lipid ID'][i]
+    #                     break
+    #                 else:
+    #                     ID_in = 'not defined'
+    #             self.ID_Output_Box.setText(str(ID_in))
+    #             # Annotate
+    #             self.annotate_spectra_ID(x_key, y_key, ID_in)
+    #         else:
+    #             self.annotate_spectra(x_key, y_key)
 
-            if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-                threshold = float(self.pick_IDthreshold.value())
-                for i in range(len(self.ids_pd['m/z'])):
-                    err = abs((x_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
-                    # print(err)
-                    if (err < threshold):
-                        ID_in = self.ids_pd['Lipid ID'][i]
-                        break
-                    else:
-                        ID_in = 'not defined'
-                self.ID_Output_Box.setText(str(ID_in))
-                # Annotate
-                self.annotate_spectra_ID(x_key, y_key, ID_in)
-            else:
-                self.annotate_spectra(x_key, y_key)
 
-        elif (event.key == 'right'):
-            self.index = self.index + 1
-            self.start.setText(str(self.z[self.index]))
-            # self.msindex.setText(str(self.index))
-            self.Noise_Output_Box.setText(str(self.img_std[self.index]))
-            x_val = self.z[self.index]
-            y_val = self.img_mean[self.index]
-            x_key = '%s' % float('%.6g' % x_val)
-            y_key = '%s' % float('%.6g' % y_val)
-
-            if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-                threshold = float(self.pick_IDthreshold.value())
-                for i in range(len(self.ids_pd['m/z'])):
-                    err = abs((x_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
-                    # print(err)
-                    if (err < threshold):
-                        ID_in = self.ids_pd['Lipid ID'][i]
-                        break
-                    else:
-                        ID_in = 'not defined'
-                self.ID_Output_Box.setText(str(ID_in))
-                # Annotate
-                self.annotate_spectra_ID(x_key, y_key, ID_in)
-            else:
-                self.annotate_spectra(x_key, y_key)
-
-    def annotate_spectra(self, x_in, y_in):
-        if self._spectra_ax:
-            self._spectra_ax.cla()
-            self._spectra_ax.plot(self.z, self.img_mean, 'k', linewidth=0.3, picker=True)
-            self._spectra_ax.set_title('Average Spectrum Across Selected Region')
-            self._spectra_ax.set_xlabel('m/z')
-            self._spectra_ax.set_ylabel('intensity')
-            self.spectra_ann = self._spectra_ax.annotate("X = {0}\nY = {1}".format(x_in, y_in),
-                                                         xy=(self.z[self.index], self.img_mean[self.index]),
-                                                         xycoords='data',
-                                                         va="bottom", ha="left",
-                                                         bbox=dict(boxstyle="square, pad=0.3", facecolor="white"),
-                                                         )
-            self.spectra_canvas.draw()
-
-    def annotate_spectra_ID(self, x_in, y_in, ID_in):
-        if self._spectra_ax:
-            self._spectra_ax.cla()
-            self._spectra_ax.plot(self.z, self.img_mean, 'k', linewidth=0.3, picker=True)
-            self._spectra_ax.set_title('Average Spectrum Across Selected Region')
-            self._spectra_ax.set_xlabel('m/z')
-            self._spectra_ax.set_ylabel('intensity')
-            self.spectra_ann = self._spectra_ax.annotate("X = {0}\nY = {1}\nID: {2}".format(x_in, y_in, ID_in),
-                                                         xy=(self.z[self.index], self.img_mean[self.index]),
-                                                         xycoords='data',
-                                                         va="bottom", ha="left",
-                                                         bbox=dict(boxstyle="square, pad=0.3", facecolor="white"),
-                                                         )
-            self.spectra_canvas.draw()
 
     ##########################################
     # Multi Map Compare functions (things related to the 2nd window)
