@@ -374,7 +374,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self._spectra_ax.set_xlabel('m/z')
             self._spectra_ax.set_ylabel('intensity')
             self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-            self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
+            # self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
         return 0
 
     def drift_time_callback(self):
@@ -1050,6 +1050,22 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes.set_ylabel("y, " + self.label)
         self.view.draw()
         self.ConcMapData = imageData
+        theMin, theMax = self.find_min_max_image(imageData)
+        self.max_int.setText(str(theMax))
+        self.min_int.setText(str(theMin))
+
+
+    def find_min_max_image(self, imageData):
+        theMin = sys.maxsize
+        theMax = 0
+        for line in imageData:
+            lineMin = min(line)
+            lineMax = max(line)
+            if lineMax > theMax:
+                theMax = lineMax
+            if lineMin < theMin:
+                theMin = lineMin
+        return theMin, theMax
 
     def displayScatter(self, mzVals, intensity, drifts):
         if self._spectra_ax:
