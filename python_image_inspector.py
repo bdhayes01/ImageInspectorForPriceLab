@@ -910,6 +910,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
 
+        not_used, m_zero_max_intensity = self.find_min_max_image(imageData)
+        not_used, m_one_max_intensity = self.find_min_max_image(image_plus_one)
+        not_used, m_two_max_intensity = self.find_min_max_image(image_plus_two)
+        if m_zero_max_intensity != 0:
+            denom = m_zero_max_intensity + m_one_max_intensity + m_two_max_intensity
+            self.Msumratio.setText(str(round(m_zero_max_intensity / denom, 4)))
+            self.Mplusonesumratio.setText(str(round(m_one_max_intensity / denom, 4)))
+            self.Mplustwosumratio.setText(str(round(m_two_max_intensity / denom, 4)))
+
         if self.massplusone.isChecked():
             self.displayIsoImage(imageData, image_plus_one, self.pixelSizeX, self.pixelSizeY)
         if self.massplustwo.isChecked():
