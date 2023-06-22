@@ -1982,9 +1982,9 @@ background-color: rgb(238, 204, 204);</string>
     <property name="geometry">
      <rect>
       <x>200</x>
-      <y>650</y>
+      <y>680</y>
       <width>1091</width>
-      <height>341</height>
+      <height>311</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="plot_spectra"/>

@@ -1085,96 +1085,98 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.im_point()
             # self.refresh_isotoperatio()
             return 0
+        else:
 
-        # choose what masspluswhat peak
-        if self.massplusone.isChecked():
-            self.includemassplustwo = False
-        elif self.massplustwo.isChecked():
-            self.includemassplustwo = True
-        self.start.setText(str(self.z[self.index]))
-        # self.msindex.setText(str(self.index))
-        self.Noise_Output_Box.setText(str(self.img_std[self.index]))
-        self.refresh_image()
-        # calculating the area and plotting the isotope image
-        m = self.intens[:, :, self.index]  # this index gets the selected plane of values for this index
-        # now find all the M+1 and M+2 planes
-        massplusonemass = self.z[self.index] + 1
-        massplustwomass = self.z[self.index] + 2
-        massplusoneindex = np.where(abs(self.z - massplusonemass) == (abs(self.z - massplusonemass)).min())[0][0]
-        massplustwoindex = np.where(abs(self.z - massplustwomass) == (abs(self.z - massplustwomass)).min())[0][0]
-        # finds the index of the closest value to the massplusonemass and massplustwomass value
-        mplusone = self.intens[:, :, massplusoneindex]  # this gets the massplusone plane
-        mplustwo = self.intens[:, :, massplustwoindex]  # this gets the massplustwo plane
-        self.massbox.setText(str(self.z[self.index]))  # sets the mass box
-        zmax = np.max(m)  # finds the max overall in mass selected plane
-        threshold = zmax / 7  # sets the threshold for the peaks to be real above a fifth of maximum
-        self.good = (m > threshold).astype(int)  # creates a matrix with ones and zeros for if the
-        # statement is true or not for each value
-        normfactor = int(self.ideal_ratio.text())  # gets the normalization factor from ideal_ratio
-        self.mintratio = np.zeros((len(self.y), len(self.x)))  # creates matrix for integrated ratios
-        self.mnormintratio = np.ones((len(self.y), len(self.x)))  # creates matrix for normalized ratios
-        self.mintratiowithmassplustwo = np.zeros((len(self.y), len(self.x)))  # creates matrix for integrated ratios
-        self.mnormintratiowithmassplustwo = np.ones((len(self.y), len(self.x)))  # creates matrix for normalized ratios
-        self.mplusoneintratio = np.zeros((len(self.y), len(self.x)))  # creates matrix for integrated ratios
-        self.mplusonenormintratio = np.ones((len(self.y), len(self.x)))  # creates matrix for normalized ratios
-        self.mplusoneintratiowithmassplustwo = np.zeros(
-            (len(self.y), len(self.x)))  # creates matrix for integrated ratios
-        self.mplusonenormintratiowithmassplustwo = np.ones(
-            (len(self.y), len(self.x)))  # creates matrix for normalized ratios
-        self.mplustwointratiowithmassplustwo = np.zeros(
-            (len(self.y), len(self.x)))  # creates matrix for integrated ratios
-        self.mplustwonormintratiowithmassplustwo = np.ones(
-            (len(self.y), len(self.x)))  # creates matrix for normalized ratios
-        bkg = np.zeros((len(self.y), len(self.x)))  # creates matrix for handles.Background
-        summarr = np.zeros((len(self.y), len(self.x)))  # creates matrix for the area sums
-        summplusonearr = np.zeros((len(self.y), len(self.x)))  # creates matrix for the sumplusone area sums
-        summplustwoarr = np.zeros((len(self.y), len(self.x)))  # creates matrix for the sumplustwo area sums
-        numberpoints = 12
-        for i in range(len(self.y)):
-            for k in range(len(self.x)):
-                if self.good[i, k]:
-                    summ = np.sum(
-                        self.intens[i, k, np.arange(self.index - numberpoints, (self.index + numberpoints + 1))])
-                    summarr[i, k] = summ
-                    summplusone = np.sum(self.intens[i, k, np.arange(massplusoneindex - numberpoints,
-                                                                     (massplusoneindex + numberpoints + 1))])
-                    summplusonearr[i, k] = summplusone
-                    summplustwo = np.sum(self.intens[i, k, np.arange(massplustwoindex - numberpoints,
-                                                                     (massplustwoindex + numberpoints + 1))])
-                    summplustwoarr[i, k] = summplustwo
-                    sumback = np.sum(
-                        self.intens[i, k, np.arange(self.index + numberpoints, (self.index + 2 * numberpoints + 1))])
-                    bkg[i, k] = sumback
-                    # getting all the integrated ratios for the main mass peak
-                    self.mintratio[i, k] = (summ - sumback) / ((summ - sumback) + (summplusone - sumback))
-                    self.mintratiowithmassplustwo[i, k] = (summ - sumback) / (
-                            (summ - sumback) + (summplusone - sumback) + (summplustwo - sumback))
-                    self.mnormintratio[i, k] = self.mintratio[i, k] / normfactor
-                    self.mnormintratiowithmassplustwo[i, k] = self.mintratiowithmassplustwo[i, k] / normfactor
-                    # getting all the integrated ratios for the mass peak plus one
-                    self.mplusoneintratio[i, k] = (summplusone - sumback) / ((summ - sumback) + (summplusone - sumback))
-                    self.mplusoneintratiowithmassplustwo[i, k] = (summplusone - sumback) / (
-                            (summ - sumback) + (summplusone - sumback) + (summplustwo - sumback))
-                    self.mplusonenormintratio[i, k] = self.mplusoneintratio[i, k] / normfactor
-                    self.mplusonenormintratiowithmassplustwo[i, k] = self.mplusoneintratiowithmassplustwo[
-                                                                         i, k] / normfactor
-                    # getting all the integrated ratios for the mass peak plus two
-                    self.mplustwointratiowithmassplustwo[i, k] = (summplustwo - sumback) / (
-                            (summ - sumback) + (summplusone - sumback) + (summplustwo - sumback))
-                    self.mplustwonormintratiowithmassplustwo[i, k] = self.mplustwointratiowithmassplustwo[
-                                                                         i, k] / normfactor
-                else:
-                    self.mintratio[i, k] = 0
-                    self.mintratiowithmassplustwo[i, k] = 0
-                    self.mnormintratio[i, k] = 1
-                    self.mnormintratiowithmassplustwo[i, k] = 1
-                    self.mplusoneintratio[i, k] = 0
-                    self.mplusoneintratiowithmassplustwo[i, k] = 0
-                    self.mplusonenormintratio[i, k] = 1
-                    self.mplusonenormintratiowithmassplustwo[i, k] = 1
-                    self.mplustwointratiowithmassplustwo[i, k] = 0
-                    self.mplustwonormintratiowithmassplustwo[i, k] = 1
-        self.refresh_isotoperatio()
+            return 0
+        # # choose what masspluswhat peak
+        # if self.massplusone.isChecked():
+        #     self.includemassplustwo = False
+        # elif self.massplustwo.isChecked():
+        #     self.includemassplustwo = True
+        # self.start.setText(str(self.z[self.index]))
+        # # self.msindex.setText(str(self.index))
+        # self.Noise_Output_Box.setText(str(self.img_std[self.index]))
+        # self.refresh_image()
+        # # calculating the area and plotting the isotope image
+        # m = self.intens[:, :, self.index]  # this index gets the selected plane of values for this index
+        # # now find all the M+1 and M+2 planes
+        # massplusonemass = self.z[self.index] + 1
+        # massplustwomass = self.z[self.index] + 2
+        # massplusoneindex = np.where(abs(self.z - massplusonemass) == (abs(self.z - massplusonemass)).min())[0][0]
+        # massplustwoindex = np.where(abs(self.z - massplustwomass) == (abs(self.z - massplustwomass)).min())[0][0]
+        # # finds the index of the closest value to the massplusonemass and massplustwomass value
+        # mplusone = self.intens[:, :, massplusoneindex]  # this gets the massplusone plane
+        # mplustwo = self.intens[:, :, massplustwoindex]  # this gets the massplustwo plane
+        # self.massbox.setText(str(self.z[self.index]))  # sets the mass box
+        # zmax = np.max(m)  # finds the max overall in mass selected plane
+        # threshold = zmax / 7  # sets the threshold for the peaks to be real above a fifth of maximum
+        # self.good = (m > threshold).astype(int)  # creates a matrix with ones and zeros for if the
+        # # statement is true or not for each value
+        # normfactor = int(self.ideal_ratio.text())  # gets the normalization factor from ideal_ratio
+        # self.mintratio = np.zeros((len(self.y), len(self.x)))  # creates matrix for integrated ratios
+        # self.mnormintratio = np.ones((len(self.y), len(self.x)))  # creates matrix for normalized ratios
+        # self.mintratiowithmassplustwo = np.zeros((len(self.y), len(self.x)))  # creates matrix for integrated ratios
+        # self.mnormintratiowithmassplustwo = np.ones((len(self.y), len(self.x)))  # creates matrix for normalized ratios
+        # self.mplusoneintratio = np.zeros((len(self.y), len(self.x)))  # creates matrix for integrated ratios
+        # self.mplusonenormintratio = np.ones((len(self.y), len(self.x)))  # creates matrix for normalized ratios
+        # self.mplusoneintratiowithmassplustwo = np.zeros(
+        #     (len(self.y), len(self.x)))  # creates matrix for integrated ratios
+        # self.mplusonenormintratiowithmassplustwo = np.ones(
+        #     (len(self.y), len(self.x)))  # creates matrix for normalized ratios
+        # self.mplustwointratiowithmassplustwo = np.zeros(
+        #     (len(self.y), len(self.x)))  # creates matrix for integrated ratios
+        # self.mplustwonormintratiowithmassplustwo = np.ones(
+        #     (len(self.y), len(self.x)))  # creates matrix for normalized ratios
+        # bkg = np.zeros((len(self.y), len(self.x)))  # creates matrix for handles.Background
+        # summarr = np.zeros((len(self.y), len(self.x)))  # creates matrix for the area sums
+        # summplusonearr = np.zeros((len(self.y), len(self.x)))  # creates matrix for the sumplusone area sums
+        # summplustwoarr = np.zeros((len(self.y), len(self.x)))  # creates matrix for the sumplustwo area sums
+        # numberpoints = 12
+        # for i in range(len(self.y)):
+        #     for k in range(len(self.x)):
+        #         if self.good[i, k]:
+        #             summ = np.sum(
+        #                 self.intens[i, k, np.arange(self.index - numberpoints, (self.index + numberpoints + 1))])
+        #             summarr[i, k] = summ
+        #             summplusone = np.sum(self.intens[i, k, np.arange(massplusoneindex - numberpoints,
+        #                                                              (massplusoneindex + numberpoints + 1))])
+        #             summplusonearr[i, k] = summplusone
+        #             summplustwo = np.sum(self.intens[i, k, np.arange(massplustwoindex - numberpoints,
+        #                                                              (massplustwoindex + numberpoints + 1))])
+        #             summplustwoarr[i, k] = summplustwo
+        #             sumback = np.sum(
+        #                 self.intens[i, k, np.arange(self.index + numberpoints, (self.index + 2 * numberpoints + 1))])
+        #             bkg[i, k] = sumback
+        #             # getting all the integrated ratios for the main mass peak
+        #             self.mintratio[i, k] = (summ - sumback) / ((summ - sumback) + (summplusone - sumback))
+        #             self.mintratiowithmassplustwo[i, k] = (summ - sumback) / (
+        #                     (summ - sumback) + (summplusone - sumback) + (summplustwo - sumback))
+        #             self.mnormintratio[i, k] = self.mintratio[i, k] / normfactor
+        #             self.mnormintratiowithmassplustwo[i, k] = self.mintratiowithmassplustwo[i, k] / normfactor
+        #             # getting all the integrated ratios for the mass peak plus one
+        #             self.mplusoneintratio[i, k] = (summplusone - sumback) / ((summ - sumback) + (summplusone - sumback))
+        #             self.mplusoneintratiowithmassplustwo[i, k] = (summplusone - sumback) / (
+        #                     (summ - sumback) + (summplusone - sumback) + (summplustwo - sumback))
+        #             self.mplusonenormintratio[i, k] = self.mplusoneintratio[i, k] / normfactor
+        #             self.mplusonenormintratiowithmassplustwo[i, k] = self.mplusoneintratiowithmassplustwo[
+        #                                                                  i, k] / normfactor
+        #             # getting all the integrated ratios for the mass peak plus two
+        #             self.mplustwointratiowithmassplustwo[i, k] = (summplustwo - sumback) / (
+        #                     (summ - sumback) + (summplusone - sumback) + (summplustwo - sumback))
+        #             self.mplustwonormintratiowithmassplustwo[i, k] = self.mplustwointratiowithmassplustwo[
+        #                                                                  i, k] / normfactor
+        #         else:
+        #             self.mintratio[i, k] = 0
+        #             self.mintratiowithmassplustwo[i, k] = 0
+        #             self.mnormintratio[i, k] = 1
+        #             self.mnormintratiowithmassplustwo[i, k] = 1
+        #             self.mplusoneintratio[i, k] = 0
+        #             self.mplusoneintratiowithmassplustwo[i, k] = 0
+        #             self.mplusonenormintratio[i, k] = 1
+        #             self.mplusonenormintratiowithmassplustwo[i, k] = 1
+        #             self.mplustwointratiowithmassplustwo[i, k] = 0
+        #             self.mplustwonormintratiowithmassplustwo[i, k] = 1
+        # self.refresh_isotoperatio()
 
     def im_point(self):
         # NOTE: to Brian . Okay, here's the deal, when building this the code was so confusing,
@@ -1414,6 +1416,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.zmax.setValue(0)
         self.zmin_isotope.setValue(0)
+
+    def ms_point(self):
+        # TODO: Start here on 6/22: Try to generate the map of a clicked point
+        return 0
 
     def isotope_scalar(self, m_zero_intensity, isotope_intensity):
         new_data = []
@@ -2739,44 +2745,56 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # not in original MATLAB code
     def data_cursor_click(self, event):
-        if isinstance(event.artist, Line2D):
-            thisline = event.artist
-            self.x_picked = thisline.get_xdata()
-            self.y_picked = thisline.get_ydata()
-            ind = event.ind
-            self.index = np.where(self.z == self.x_picked[ind][0])[0][0]
-            self.start.setText(str(self.z[self.index]))
-            # self.msindex.setText(str(self.index))
-            self.Noise_Output_Box.setText(str(self.img_std[self.index]))
+        indexes = event.ind
+        i = indexes[0]
+        theXmOverZ = event.mouseevent.lastevent.xdata
+        theY = event.mouseevent.lastevent.ydata
 
-            ID_in = 'not defined'
-            if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-                threshold = float(self.pick_IDthreshold.value())
-                for i in range(len(self.ids_pd['m/z'])):
-                    err = abs((self.x_picked[ind][0] - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
-                    # print(err)
-                    if (err < threshold):
-                        ID_in = self.ids_pd['Lipid ID'][i]
-                        break
-                self.ID_Output_Box.setText(str(ID_in))
-                # Annotate
-                x_sig = '%s' % float('%.6g' % self.x_picked[ind][0])
-                y_sig = '%s' % float('%.6g' % self.y_picked[ind][0])
-                self.annotate_spectra_ID(x_sig, y_sig, ID_in)
-            else:
-                x_sig = '%s' % float('%.6g' % self.x_picked[ind][0])
-                y_sig = '%s' % float('%.6g' % self.y_picked[ind][0])
-                self.annotate_spectra(x_sig, y_sig)
+        self.start.setText("%.5f" % theXmOverZ)
+        if isIM:
+            self.IM_spectra_annotation(theXmOverZ, theY)
+            return 0
         else:
-            indexes = event.ind
-            i = indexes[0]
-            theXmOverZ = event.mouseevent.lastevent.xdata
-            theY = event.mouseevent.lastevent.ydata
-
-            self.start.setText("%.5f" % theXmOverZ)
-            if isIM:
-                self.IM_spectra_annotation(theXmOverZ, theY)
-                return 0
+            # TODO: Add in the annotation here
+            return 0
+        # if isinstance(event.artist, Line2D):
+        #     thisline = event.artist
+        #     self.x_picked = thisline.get_xdata()
+        #     self.y_picked = thisline.get_ydata()
+        #     ind = event.ind
+        #     self.index = np.where(self.z == self.x_picked[ind][0])[0][0]
+        #     self.start.setText(str(self.z[self.index]))
+        #     # self.msindex.setText(str(self.index))
+        #     self.Noise_Output_Box.setText(str(self.img_std[self.index]))
+        #
+        #     ID_in = 'not defined'
+        #     if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
+        #         threshold = float(self.pick_IDthreshold.value())
+        #         for i in range(len(self.ids_pd['m/z'])):
+        #             err = abs((self.x_picked[ind][0] - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
+        #             # print(err)
+        #             if (err < threshold):
+        #                 ID_in = self.ids_pd['Lipid ID'][i]
+        #                 break
+        #         self.ID_Output_Box.setText(str(ID_in))
+        #         # Annotate
+        #         x_sig = '%s' % float('%.6g' % self.x_picked[ind][0])
+        #         y_sig = '%s' % float('%.6g' % self.y_picked[ind][0])
+        #         self.annotate_spectra_ID(x_sig, y_sig, ID_in)
+        #     else:
+        #         x_sig = '%s' % float('%.6g' % self.x_picked[ind][0])
+        #         y_sig = '%s' % float('%.6g' % self.y_picked[ind][0])
+        #         self.annotate_spectra(x_sig, y_sig)
+        # else:
+        #     indexes = event.ind
+        #     i = indexes[0]
+        #     theXmOverZ = event.mouseevent.lastevent.xdata
+        #     theY = event.mouseevent.lastevent.ydata
+        #
+        #     self.start.setText("%.5f" % theXmOverZ)
+        #     if isIM:
+        #         self.IM_spectra_annotation(theXmOverZ, theY)
+        #         return 0
 
     # This is a function that calculates how far away a value must be to be defined as a different lipid.
     def ppm_calc(self, mzVal):
