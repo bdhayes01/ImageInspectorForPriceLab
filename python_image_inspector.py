@@ -1261,6 +1261,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # This function updates the image to the current index
     def scale_image(self):
         if isIM:
+            if not self.chosenData:
+                return 0
             x = self.chosenData
 
             data = []
