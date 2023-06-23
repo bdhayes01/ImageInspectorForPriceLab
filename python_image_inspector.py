@@ -149,6 +149,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.chosenData = None
         self.mapData = None
         self.label = None
         self.scalefact = None
@@ -796,82 +797,75 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         num_pixels = len(chosenData) * len(chosenData[0])
         self.numberpoints.setText(str(num_pixels))
 
-        if self.massplusone.isChecked():
-            if self.viewPlusOne:
-                self.plot_kin.removeWidget(self.viewPlusOne)
-            if self.viewPlusTwo:
-                self.plot_kin.removeWidget(self.viewPlusTwo)
-
-            iso_data = self.isotope_scalar(chosenData, chosenDataPlusOne)
-
-            iso_for_deviation = np.asarray(iso_data)
-            iso_for_deviation = iso_for_deviation.flatten()
-
-            std_deviation = round(np.std(iso_for_deviation), 4)
-            self.Mplusonesumstandard_error.setText(str(std_deviation))
-
-            self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
-            self.axes = self.viewPlusOne.figure.subplots()
-            self.toolbar = NavigationToolbar(self.viewPlusOne, self)
-            self.plot_kin.addWidget(self.viewPlusOne)
-            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno',
-                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
-            plt.colorbar(self.con_img2)
-            self.viewPlusOne.draw()
-
-            themax = round((maxIntensityPlusOne / maxIntensity) * 100, 3)
-
-            self.max_iso.setText(str(themax))
-            self.max_int_iso.setText(str(themax))
-            self.zmax_isotope.setMinimum(0)
-            self.zmax_isotope.setMaximum(int(themax))
-
-            self.min_iso.setText(str(0))
-            self.min_int_iso.setText(str(0))
-            self.zmin_isotope.setMinimum(0)
-            self.zmin_isotope.setMaximum(int(themax))
-            self.zmax_isotope.setValue(int(themax))
-        elif self.massplustwo.isChecked():
-            if self.viewPlusTwo:
-                self.plot_kin.removeWidget(self.viewPlusTwo)
-            if self.viewPlusOne:
-                self.plot_kin.removeWidget(self.viewPlusOne)
-
-            iso_data = self.isotope_scalar(chosenData, chosenDataPlusTwo)
-
-            self.viewPlusTwo = FigureCanvas(Figure(figsize=(5, 3)))
-            self.axes = self.viewPlusTwo.figure.subplots()
-            self.toolbar = NavigationToolbar(self.viewPlusTwo, self)
-            self.plot_kin.addWidget(self.viewPlusTwo)
-            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno', interpolation='gaussian',
-                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
-            plt.colorbar(self.con_img2)
-            self.viewPlusTwo.draw()
-
-            themax = round((maxIntensityPlusTwo / maxIntensity) * 100, 3)
-
-            self.max_iso.setText(str(themax))
-            self.max_int_iso.setText(str(themax))
-            self.zmax_isotope.setMinimum(0)
-            self.zmax_isotope.setMaximum(int(themax))
-
-            self.min_iso.setText(str(0))
-            self.min_int_iso.setText(str(0))
-            self.zmin_isotope.setMinimum(0)
-            self.zmin_isotope.setMaximum(int(themax))
-            self.zmax_isotope.setValue(int(themax))
-
         self.chosenData = theChosenData
         self.ConcMapData = theChosenData
-        if self.massplusone.isChecked():
-            self.chosenDataIso = theChosenDataPlusOne
-            self.IsotopeMapData = theChosenDataPlusOne
-        else:
-            self.chosenDataIso = theChosenDataPlusTwo
-            self.IsotopeMapData = theChosenDataPlusTwo
 
-        self.zmax.setValue(0)
-        self.zmin_isotope.setValue(0)
+        if self.massplusone.isChecked():
+            self.displayIsoImage(chosenData, chosenDataPlusOne, 75, 150)
+            # if self.viewPlusOne:
+            #     self.plot_kin.removeWidget(self.viewPlusOne)
+            # if self.viewPlusTwo:
+            #     self.plot_kin.removeWidget(self.viewPlusTwo)
+            #
+            # iso_data = self.isotope_scalar(chosenData, chosenDataPlusOne)
+            #
+            # iso_for_deviation = np.asarray(iso_data)
+            # iso_for_deviation = iso_for_deviation.flatten()
+            #
+            # std_deviation = round(np.std(iso_for_deviation), 4)
+            # self.Mplusonesumstandard_error.setText(str(std_deviation))
+            #
+            # self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
+            # self.axes = self.viewPlusOne.figure.subplots()
+            # self.toolbar = NavigationToolbar(self.viewPlusOne, self)
+            # self.plot_kin.addWidget(self.viewPlusOne)
+            # self.con_img2 = self.axes.imshow(iso_data, cmap='inferno',
+            #                                  aspect=(yend / xend), extent=[0, xend, 0, yend])
+            # plt.colorbar(self.con_img2)
+            # self.viewPlusOne.draw()
+            #
+            # themax = round((maxIntensityPlusOne / maxIntensity) * 100, 3)
+            #
+            # self.max_iso.setText(str(themax))
+            # self.max_int_iso.setText(str(themax))
+            # self.zmax_isotope.setMinimum(0)
+            # self.zmax_isotope.setMaximum(int(themax))
+            #
+            # self.min_iso.setText(str(0))
+            # self.min_int_iso.setText(str(0))
+            # self.zmin_isotope.setMinimum(0)
+            # self.zmin_isotope.setMaximum(int(themax))
+            # self.zmax_isotope.setValue(int(themax))
+        elif self.massplustwo.isChecked():
+            self.displayIsoImage(chosenData, chosenDataPlusTwo, 75, 150)
+            # if self.viewPlusTwo:
+            #     self.plot_kin.removeWidget(self.viewPlusTwo)
+            # if self.viewPlusOne:
+            #     self.plot_kin.removeWidget(self.viewPlusOne)
+            #
+            # iso_data = self.isotope_scalar(chosenData, chosenDataPlusTwo)
+            #
+            # self.viewPlusTwo = FigureCanvas(Figure(figsize=(5, 3)))
+            # self.axes = self.viewPlusTwo.figure.subplots()
+            # self.toolbar = NavigationToolbar(self.viewPlusTwo, self)
+            # self.plot_kin.addWidget(self.viewPlusTwo)
+            # self.con_img2 = self.axes.imshow(iso_data, cmap='inferno', interpolation='gaussian',
+            #                                  aspect=(yend / xend), extent=[0, xend, 0, yend])
+            # plt.colorbar(self.con_img2)
+            # self.viewPlusTwo.draw()
+            #
+            # themax = round((maxIntensityPlusTwo / maxIntensity) * 100, 3)
+            #
+            # self.max_iso.setText(str(themax))
+            # self.max_int_iso.setText(str(themax))
+            # self.zmax_isotope.setMinimum(0)
+            # self.zmax_isotope.setMaximum(int(themax))
+            #
+            # self.min_iso.setText(str(0))
+            # self.min_int_iso.setText(str(0))
+            # self.zmin_isotope.setMinimum(0)
+            # self.zmin_isotope.setMaximum(int(themax))
+            # self.zmax_isotope.setValue(int(themax))
 
     def ms_point(self):
         picked_point = float(self.start.text())
@@ -1005,6 +999,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.label = 'cm'
 
     def displayIsoImage(self, zero_image, imageData, pixelSizeX, pixelSizeY):
+        self.chosenDataIso = imageData
+
         xend = len(imageData[0]) * (pixelSizeX / 1000)
         yend = len(imageData) * (pixelSizeY / 1000)
 
@@ -1014,6 +1010,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.plot_kin.removeWidget(self.viewPlusTwo)
 
         iso_data = self.isotope_scalar(zero_image, imageData)
+
+        self.IsotopeMapData = iso_data
 
         iso_for_deviation = np.asarray(iso_data)
         iso_for_deviation = iso_for_deviation.flatten()
@@ -1041,7 +1039,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             plt.colorbar(self.con_img2)
             self.viewPlusTwo.draw()
 
-        theMin, theMax = self.find_min_max_image(imageData)
+        theMin, theMax = self.find_min_max_image(imageData)  # If this needs to be the scaled image just change this line
         self.max_int_iso.setText(str(theMax))
         self.min_int_iso.setText(str(theMin))
         self.max_iso.setText(str(theMax))
@@ -1363,18 +1361,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def export_ConcMap_Callback(self):
         # when clicking on the exportConcMap button, it will save the filename and concentration the map
-        if self.exConcflag or isIM:
-            self.Maps[self.exportConcMapname.text()] = self.ConcMapData
-            self.refreshMaplistbox()
-            self.Mapcount += 1
+        self.Maps[self.exportConcMapname.text()] = self.ConcMapData
+        self.refreshMaplistbox()
+        self.Mapcount += 1
 
     def export_IsotopeMap_Callback(self):
         # when clicking on the exportConcMap button, it will save the filename and concentration the map
-        if self.exIsotopeflag or isIM:
-            x = self.isotope_scalar(self.chosenData, self.IsotopeMapData)
-            self.Maps[self.exportIsotopeMapname.text()] = x
-            self.refreshMaplistbox()
-            self.Mapcount += 1
+        self.Maps[self.exportIsotopeMapname.text()] = self.IsotopeMapData
+        self.Mapcount += 1
+        self.refreshMaplistbox()
+
 
     def Map_listbox_Callback(self, item):
         self.Map_listselect_text = item.text()
