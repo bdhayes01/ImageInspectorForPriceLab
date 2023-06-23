@@ -1315,6 +1315,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.scale_iso_image()
 
     # This function updates the image to the current index
+    # Figure out what this function is trying to do!
     def scale_iso_image(self):
         if isIM:
             if self.chosenDataIso is None:  # This will be triggered only at the beginning
