@@ -2726,6 +2726,19 @@ Drift time</string>
      <string>max m/z</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="reset_scatter">
+    <property name="geometry">
+     <rect>
+      <x>1350</x>
+      <y>930</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Reset</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

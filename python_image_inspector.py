@@ -212,6 +212,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.drift_time.valueChanged.connect(self.drift_time_callback)
         self.one_drift_time.toggled.connect(self.button_changed_callback)
         self.all_drift_times.toggled.connect(self.button_changed_callback)
+        self.min_mz.valueChanged.connect(self.change_mz_callback)
+        self.max_mz.valueChanged.connect(self.change_mz_callback)
+        self.reset_scatter.clicked.connect(self.reset_scatter_callback)
 
         # imButton = self.find_el
         self.IMDataButton.clicked.connect(self.setIM)
@@ -336,6 +339,30 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.massplustwo.setStyleSheet(button_style_sheet)
         self.one_drift_time.setStyleSheet(button_style_sheet)
         self.all_drift_times.setStyleSheet(button_style_sheet)
+
+    def reset_scatter_callback(self):
+        if isIM:
+            self.one_drift_time.setChecked(False)
+            self.all_drift_times.setChecked(True)
+        self.displayScatter(self.mzVals, self.intensity, self.drifts)
+
+    def change_mz_callback(self):
+        max_mz = self.max_mz.value()
+        min_mz = self.min_mz.value()
+        mzVals = self.mzVals
+        intensities = self.intensity
+
+        if mzVals is None:
+            return 0
+
+        processed_mz = []
+        processed_intens = []
+
+        for i in range(len(mzVals)):
+            if max_mz >= mzVals[i] >= min_mz:
+                processed_mz.append(mzVals[i])
+                processed_intens.append(intensities[i])
+        self.displayScatter(processed_mz, processed_intens, None)
 
     # --- Executes on button press in find_IDlist.
     # can load a new ID list the consists of two columns
@@ -1131,6 +1158,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
         self.displayScatter(mzVals, intensities, None)
         self.mapData = mapData
+        self.mzVals = mzVals
+        self.intensity = intensities
 
     def cubeAsIMData(self, filename):
         fileID = open(filename)
