@@ -803,7 +803,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.displayImage(chosenData, 75, 150)
 
-        self.pickedPointData = theChosenData
+        self.pickedPointData = chosenData
         self.ConcMapData = theChosenData
 
         if self.massplusone.isChecked():
@@ -945,8 +945,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.label = 'cm'
 
     def displayIsoImage(self, zero_image, imageData, pixelSizeX, pixelSizeY):
-        self.chosenDataIso = imageData
-
         count = len(zero_image) * len(zero_image[0])
         self.numberpoints.setText(str(count))
 
@@ -989,18 +987,19 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                                              aspect=(yend/xend), extent=[0, xend, 0, yend])
             plt.colorbar(self.con_img2)
             self.viewPlusTwo.draw()
-
-        theMin, theMax = self.find_min_max_image(imageData)  # If this needs to be the scaled image just change this line
-        self.max_int_iso.setText(str(theMax))
-        self.min_int_iso.setText(str(theMin))
-        self.max_iso.setText(str(theMax))
-        self.min_iso.setText(str(theMin))
-        self.zmax_isotope.setMaximum(math.ceil(theMax))
-        self.zmax_isotope.setMinimum(math.floor(theMin))
-        self.zmin_isotope.setMaximum(math.ceil(theMax))
-        self.zmin_isotope.setMinimum(math.floor(theMin))
-        self.zmax_isotope.setValue(math.ceil(theMax))
-        self.zmin_isotope.setValue(math.floor(theMin))
+        if not self.chosenDataIso:
+            theMin, theMax = self.find_min_max_image(imageData)  # If this needs to be the scaled image just change this line
+            self.max_int_iso.setText(str(theMax))
+            self.min_int_iso.setText(str(theMin))
+            self.max_iso.setText(str(theMax))
+            self.min_iso.setText(str(theMin))
+            self.zmax_isotope.setMaximum(math.ceil(theMax))
+            self.zmax_isotope.setMinimum(math.floor(theMin))
+            self.zmin_isotope.setMaximum(math.ceil(theMax))
+            self.zmin_isotope.setMinimum(math.floor(theMin))
+            self.zmax_isotope.setValue(math.ceil(theMax))
+            self.zmin_isotope.setValue(math.floor(theMin))
+        self.chosenDataIso = imageData
 
     def displayImage(self, imageData, pixelSizeX, pixelSizeY):
         xend = len(imageData[0]) * (pixelSizeX / 1000)
@@ -1213,6 +1212,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def zmin_Callback(self):
         self.temp_min.setText(str(self.zmin.sliderPosition()))
         self.scale_image()
+
     # This function updates the image to the current index
     def scale_image(self):
         if not self.pickedPointData:
@@ -1226,35 +1226,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 newLine = []
                 for frame in line:
                     newFrame = 0
-                    valAdded = False
-                    if frame != 0:
-                        for val in frame:
-                            if maximum >= val[1] >= minimum:
-                                valAdded = True
-                                newFrame += val[1]
-                        if not valAdded:
-                            newFrame = 0
+                    if maximum >= frame >= minimum:
+                        newFrame = frame
                     newLine.append(newFrame)
                 data.append(newLine)
-
             self.displayImage(data, 75, 150)
-
-            # numY = len(data)
-            # numX = len(data[0])
-            # xend = numX * .075
-            # yend = numY * .15
-            #
-            # if self.view:
-            #     self.plot_con.removeWidget(self.view)
-            # self.view = FigureCanvas(Figure(figsize=(5, 3)))
-            # self.axes = self.view.figure.subplots()
-            # self.toolbar = NavigationToolbar(self.view, self)
-            # self.plot_con.addWidget(self.view)
-            # self.con_img = self.axes.imshow(data, cmap='jet', interpolation='gaussian',
-            #                                 aspect=(yend / xend), extent=[0, xend, 0, yend])
-            # plt.colorbar(self.con_img)
-            # self.view.draw()
-            # self.ConcMapData = data
         else:
             for line in x:
                 newLine = []
