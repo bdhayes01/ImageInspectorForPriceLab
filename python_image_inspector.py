@@ -1266,8 +1266,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 data.append(newLine)
             self.displayImage(data, self.pixelSizeX, self.pixelSizeY)
 
-
-
     # --- Executes on slider movement.
     def zmax_isotope_Callback(self):
         if isIM:
@@ -1284,14 +1282,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # This function updates the image to the current index
     # Figure out what this function is trying to do!
     def scale_iso_image(self):
-        if isIM:
-            if self.chosenDataIso is None:  # This will be triggered only at the beginning
-                return 0
-            x = self.chosenDataIso
-            data = []
-            highest = self.zmax_isotope.sliderPosition()
-            lowest = self.zmin_isotope.sliderPosition()
+        if self.chosenDataIso is None:  # This will be triggered only at the beginning
+            return 0
+        x = self.chosenDataIso
+        data = []
+        highest = self.zmax_isotope.sliderPosition()
+        lowest = self.zmin_isotope.sliderPosition()
 
+        if isIM:
             for line in x:
                 newLine = []
                 for frame in line:
@@ -1300,27 +1298,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                         newFrame = frame
                     newLine.append(newFrame)
                 data.append(newLine)
-
-            numY = len(data)
-            numX = len(data[0])
-            xend = numX * .075
-            yend = numY * .15
-
-            if self.viewPlusOne:
-                self.plot_kin.removeWidget(self.viewPlusOne)
-            if self.viewPlusTwo:
-                self.plot_kin.removeWidget(self.viewPlusTwo)
-
-            # scaled_data = self.isotope_scalar(self.chosenData, data)
-
-            self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
-            self.axes = self.viewPlusOne.figure.subplots()
-            self.toolbar = NavigationToolbar(self.view, self)
-            self.plot_kin.addWidget(self.viewPlusOne)
-            self.con_img2 = self.axes.imshow(data, cmap='inferno',
-                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
-            plt.colorbar(self.con_img2)
-            self.viewPlusOne.draw()
+            self.displayIsoImage(self.pickedPointData, data, 75, 150)
             return 0
 
     def export_ConcMap_Callback(self):
