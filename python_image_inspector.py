@@ -149,7 +149,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
-        self.chosenData = None
+        self.pickedPointData = None
         self.mapData = None
         self.label = None
         self.scalefact = None
@@ -631,7 +631,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.binI = np.flipud(self.binI)
         f = np.argwhere(np.ravel(self.binI, order='F'))[:, 0]
 
-        x = self.chosenData
+        x = self.pickedPointData
         theList = []
 
         i = 0
@@ -801,7 +801,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.displayImage(chosenData, 75, 150)
 
-        self.chosenData = theChosenData
+        self.pickedPointData = theChosenData
         self.ConcMapData = theChosenData
 
         if self.massplusone.isChecked():
@@ -1202,21 +1202,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # --- Executes on slider movement.
     def zmax_Callback(self):
-        if isIM:
-            self.temp_max.setText(str(self.zmax.sliderPosition()))
-            self.scale_image()
-            return 0
+        self.temp_max.setText(str(self.zmax.sliderPosition()))
+        self.scale_image()
 
+    def zmin_Callback(self):
+        self.temp_min.setText(str(self.zmin.sliderPosition()))
+        self.scale_image()
     # This function updates the image to the current index
     def scale_image(self):
+        if not self.pickedPointData:
+            return 0
+        x = self.pickedPointData
+        data = []
+        maximum = self.zmax.sliderPosition()
+        minimum = self.zmin.sliderPosition()
         if isIM:
-            if not self.chosenData:
-                return 0
-            x = self.chosenData
-
-            data = []
-            position = self.zmax.sliderPosition()
-
             for line in x:
                 newLine = []
                 for frame in line:
@@ -1224,7 +1224,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     valAdded = False
                     if frame != 0:
                         for val in frame:
-                            if val[1] > position:
+                            if maximum >= val[1] >= minimum:
                                 valAdded = True
                                 newFrame += val[1]
                         if not valAdded:
@@ -1232,23 +1232,36 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     newLine.append(newFrame)
                 data.append(newLine)
 
-            numY = len(data)
-            numX = len(data[0])
-            xend = numX * .075
-            yend = numY * .15
+            self.displayImage(data, 75, 150)
 
-            if self.view:
-                self.plot_con.removeWidget(self.view)
-            self.view = FigureCanvas(Figure(figsize=(5, 3)))
-            self.axes = self.view.figure.subplots()
-            self.toolbar = NavigationToolbar(self.view, self)
-            self.plot_con.addWidget(self.view)
-            self.con_img = self.axes.imshow(data, cmap='jet', interpolation='gaussian',
-                                            aspect=(yend / xend), extent=[0, xend, 0, yend])
-            plt.colorbar(self.con_img)
-            self.view.draw()
-            self.ConcMapData = data
-            return 0
+            # numY = len(data)
+            # numX = len(data[0])
+            # xend = numX * .075
+            # yend = numY * .15
+            #
+            # if self.view:
+            #     self.plot_con.removeWidget(self.view)
+            # self.view = FigureCanvas(Figure(figsize=(5, 3)))
+            # self.axes = self.view.figure.subplots()
+            # self.toolbar = NavigationToolbar(self.view, self)
+            # self.plot_con.addWidget(self.view)
+            # self.con_img = self.axes.imshow(data, cmap='jet', interpolation='gaussian',
+            #                                 aspect=(yend / xend), extent=[0, xend, 0, yend])
+            # plt.colorbar(self.con_img)
+            # self.view.draw()
+            # self.ConcMapData = data
+        else:
+            for line in x:
+                newLine = []
+                for scan in line:
+                    newScan = 0
+                    if maximum >= scan >= minimum:
+                        newScan = scan
+                    newLine.append(newScan)
+                data.append(newLine)
+            self.displayImage(data, self.pixelSizeX, self.pixelSizeY)
+
+
 
     # --- Executes on slider movement.
     def zmax_isotope_Callback(self):
