@@ -188,6 +188,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # self.msindex.returnPressed.connect(self.msindex_Callback)
         self.zmax.sliderMoved.connect(self.zmax_Callback)
         self.zmax.valueChanged.connect(self.zmax_Callback)
+        self.zmin.sliderMoved.connect(self.zmin_Callback)
+        self.zmin.valueChanged.connect(self.zmin_Callback)
         self.temp_max.returnPressed.connect(self.temp_max_Callback)
         self.zmax_isotope.sliderMoved.connect(self.zmax_isotope_Callback)
         self.zmax_isotope.valueChanged.connect(self.zmax_isotope_Callback)
@@ -846,6 +848,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
 
+        self.pickedPointData = imageData
+
         not_used, m_zero_max_intensity = self.find_min_max_image(imageData)
         not_used, m_one_max_intensity = self.find_min_max_image(image_plus_one)
         not_used, m_two_max_intensity = self.find_min_max_image(image_plus_two)
@@ -1016,17 +1020,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes.set_ylabel("y, " + self.label)
         self.view.draw()
         self.ConcMapData = imageData
-        theMin, theMax = self.find_min_max_image(imageData)
-        self.max_int.setText(str(theMax))
-        self.min_int.setText(str(theMin))
-        self.temp_max.setText(str(theMax))
-        self.temp_min.setText(str(theMin))
-        self.zmax.setMaximum(math.ceil(theMax))
-        self.zmax.setMinimum(math.floor(theMin))
-        self.zmin.setMaximum(math.ceil(theMax))
-        self.zmin.setMinimum(math.floor(theMin))
-        self.zmax.setValue(math.ceil(theMax))
-        self.zmin.setValue(math.floor(theMin))
+        if not self.pickedPointData:
+            theMin, theMax = self.find_min_max_image(imageData)
+            self.max_int.setText(str(theMax))
+            self.min_int.setText(str(theMin))
+            self.temp_max.setText(str(theMax))
+            self.temp_min.setText(str(theMin))
+            self.zmax.setMaximum(math.ceil(theMax))
+            self.zmax.setMinimum(math.floor(theMin))
+            self.zmin.setMaximum(math.ceil(theMax))
+            self.zmin.setMinimum(math.floor(theMin))
+            self.zmax.setValue(math.ceil(theMax))
+            self.zmin.setValue(math.floor(theMin))
 
     def find_min_max_image(self, imageData):
         theMin = sys.maxsize
