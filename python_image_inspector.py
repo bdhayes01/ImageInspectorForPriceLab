@@ -801,15 +801,17 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.Mplusonesumratio.setText(str(m_one_sum))
         self.Mplustwosumratio.setText(str(m_two_sum))
 
-        self.displayImage(chosenData, 75, 150)
+        self.displayImage(chosenData, self.pixelSizeX, self.pixelSizeY)
 
         self.pickedPointData = chosenData
         self.ConcMapData = theChosenData
 
         if self.massplusone.isChecked():
-            self.displayIsoImage(chosenData, chosenDataPlusOne, 75, 150)
+            self.displayIsoImage(chosenData, chosenDataPlusOne, self.pixelSizeX, self.pixelSizeY)
+            self.chosenDataIso = chosenDataPlusOne
         elif self.massplustwo.isChecked():
-            self.displayIsoImage(chosenData, chosenDataPlusTwo, 75, 150)
+            self.displayIsoImage(chosenData, chosenDataPlusTwo, self.pixelSizeX, self.pixelSizeY)
+            self.chosenDataIso = chosenDataPlusTwo
 
     def ms_point(self):
         picked_point = float(self.start.text())
@@ -861,9 +863,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         if self.massplusone.isChecked():
             self.displayIsoImage(imageData, image_plus_one, self.pixelSizeX, self.pixelSizeY)
+            self.chosenDataIso = image_plus_one
         if self.massplustwo.isChecked():
             self.displayIsoImage(imageData, image_plus_two, self.pixelSizeX, self.pixelSizeY)
-
+            self.chosenDataIso = image_plus_two
         return 0
 
     def isotope_scalar(self, m_zero_intensity, isotope_intensity):
@@ -925,7 +928,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             if not isIM:
                 self.cubeAsMSData()
             elif isIM:
-                self.cubeAsIMData(filename)
+                self.cubeAsIMData()
             else:
                 print("Please select whether the file is IM or MS Data")
                 return
@@ -999,7 +1002,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.zmin_isotope.setMinimum(math.floor(theMin))
             self.zmax_isotope.setValue(math.ceil(theMax))
             self.zmin_isotope.setValue(math.floor(theMin))
-        self.chosenDataIso = imageData
 
     def displayImage(self, imageData, pixelSizeX, pixelSizeY):
         xend = len(imageData[0]) * (pixelSizeX / 1000)
@@ -1140,9 +1142,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mzVals = mzVals
         self.intensity = intensities
 
-    def cubeAsIMData(self, filename):
-        fileID = open(filename)
+    def cubeAsIMData(self):
+        fileID = open(self.cubefilename)
         data = np.fromfile(fileID, dtype=np.float32)
+
+        self.pixelSizeX = 75
+        self.pixelSizeY = 150
+
         frameNum = data[0]
         fileNum = data[1]
 
@@ -1200,7 +1206,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.intensity = intensity
         self.drifts = drifts
 
-        self.displayImage(chosenData, 75, 150)
+        self.displayImage(chosenData, self.pixelSizeX, self.pixelSizeY)
 
         self.has_data = 1
 
@@ -1230,7 +1236,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                         newFrame = frame
                     newLine.append(newFrame)
                 data.append(newLine)
-            self.displayImage(data, 75, 150)
+            self.displayImage(data, self.pixelSizeX, self.pixelSizeY)
         else:
             for line in x:
                 newLine = []
@@ -1244,16 +1250,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # --- Executes on slider movement.
     def zmax_isotope_Callback(self):
-        if isIM:
-            self.max_iso.setText(str(self.zmax_isotope.sliderPosition()))
-            self.scale_iso_image()
-            return 0
+        self.max_iso.setText(str(self.zmax_isotope.sliderPosition()))
+        self.scale_iso_image()
 
     # --- Executes on slider movement.
     def zmin_isotope_Callback(self):
-        if isIM:
-            self.min_iso.setText(str(self.zmin_isotope.sliderPosition()))
-            self.scale_iso_image()
+        self.min_iso.setText(str(self.zmin_isotope.sliderPosition()))
+        self.scale_iso_image()
 
     # This function updates the image to the current index
     # Figure out what this function is trying to do!
@@ -1265,17 +1268,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         highest = self.zmax_isotope.sliderPosition()
         lowest = self.zmin_isotope.sliderPosition()
 
-        if isIM:
-            for line in x:
-                newLine = []
-                for frame in line:
-                    newFrame = 0
-                    if highest >= frame >= lowest:
-                        newFrame = frame
-                    newLine.append(newFrame)
-                data.append(newLine)
-            self.displayIsoImage(self.pickedPointData, data, 75, 150)
-            return 0
+        for line in x:
+            newLine = []
+            for frame in line:
+                newFrame = 0
+                if highest >= frame >= lowest:
+                    newFrame = frame
+                newLine.append(newFrame)
+            data.append(newLine)
+        self.displayIsoImage(self.pickedPointData, data, self.pixelSizeX, self.pixelSizeY)
 
     def export_ConcMap_Callback(self):
         # when clicking on the exportConcMap button, it will save the filename and concentration the map
