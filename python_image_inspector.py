@@ -378,6 +378,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ids_pd = pd.read_csv(self.fName_IDlist[0])
 
     def button_changed_callback(self):
+        if not self.drifts:
+            return 0
         if self.one_drift_time.isChecked():
             val = self.drift_time.value()
             self.show_mz_map(val)
@@ -801,15 +803,17 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.Mplusonesumratio.setText(str(m_one_sum))
         self.Mplustwosumratio.setText(str(m_two_sum))
 
+        self.pickedPointData = None
         self.displayImage(chosenData, self.pixelSizeX, self.pixelSizeY)
-
         self.pickedPointData = chosenData
         self.ConcMapData = theChosenData
 
         if self.massplusone.isChecked():
+            self.chosenDataIso = None
             self.displayIsoImage(chosenData, chosenDataPlusOne, self.pixelSizeX, self.pixelSizeY)
             self.chosenDataIso = chosenDataPlusOne
         elif self.massplustwo.isChecked():
+            self.chosenDataIso = None
             self.displayIsoImage(chosenData, chosenDataPlusTwo, self.pixelSizeX, self.pixelSizeY)
             self.chosenDataIso = chosenDataPlusTwo
 
@@ -848,8 +852,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             image_plus_one.append(line_plus_one)
             image_plus_two.append(line_plus_two)
 
+        self.pickedPointData = None
         self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
-
         self.pickedPointData = imageData
 
         not_used, m_zero_max_intensity = self.find_min_max_image(imageData)
@@ -862,9 +866,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.Mplustwosumratio.setText(str(round(m_two_max_intensity / denom, 4)))
 
         if self.massplusone.isChecked():
+            self.chosenDataIso = None
             self.displayIsoImage(imageData, image_plus_one, self.pixelSizeX, self.pixelSizeY)
             self.chosenDataIso = image_plus_one
         if self.massplustwo.isChecked():
+            self.chosenDataIso = None
             self.displayIsoImage(imageData, image_plus_two, self.pixelSizeX, self.pixelSizeY)
             self.chosenDataIso = image_plus_two
         return 0
@@ -907,6 +913,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def start_cube_Callback(self):
 
+
         # TODO: For testing purposes only!
         # global isIM
         # isIM = True
@@ -947,7 +954,20 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.scalefact = 0.1
             self.label = 'cm'
 
+        self.max_int.clear()
+        self.min_int.clear()
+        self.max_int_iso.clear()
+        self.min_int_iso.clear()
+        self.Msumratio.clear()
+        self.Msumstandard_error.clear()
+        self.numberpoints.clear()
+        self.Mplusonesumratio.clear()
+        self.Mplusonesumstandard_error.clear()
+        self.Mplustwosumratio.clear()
+        self.Mplustwosumstandard_error.clear()
+
     def displayIsoImage(self, zero_image, imageData, pixelSizeX, pixelSizeY):
+        # This needs to be a different function for both the original point and the scaling functions
         count = len(zero_image) * len(zero_image[0])
         self.numberpoints.setText(str(count))
 
