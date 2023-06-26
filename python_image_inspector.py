@@ -801,31 +801,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.displayImage(chosenData, 75, 150)
 
-        # numY = len(chosenData)
-        # numX = len(chosenData[0])
-        # xend = numX * .075
-        # yend = numY * .15
-        #
-        # self.max_int.setText(str(maxIntensity))
-        # self.temp_max.setText(str(0))
-        # self.zmax.setMinimum(0)
-        # self.zmax.setMaximum(int(maxIntensity))
-        #
-        # if self.view:
-        #     self.plot_con.removeWidget(self.view)
-        #
-        # self.view = FigureCanvas(Figure(figsize=(5, 3)))
-        # self.axes = self.view.figure.subplots()
-        # self.toolbar = NavigationToolbar(self.view, self)
-        # self.plot_con.addWidget(self.view)
-        # self.con_img = self.axes.imshow(chosenData, cmap='jet',
-        #                                 aspect=(yend / xend), extent=[0, xend, 0, yend])
-        # plt.colorbar(self.con_img)
-        # self.view.draw()
-        #
-        # num_pixels = len(chosenData) * len(chosenData[0])
-        # self.numberpoints.setText(str(num_pixels))
-
         self.chosenData = theChosenData
         self.ConcMapData = theChosenData
 
