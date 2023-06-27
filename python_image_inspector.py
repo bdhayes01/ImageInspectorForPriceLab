@@ -955,10 +955,27 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.scalefact = 0.1
             self.label = 'cm'
 
+        while self.plot_kin.count():
+            child = self.plot_kin.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        self.viewPlusOne = None
+        self.viewPlusTwo = None
+        # if self.viewPlusOne:
+        #     self.plot_kin.removeWidget(self.viewPlusOne)
+        # if self.viewPlusTwo:
+        #     self.plot_kin.removeWidget(self.viewPlusTwo)
+
+        self.chosenDataIso = None
+
         self.max_int.clear()
         self.min_int.clear()
         self.max_int_iso.clear()
         self.min_int_iso.clear()
+        self.max_iso.clear()
+        self.min_iso.clear()
+        self.temp_max.clear()
+        self.temp_min.clear()
         self.Msumratio.clear()
         self.Msumstandard_error.clear()
         self.numberpoints.clear()
@@ -966,6 +983,34 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.Mplusonesumstandard_error.clear()
         self.Mplustwosumratio.clear()
         self.Mplustwosumstandard_error.clear()
+        self.start.clear()
+        self.Noise_Output_Box.clear()
+        self.exportConcMapname.setText("Conc. Map Name")
+        self.exportIsotopeMapname.setText("Isotope Map Name")
+        self.ID_Output_Box.clear()
+        self.massbox.clear()
+
+        self.ROIplots.clear()
+        self.ROI.clear()
+        self.ROI_img_mean.clear()
+        self.ROIcount = 0
+        self.ROIcountbox.setText("0")
+        self.ROI_listbox.clear()
+        QListWidgetItem('ROI list appears here', self.ROI_listbox)
+
+        self.clearMapbutton_Callback()
+
+        self.pickedPointData = None
+        self.pick_IDthreshold.setValue(20)
+        self.pick_mzthreshold.setValue(20)
+        self.pick_IDthreshold.setMaximum(1000)
+        self.pick_mzthreshold.setMaximum(1000)
+
+        self.zmax_isotope.setMaximum(99)
+        self.zmax_isotope.setMinimum(0)
+        self.zmin_isotope.setMaximum(99)
+        self.zmin_isotope.setMinimum(0)
+
 
     def displayIsoImage(self, zero_image, imageData, pixelSizeX, pixelSizeY):
         # This needs to be a different function for both the original point and the scaling functions
@@ -1071,7 +1116,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if self._spectra_ax:
             self.plot_spectra.removeWidget(self.spectra_toolbar)
             self.plot_spectra.removeWidget(self.spectra_canvas)
-        if self.viewPlusOne:
+        if self.viewPlusOne:  # TODO: Should these be here??
             self.plot_kin.removeWidget(self.viewPlusOne)
             # self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
             # I took this out because it was creating a second plot.
@@ -1106,10 +1151,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         plt.ylabel('intensity')
         plt.xlabel('m/z')
 
-        self.pick_IDthreshold.setValue(20)
-        self.pick_mzthreshold.setValue(20)
-        self.pick_IDthreshold.setMaximum(1000)
-        self.pick_mzthreshold.setMaximum(1000)
         self.min_mz.setRange(min(mzVals), max(mzVals))
         self.max_mz.setRange(min(mzVals), max(mzVals))
         self.min_mz.setValue(min(mzVals))
