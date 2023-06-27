@@ -2637,17 +2637,17 @@ Drift time</string>
      </property>
     </widget>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="reset_image">
     <property name="geometry">
      <rect>
-      <x>760</x>
-      <y>460</y>
+      <x>710</x>
+      <y>450</y>
       <width>75</width>
       <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>Reset Image</string>
     </property>
    </widget>
    <widget class="QDoubleSpinBox" name="max_mz">

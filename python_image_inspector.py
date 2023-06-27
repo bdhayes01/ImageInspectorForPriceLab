@@ -163,6 +163,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.viewPlusOne = None
         self.viewPlusTwo = None
         self.con_cbar = None
+        self.original_image = None
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint)
 
@@ -217,6 +218,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.min_mz.valueChanged.connect(self.change_mz_callback)
         self.max_mz.valueChanged.connect(self.change_mz_callback)
         self.reset_scatter.clicked.connect(self.reset_scatter_callback)
+        self.reset_image.clicked.connect(self.reset_orig_image)
 
         # imButton = self.find_el
         self.IMDataButton.clicked.connect(self.setIM)
@@ -341,6 +343,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.massplustwo.setStyleSheet(button_style_sheet)
         self.one_drift_time.setStyleSheet(button_style_sheet)
         self.all_drift_times.setStyleSheet(button_style_sheet)
+
+    def reset_orig_image(self):
+        if self.original_image:
+            self.pickedPointData = None
+            self.displayImage(self.original_image, self.pixelSizeX, self.pixelSizeY)
 
     def reset_scatter_callback(self):
         if isIM:
@@ -1204,6 +1211,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mapData = mapData
         self.mzVals = mzVals
         self.intensity = intensities
+        self.original_image = imageData
 
     def cubeAsIMData(self):
         fileID = open(self.cubefilename)
@@ -1272,6 +1280,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.displayImage(chosenData, self.pixelSizeX, self.pixelSizeY)
 
         self.has_data = 1
+        self.original_image = chosenData
 
     # --- Executes on slider movement.
     def zmax_Callback(self):
