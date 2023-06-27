@@ -613,11 +613,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # then plots the mass spectrum averaged over that ROI
     # --- Executes on button press in ROI_select.
     def ROI_select_Callback_mask(self):
-        if self.massplusone.isChecked():
-            self.includemassplustwo = False
-        elif self.massplustwo.isChecked():
-            self.includemassplustwo = True
-        if self.has_data:
+        # if self.massplusone.isChecked():
+        #     self.includemassplustwo = False
+        # elif self.massplustwo.isChecked():
+        #     self.includemassplustwo = True
+        if self.pickedPointData:
             if self.h:
                 self.h.disconnect()
 
@@ -626,9 +626,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # --- Executes on button press in ROI_process.
     def ROI_select_Callback_process(self):
         if self.view:
-            if isIM:
-                self.ROI_select_IM_Callback()
-                return 0
+            self.ROI_select_IM_Callback()
 
     def ROI_select_IM_Callback(self):
         self.binI = self.h.get_mask().astype(int)
@@ -647,12 +645,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 i += 1
             i += 1
 
-        filtered = []
-        for val in theList:
-            for val2 in val:
-                filtered.append(val2)
+        # filtered = []
+        # if isIM:
+        #     for val in theList:
+        #         for val2 in val:
+        #             filtered.append(val2)
+        # else:
+        #     filtered = theList
 
-        self.ROIData = filtered
+        self.ROIData = theList
 
     # This function plots a mass spectrum corresponing to a selected point
     # on the displayed image, or an image corresponding to a selected point
@@ -1350,14 +1351,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.Map_listbox.addItem(listboxitems[i])
 
     def exportROI_Callback(self):
-        if isIM:
-            self.ROIcount = self.ROIcount + 1
-            self.ROIcountbox.setText(str(self.ROIcount))
-            self.ROI[self.exportROIfilename.text()] = self.binI
-            ROI = self.ROI
-            ROIcount = self.ROIcount
-            self.refreshROIlistbox()
-            return 0
+        self.ROIcount = self.ROIcount + 1
+        self.ROIcountbox.setText(str(self.ROIcount))
+        self.ROI[self.exportROIfilename.text()] = self.binI
+        ROI = self.ROI
+        ROIcount = self.ROIcount
+        self.refreshROIlistbox()
+        return 0
 
     def refreshROIlistbox(self):
         if len(self.ROI) == 0:
@@ -1375,14 +1375,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def ROI_listbox_Callback(self, item):
         # this should tell me which number in list is selected
         # now I need the outline of the ROI to appear
-        if isIM:
-            self.ROI_listselect_text = item.text()
-            self.ROI_listselect_array = self.ROI[item.text()]
-            self.ROI_img_mean[item.text()] = self.img_mean
-            self._con_ax = 1
-            self.ROIplots[self.ROI_listselect_text] = item  # What am I doing here??
-            # self.ROI[self.ROI_listselect_text] =
-            return 0
+        # if isIM:
+        self.ROI_listselect_text = item.text()
+        self.ROI_listselect_array = self.ROI[item.text()]
+        self.ROI_img_mean[item.text()] = self.img_mean
+        self._con_ax = 1
+        self.ROIplots[self.ROI_listselect_text] = item  # What am I doing here??
+        # self.ROI[self.ROI_listselect_text] =
+        return 0
 
 
     # loads the spectra from the selected ROI in the ROI_listbox
@@ -1519,12 +1519,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         theY = event.mouseevent.lastevent.ydata
 
         self.start.setText("%.5f" % theXmOverZ)
-        if isIM:
-            self.IM_spectra_annotation(theXmOverZ, theY)
-            return 0
-        else:
-            # TODO: Add in the annotation here
-            return 0
+        self.spectra_annotation(theXmOverZ, theY)
 
     # This is a function that calculates how far away a value must be to be defined as a different lipid.
     def ppm_calc(self, mzVal):
@@ -1532,7 +1527,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return 0  # is this correct??
         return mzVal * float(self.pick_IDthreshold.value()) / 1e6
 
-    def IM_spectra_annotation(self, mz, intensity):
+    def spectra_annotation(self, mz, intensity):
         diff = self.ppm_calc(mz)
         lipid_map = {}
         lipid_id = "not defined"
@@ -1548,31 +1543,37 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             key = min(lipid_map.keys())
             lipid_id = lipid_map[key]
 
-        mz_vals = np.asarray(self.mzVals)
-        drifts = np.asarray(self.drifts)
-        vals = np.where(mz + diff > mz_vals, mz_vals, 0)
-        vals = np.where(mz - diff < vals, drifts, 0)
-
-        abc = vals.nonzero()
-
-        finals = drifts[abc]
-        if len(finals) != 0:
-            range_low = min(finals)
-            range_high = max(finals)
-        else:
-            range_low = 0
-            range_high = "Error. Try a higher minimum ppm."
-
         self.ID_Output_Box.setText(lipid_id)
 
         if self.annotation is not None:
             self.annotation.remove()
 
-        self.annotation = self._spectra_ax.annotate(
-            "X = {0:.4f}\nY = {1:.4f}\nID = {2}\nDrift Range = {3}-{4}".format
-            (mz, intensity, lipid_id, range_low, range_high), xy=(mz, intensity), xycoords='data',
-            va='bottom', ha='left',
-            bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
+        if isIM:
+            mz_vals = np.asarray(self.mzVals)
+            drifts = np.asarray(self.drifts)
+            vals = np.where(mz + diff > mz_vals, mz_vals, 0)
+            vals = np.where(mz - diff < vals, drifts, 0)
+
+            abc = vals.nonzero()
+
+            finals = drifts[abc]
+            if len(finals) != 0:
+                range_low = min(finals)
+                range_high = max(finals)
+            else:
+                range_low = 0
+                range_high = "Error. Try a higher minimum ppm."
+            self.annotation = self._spectra_ax.annotate(
+                "X = {0:.4f}\nY = {1:.4f}\nID = {2}\nDrift Range = {3}-{4}".format
+                (mz, intensity, lipid_id, range_low, range_high), xy=(mz, intensity), xycoords='data',
+                va='bottom', ha='left',
+                bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
+        else:
+            self.annotation = self._spectra_ax.annotate(
+                "X = {0:.4f}\nY = {1:.4f}\nID = {2}".format
+                (mz, intensity, lipid_id), xy=(mz, intensity), xycoords='data',
+                va='bottom', ha='left',
+                bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
         self.spectra_canvas.draw()
 
     # def data_cursor_key(self, event):
