@@ -651,7 +651,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # y = np.ravel(tempVar, order='C')
         # anothertempVar = np.argwhere(y)[:, 0]
         self.binI = self.h.get_mask().astype(int)
-
         self.binI = np.flipud(self.binI)
         f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0] #TODO: Change all of these to C order, you don't want
 
@@ -1468,11 +1467,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             x = self.ROIData
             mzVals = []
             intensity = []
-            drifts = []
+            # drifts = []
             for val in x:
-                mzVals.append(val[0])
-                intensity.append(val[1])
-                drifts.append(val[2])
+                mzVals.append(float(self.start.text()))
+                intensity.append(val)
+                # drifts.append(val[2])
 
             if self._spectra_ax:
                 self.plot_spectra.removeWidget(self.spectra_toolbar)
@@ -1484,8 +1483,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.plot_spectra.addWidget(self.spectra_toolbar)
             self.plot_spectra.addWidget(self.spectra_canvas)
             self._spectra_ax = self.spectra_canvas.figure.subplots()
-            x = self._spectra_ax.scatter(mzVals, intensity, s=1, c=drifts, cmap="Greens", alpha=0.75, picker=True)
-            plt.colorbar(x).set_label('Drift times')
+            # x = self._spectra_ax.scatter(mzVals, intensity, s=1, c=drifts, cmap="Greens", alpha=0.75, picker=True)
+            # plt.colorbar(x).set_label('Drift times')
+            self._spectra_ax.scatter(mzVals, intensity, s=1, alpha=0.75, picker=True)
             self._spectra_ax.set_title('Points In Selected Region')
             self._spectra_ax.set_xlabel('m/z')
             self._spectra_ax.set_ylabel('intensity')
