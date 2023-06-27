@@ -1099,6 +1099,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.zmin.setMinimum(math.floor(theMin))
             self.zmax.setValue(math.ceil(theMax))
             self.zmin.setValue(math.floor(theMin))
+            self.pickedPointData = imageData
 
     def find_min_max_image(self, imageData):
         theMin = sys.maxsize
