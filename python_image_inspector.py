@@ -646,9 +646,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.ROI_select_IM_Callback()
 
     def ROI_select_IM_Callback(self):
+        # tempVar = self.h.get_mask().astype(int)
+        # tempVar = np.flipud(tempVar)
+        # y = np.ravel(tempVar, order='C')
+        # anothertempVar = np.argwhere(y)[:, 0]
         self.binI = self.h.get_mask().astype(int)
+
         self.binI = np.flipud(self.binI)
-        f = np.argwhere(np.ravel(self.binI, order='F'))[:, 0]
+        f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0] #TODO: Change all of these to C order, you don't want
 
         x = self.pickedPointData
         theList = []
@@ -657,6 +662,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.numberpoints.setText(str(len(f)))
         for line in x:
             for frame in line:
+                if i in f:
+                    testing = "here"
                 if i in f and frame != 0:
                     theList.append(frame)
                 i += 1
@@ -1313,8 +1320,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             for line in x:
                 newLine = []
                 for frame in line:
-                    newFrame = minimum  # Changed this from a 0 to the minimum. Is it right??
-                    if maximum >= frame >= minimum:
+                    newFrame = 0  # Changed this from a 0 to the minimum. Is it right??
+                    if frame > maximum:
+                        newFrame = maximum
+                    elif maximum >= frame >= minimum:
                         newFrame = frame
                     newLine.append(newFrame)
                 data.append(newLine)
@@ -1323,8 +1332,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             for line in x:
                 newLine = []
                 for scan in line: # Same as above line
-                    newScan = minimum
-                    if maximum >= scan >= minimum:
+                    newScan = 0
+                    if scan > maximum:
+                        newFrame = maximum
+                    elif maximum >= scan >= minimum:
                         newScan = scan
                     newLine.append(newScan)
                 data.append(newLine)
@@ -1353,8 +1364,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         for line in x:
             newLine = []
             for frame in line:
-                newFrame = lowest  # Has been changed just like the scaling of the image in self.scale_image
-                if highest >= frame >= lowest:
+                newFrame = 0
+                if frame > highest:
+                    newFrame = highest
+                elif highest >= frame >= lowest:
                     newFrame = frame
                 newLine.append(newFrame)
             data.append(newLine)
