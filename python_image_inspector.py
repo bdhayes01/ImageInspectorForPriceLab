@@ -367,11 +367,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         processed_mz = []
         processed_intens = []
 
-        for i in range(len(mzVals)):
-            if max_mz >= mzVals[i] >= min_mz:
-                processed_mz.append(mzVals[i])
-                processed_intens.append(intensities[i])
-        self.displayScatter(processed_mz, processed_intens, None)
+        if isIM:
+            drifts = self.drifts
+            processed_drift = []
+            for i in range(len(mzVals)):
+                if max_mz >= mzVals[i] >= min_mz:
+                    processed_mz.append(mzVals[i])
+                    processed_intens.append(intensities[i])
+                    processed_drift.append(drifts[i])
+            self.displayScatter(processed_mz, processed_intens, processed_drift)
+        else:
+            for i in range(len(mzVals)):
+                if max_mz >= mzVals[i] >= min_mz:
+                    processed_mz.append(mzVals[i])
+                    processed_intens.append(intensities[i])
+            self.displayScatter(processed_mz, processed_intens, None)
 
     # --- Executes on button press in find_IDlist.
     # can load a new ID list the consists of two columns
@@ -1303,7 +1313,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             for line in x:
                 newLine = []
                 for frame in line:
-                    newFrame = 0
+                    newFrame = minimum  # Changed this from a 0 to the minimum. Is it right??
                     if maximum >= frame >= minimum:
                         newFrame = frame
                     newLine.append(newFrame)
@@ -1312,8 +1322,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         else:
             for line in x:
                 newLine = []
-                for scan in line:
-                    newScan = 0
+                for scan in line: # Same as above line
+                    newScan = minimum
                     if maximum >= scan >= minimum:
                         newScan = scan
                     newLine.append(newScan)
@@ -1343,7 +1353,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         for line in x:
             newLine = []
             for frame in line:
-                newFrame = 0
+                newFrame = lowest  # Has been changed just like the scaling of the image in self.scale_image
                 if highest >= frame >= lowest:
                     newFrame = frame
                 newLine.append(newFrame)
