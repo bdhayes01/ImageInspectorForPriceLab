@@ -353,6 +353,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.one_drift_time.setChecked(False)
             self.all_drift_times.setChecked(True)
         self.displayScatter(self.mzVals, self.intensity, self.drifts)
+        self.set_min_max_mz(self.mzVals)
 
     def change_mz(self):
         max_mz = self.max_mz.value()
@@ -381,6 +382,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     processed_mz.append(mzVals[i])
                     processed_intens.append(intensities[i])
             self.displayScatter(processed_mz, processed_intens, None)
+        self.set_min_max_mz(processed_mz)
 
     # --- Executes on button press in find_IDlist.
     # can load a new ID list the consists of two columns
@@ -438,29 +440,29 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         mzVals = np.asarray(mzVals)[in1]
         intensity = np.asarray(intensity)[in1]
 
-        # self.displayScatter(mzVals, intensity, None, .3)
+        self.displayScatter(mzVals, intensity, None, .3)
 
-        if self._spectra_ax:  # TODO: Start here
-            self.plot_spectra.removeWidget(self.spectra_toolbar)
-            self.plot_spectra.removeWidget(self.spectra_canvas)
-            # self.spectra_canvas.close()
-            # self.spectra_toolbar.close()
-            plt.close('all')
-            del self.spectra_canvas
-            del self.spectra_toolbar
-
-        self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
-        self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-        self.spectra_canvas.setFocus()
-        self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
-        self.plot_spectra.addWidget(self.spectra_toolbar)
-        self.plot_spectra.addWidget(self.spectra_canvas)
-        self._spectra_ax = self.spectra_canvas.figure.subplots()
-        self._spectra_ax.scatter(mzVals, intensity, s=.3, alpha=0.75, picker=True)
-        self._spectra_ax.set_title('Points In Selected Region')
-        self._spectra_ax.set_xlabel('m/z')
-        self._spectra_ax.set_ylabel('intensity')
-        self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
+        # if self._spectra_ax:  # TODO: Start here
+        #     self.plot_spectra.removeWidget(self.spectra_toolbar)
+        #     self.plot_spectra.removeWidget(self.spectra_canvas)
+        #     # self.spectra_canvas.close()
+        #     # self.spectra_toolbar.close()
+        #     plt.close('all')
+        #     del self.spectra_canvas
+        #     del self.spectra_toolbar
+        #
+        # self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
+        # self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+        # self.spectra_canvas.setFocus()
+        # self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
+        # self.plot_spectra.addWidget(self.spectra_toolbar)
+        # self.plot_spectra.addWidget(self.spectra_canvas)
+        # self._spectra_ax = self.spectra_canvas.figure.subplots()
+        # self._spectra_ax.scatter(mzVals, intensity, s=.3, alpha=0.75, picker=True)
+        # self._spectra_ax.set_title('Points In Selected Region')
+        # self._spectra_ax.set_xlabel('m/z')
+        # self._spectra_ax.set_ylabel('intensity')
+        # self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
         # self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
         return 0
 
@@ -1120,6 +1122,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if self._spectra_ax:
             self.plot_spectra.removeWidget(self.spectra_toolbar)
             self.plot_spectra.removeWidget(self.spectra_canvas)
+            plt.clf()
+            plt.close()
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -1150,6 +1154,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         plt.ylabel('intensity')
         plt.xlabel('m/z')
 
+    def set_min_max_mz(self, mzVals):
         self.min_mz.setRange(min(mzVals), max(mzVals))
         self.max_mz.setRange(min(mzVals), max(mzVals))
         self.min_mz.setValue(min(mzVals))
@@ -1199,6 +1204,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             mapData.append(mapLine)
         self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
         self.displayScatter(mzVals, intensities, None)
+        self.set_min_max_mz(mzVals)
         self.mapData = mapData
         self.mzVals = mzVals
         self.intensity = intensities
@@ -1263,6 +1269,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 numFrames += 1
 
         self.displayScatter(mzVals, intensity, drifts)
+        self.set_min_max_mz(mzVals)
 
         self.mzVals = mzVals
         self.intensity = intensity
@@ -1451,6 +1458,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 # drifts.append(val[2])
 
             self.displayScatter(mzVals, intensity, None, 1)
+            self.set_min_max_mz(mzVals)
 
     def exportROI_spectra_val_Callback(self):
         if (self.ROI_listselect_text == ""):
