@@ -1122,12 +1122,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         return theMin, theMax
 
     def displayScatter(self, mzVals, intensity, drifts=None, pt_size=.01):
-        if self._spectra_ax:
-            self.plot_spectra.removeWidget(self.spectra_toolbar)
-            self.plot_spectra.removeWidget(self.spectra_canvas)
-            plt.cla()
-            plt.clf()
-            plt.close('all')
+        while self.plot_spectra.count():  # This solved the double figure problem
+            child = self.plot_spectra.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        # if self._spectra_ax:
+        #     self.plot_spectra.removeWidget(self.spectra_toolbar)
+        #     self.plot_spectra.removeWidget(self.spectra_canvas)
+        # plt.cla()
+        # plt.clf()
+        plt.close('all')
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
