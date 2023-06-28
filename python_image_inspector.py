@@ -1015,6 +1015,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.zmax_isotope.setMinimum(0)
         self.zmin_isotope.setMaximum(99)
         self.zmin_isotope.setMinimum(0)
+        self.mzVals = None
+        self.drifts = None
+        self.intensity = None
 
 
     def displayIsoImage(self, zero_image, imageData, pixelSizeX, pixelSizeY):
@@ -1122,8 +1125,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if self._spectra_ax:
             self.plot_spectra.removeWidget(self.spectra_toolbar)
             self.plot_spectra.removeWidget(self.spectra_canvas)
+            plt.cla()
             plt.clf()
-            plt.close()
+            plt.close('all')
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -1539,22 +1543,23 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     drifts.append(self.drifts[i])
                     intensity.append(self.intensity[i])
 
-            if self._spectra_ax:
-                self.plot_spectra.removeWidget(self.spectra_toolbar)
-                self.plot_spectra.removeWidget(self.spectra_canvas)
-            self.spectra_canvas = FigureCanvas(plt.Figure(tight_layout=True))
-            self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-            self.spectra_canvas.setFocus()
-            self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
-            self.plot_spectra.addWidget(self.spectra_toolbar)
-            self.plot_spectra.addWidget(self.spectra_canvas)
-            self._spectra_ax = self.spectra_canvas.figure.subplots()
-            x = self._spectra_ax.scatter(mzVals, drifts, s=.01, alpha=0.75, picker=True)
-            self._spectra_ax.set_title("Points in selected region")
-            self._spectra_ax.set_xlabel("m/z")
-            self._spectra_ax.set_ylabel("drifts")
-            self.spectra_canvas.mpl_connect("pick_event", self.data_cursor_click)
-            # self.spectra_canvas.mpl_connect("key_press_event", self.data_cursor_key)
+            self.displayScatter(mzVals, drifts, None)
+            # if self._spectra_ax:
+            #     self.plot_spectra.removeWidget(self.spectra_toolbar)
+            #     self.plot_spectra.removeWidget(self.spectra_canvas)
+            # self.spectra_canvas = FigureCanvas(plt.Figure(tight_layout=True))
+            # self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
+            # self.spectra_canvas.setFocus()
+            # self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
+            # self.plot_spectra.addWidget(self.spectra_toolbar)
+            # self.plot_spectra.addWidget(self.spectra_canvas)
+            # self._spectra_ax = self.spectra_canvas.figure.subplots()
+            # x = self._spectra_ax.scatter(mzVals, drifts, s=.01, alpha=0.75, picker=True)
+            # self._spectra_ax.set_title("Points in selected region")
+            # self._spectra_ax.set_xlabel("m/z")
+            # self._spectra_ax.set_ylabel("drifts")
+            # self.spectra_canvas.mpl_connect("pick_event", self.data_cursor_click)
+            # # self.spectra_canvas.mpl_connect("key_press_event", self.data_cursor_key)
             self.exSpecflag = True
 
             return 0
