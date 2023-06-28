@@ -1456,6 +1456,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if (self.ROI_listselect_text == ""):
             print("No item selected")
         else:
+            # # TODO: Just take the data again here.
+            # chosenVal = float(self.start.text())
+            #
+            # x = np.where(   )
             x = self.ROIData
             mzVals = []
             intensity = []
