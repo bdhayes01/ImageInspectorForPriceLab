@@ -2739,6 +2739,19 @@ Drift time</string>
      <string>Reset</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="set_mz_minmax">
+    <property name="geometry">
+     <rect>
+      <x>1380</x>
+      <y>870</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>set</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

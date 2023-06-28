@@ -215,10 +215,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.drift_time.valueChanged.connect(self.drift_time_callback)
         self.one_drift_time.toggled.connect(self.button_changed_callback)
         self.all_drift_times.toggled.connect(self.button_changed_callback)
-        self.min_mz.valueChanged.connect(self.change_mz_callback)
-        self.max_mz.valueChanged.connect(self.change_mz_callback)
         self.reset_scatter.clicked.connect(self.reset_scatter_callback)
         self.reset_image.clicked.connect(self.reset_orig_image)
+        self.set_mz_minmax.clicked.connect(self.change_mz)
 
         # imButton = self.find_el
         self.IMDataButton.clicked.connect(self.setIM)
@@ -355,7 +354,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.all_drift_times.setChecked(True)
         self.displayScatter(self.mzVals, self.intensity, self.drifts)
 
-    def change_mz_callback(self):
+    def change_mz(self):
         max_mz = self.max_mz.value()
         min_mz = self.min_mz.value()
         mzVals = self.mzVals
@@ -401,29 +400,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             val = self.drift_time.value()
             self.show_mz_map(val)
         else:
-            if self._spectra_ax:
-                self.plot_spectra.removeWidget(self.spectra_toolbar)
-                self.plot_spectra.removeWidget(self.spectra_canvas)
-                del self.spectra_canvas
-                del self.spectra_toolbar
-            else:
-                return 0
-
-            self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
-            self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-            self.spectra_canvas.setFocus()
-            self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
-            self.plot_spectra.addWidget(self.spectra_toolbar)
-            self.plot_spectra.addWidget(self.spectra_canvas)
-            self._spectra_ax = self.spectra_canvas.figure.subplots()
-            x = self._spectra_ax.scatter(self.mzVals, self.intensity, s=.01, c=self.drifts,
-                                         cmap="Greens", alpha=0.75, picker=True)
-            plt.colorbar(x).set_label('Drift times')
-            self._spectra_ax.set_title('Points In Selected Region')
-            self._spectra_ax.set_xlabel('m/z')
-            self._spectra_ax.set_ylabel('intensity')
-            self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-            # self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
+            self.change_mz()
         return 0
 
     def drift_time_callback(self):
@@ -461,7 +438,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         mzVals = np.asarray(mzVals)[in1]
         intensity = np.asarray(intensity)[in1]
 
-        if self._spectra_ax:
+        # self.displayScatter(mzVals, intensity, None, .3)
+
+        if self._spectra_ax:  # TODO: Start here
             self.plot_spectra.removeWidget(self.spectra_toolbar)
             self.plot_spectra.removeWidget(self.spectra_canvas)
             # self.spectra_canvas.close()
@@ -646,27 +625,28 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.ROI_select_IM_Callback()
 
     def ROI_select_IM_Callback(self):
-        # tempVar = self.h.get_mask().astype(int)
-        # tempVar = np.flipud(tempVar)
-        # y = np.ravel(tempVar, order='C')
-        # anothertempVar = np.argwhere(y)[:, 0]
         self.binI = self.h.get_mask().astype(int)
         self.binI = np.flipud(self.binI)
         f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0] #TODO: Change all of these to C order, you don't want
 
         x = self.pickedPointData
-        theList = []
 
-        i = 0
+        y = np.asarray(x).flatten()
+
+        z = y[f]
+
+        theList = z[np.nonzero(z)]
+
+        # theList = []
+
+        # i = 0
         self.numberpoints.setText(str(len(f)))
-        for line in x:
-            for frame in line:
-                if i in f:
-                    testing = "here"
-                if i in f and frame != 0:
-                    theList.append(frame)
-                i += 1
-            i += 1
+        # for line in x:
+        #     for frame in line:
+        #         if i in f and frame != 0:
+        #             theList.append(frame)
+        #         i += 1
+        #     i += 1
 
         # filtered = []
         # if isIM:
@@ -956,10 +936,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif filename.endswith('.bin'):
             print("File extension: .bin")
             self.functionsCommonToAll()
-            if not isIM:
-                self.cubeAsMSData()
-            elif isIM:
+            if isIM:
                 self.cubeAsIMData()
+            elif self.MSDataButton.isChecked():
+                self.cubeAsMSData()
             else:
                 print("Please select whether the file is IM or MS Data")
                 return
@@ -1136,17 +1116,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 theMin = lineMin
         return theMin, theMax
 
-    def displayScatter(self, mzVals, intensity, drifts):
+    def displayScatter(self, mzVals, intensity, drifts=None, pt_size=.01):
         if self._spectra_ax:
             self.plot_spectra.removeWidget(self.spectra_toolbar)
             self.plot_spectra.removeWidget(self.spectra_canvas)
-        if self.viewPlusOne:  # TODO: Should these be here??
-            self.plot_kin.removeWidget(self.viewPlusOne)
-            # self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
-            # I took this out because it was creating a second plot.
-        elif self.viewPlusTwo:
-            self.plot_kin.removeWidget(self.viewPlusTwo)
-            # self.plot_kin.addWidget(FigureCanvas(plt.figure(tight_layout=True)))
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -1155,15 +1128,17 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.plot_spectra.addWidget(self.spectra_toolbar)
         self.plot_spectra.addWidget(self.spectra_canvas)
         self._spectra_ax = self.spectra_canvas.figure.subplots()
-        if isIM:
-            x = self._spectra_ax.scatter(mzVals, intensity, s=.01, c=drifts, cmap="Greens", alpha=0.75, picker=True)
+        if drifts != None:
+            # Switched this from isIM to checking drifts, so that if IM data needs to be plotted as MS,
+            # it can be plotted this way.
+            x = self._spectra_ax.scatter(mzVals, intensity, s=pt_size, c=drifts, cmap="Greens", alpha=0.75, picker=True)
             plt.colorbar(x).set_label('Drift times')
             self.drift_scrollbar.setMinimum(int(min(drifts)))
             self.drift_scrollbar.setMaximum(int(max(drifts)))
             self.drift_time.setMinimum(int(min(drifts)))
             self.drift_time.setMaximum(int(max(drifts)))
         else:
-            self._spectra_ax.scatter(mzVals, intensity, s=.01, alpha=0.75, picker=True)  # Can change to peaks here
+            self._spectra_ax.scatter(mzVals, intensity, s=pt_size, alpha=0.75, picker=True)  # Can change to peaks here
         self._spectra_ax.set_title('Points In Selected Region')
         self._spectra_ax.set_xlabel('m/z')
         self._spectra_ax.set_ylabel('intensity')
@@ -1390,7 +1365,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def deleteMapbutton_Callback(self):
         if self.Mapcount == 0:
-            print('There are no maps in the listbox')
+            return
+            # print('There are no maps in the listbox')
         else:
             if self.Map_listselect_text:
                 del self.Maps[self.Map_listselect_text]
@@ -1402,7 +1378,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def clearMapbutton_Callback(self):
         if self.Mapcount == 0:
-            print('There are no maps in the listbox')
+            return
+            # print('There are no maps in the listbox')
         else:
             self.Maps.clear()
             self.Mapcount = 0
@@ -1436,7 +1413,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if len(self.ROI) == 0:
             # set box with default text
             self.ROI_listbox.clear()
-            del self.ROI_listselect_text
+            # del self.ROI_listselect_text
             QListWidgetItem('ROI list appears here', self.ROI_listbox)
         else:
             self.ROI_listbox.clear()
@@ -1463,7 +1440,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def importROI_Callback(self):
         if (self.ROI_listselect_text == ""):
             print("No item selected")
-        elif isIM:
+        else:
             x = self.ROIData
             mzVals = []
             intensity = []
@@ -1473,25 +1450,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 intensity.append(val)
                 # drifts.append(val[2])
 
-            if self._spectra_ax:
-                self.plot_spectra.removeWidget(self.spectra_toolbar)
-                self.plot_spectra.removeWidget(self.spectra_canvas)
-            self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
-            self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-            self.spectra_canvas.setFocus()
-            self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
-            self.plot_spectra.addWidget(self.spectra_toolbar)
-            self.plot_spectra.addWidget(self.spectra_canvas)
-            self._spectra_ax = self.spectra_canvas.figure.subplots()
-            # x = self._spectra_ax.scatter(mzVals, intensity, s=1, c=drifts, cmap="Greens", alpha=0.75, picker=True)
-            # plt.colorbar(x).set_label('Drift times')
-            self._spectra_ax.scatter(mzVals, intensity, s=1, alpha=0.75, picker=True)
-            self._spectra_ax.set_title('Points In Selected Region')
-            self._spectra_ax.set_xlabel('m/z')
-            self._spectra_ax.set_ylabel('intensity')
-            self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-            # self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
-            return 0
+            self.displayScatter(mzVals, intensity, None, 1)
 
     def exportROI_spectra_val_Callback(self):
         if (self.ROI_listselect_text == ""):
@@ -1517,13 +1476,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def deleteROIbutton_Callback(self):
         if self.ROIcount == 0:
-            print('There are no ROIs in the listbox')
+            return
+            # print('There are no ROIs in the listbox')
         else:
             if self._con_ax:
                 if self.ROI_listselect_text in self.ROIplots:
                     # How to get the plot removed from the graph?
-                    if not isIM:
-                        self.ROIplots[self.ROI_listselect_text].pop(0).remove()
+                    # if not isIM:
+                    #     self.ROIplots[self.ROI_listselect_text].pop(0).remove()
                     del self.ROIplots[self.ROI_listselect_text]
                     del self.ROI[self.ROI_listselect_text]
                     del self.ROI_img_mean[self.ROI_listselect_text]
@@ -1533,6 +1493,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     print('plot removed')
                     if isIM:
                         self.im_point()
+                    else:
+                        self.ms_point()
                 else:
                     print('Item does not exist. Please double click on another item')
 
@@ -1543,8 +1505,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ROIcount = 0
         self.ROIcountbox.setText("0")
         self.refreshROIlistbox()
+        self.reset_scatter_callback()
         if isIM:
             self.im_point()
+        else:
+            self.ms_point()
 
     # --- Executes on button press in find_file_mzOI.
     def find_file_mzOI_Callback(self):
