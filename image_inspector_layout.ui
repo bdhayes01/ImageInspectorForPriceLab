@@ -2640,7 +2640,7 @@ Drift time</string>
    <widget class="QPushButton" name="reset_image">
     <property name="geometry">
      <rect>
-      <x>710</x>
+      <x>700</x>
       <y>450</y>
       <width>75</width>
       <height>23</height>
