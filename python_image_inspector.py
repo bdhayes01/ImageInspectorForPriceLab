@@ -611,10 +611,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # then plots the mass spectrum averaged over that ROI
     # --- Executes on button press in ROI_select.
     def ROI_select_Callback_mask(self):
-        # if self.massplusone.isChecked():
-        #     self.includemassplustwo = False
-        # elif self.massplustwo.isChecked():
-        #     self.includemassplustwo = True
+        if self.start.text() == '':
+            print("You must choose or input a point to the 'Selected Mass' box first.")
+            return 0
         if self.pickedPointData:
             if self.h:
                 self.h.disconnect()
@@ -665,9 +664,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # on the mass spectrum
     # --- Executes on button press in pick_point.
     def pick_point_Callback(self):
-        if isIM:
+        if self.start.text() == '':
+            print("You must choose or input a point to the 'Selected Mass' box first.")
+            return 0
+        elif isIM:
             self.im_point()
-            # self.refresh_isotoperatio()
             return 0
         else:
             self.ms_point()
@@ -1140,7 +1141,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.plot_spectra.addWidget(self.spectra_toolbar)
         self.plot_spectra.addWidget(self.spectra_canvas)
         self._spectra_ax = self.spectra_canvas.figure.subplots()
-        if drifts != None:
+        if drifts is not None:
             # Switched this from isIM to checking drifts, so that if IM data needs to be plotted as MS,
             # it can be plotted this way.
             x = self._spectra_ax.scatter(mzVals, intensity, s=pt_size, c=drifts, cmap="Greens", alpha=0.75, picker=True)
@@ -1456,20 +1457,26 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if (self.ROI_listselect_text == ""):
             print("No item selected")
         else:
-            # # TODO: Just take the data again here.
-            # chosenVal = float(self.start.text())
-            #
-            # x = np.where(   )
-            x = self.ROIData
-            mzVals = []
-            intensity = []
-            # drifts = []
-            for val in x:
-                mzVals.append(float(self.start.text()))
-                intensity.append(val)
-                # drifts.append(val[2])
+            # TODO: Just take the data again here.
 
-            self.displayScatter(mzVals, intensity, None, 1)
+            orig_mz = self.mzVals
+
+            mzVals = np.asarray(orig_mz)
+
+            chosenVal = float(self.start.text())
+            ppm = self.ppm_calc(chosenVal)
+
+            mzVals = np.where((chosenVal + ppm) >= mzVals, mzVals, 0)
+
+            x = (np.where((chosenVal - ppm) <= mzVals, mzVals, 0)).nonzero()
+
+            mzVals = np.asarray(orig_mz)[x]
+            intensities = np.asarray(self.intensity)[x]
+            drifts = None
+            if self.drifts is not None:
+                drifts = np.asarray(self.drifts)[x]
+
+            self.displayScatter(mzVals, intensities, drifts, 100/len(mzVals))
             self.set_min_max_mz(mzVals)
 
     def exportROI_spectra_val_Callback(self):
