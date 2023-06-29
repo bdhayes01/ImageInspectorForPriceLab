@@ -1713,82 +1713,34 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("Choose an item from the listbox")
 
     def MultiMapCompare_LoadMap_func(self, pickeditem, num):
-        if isIM:
-            item = pickeditem.text()
-            self.mmcWindow.map_packet[num][6].setText(item)
-            chosenMap = self.Maps[item]
+        item = pickeditem.text()
+        self.mmcWindow.map_packet[num][6].setText(item)
+        chosenMap = self.Maps[item]
 
-            numY = len(chosenMap)
-            numX = len(chosenMap[0])
-            xend = numX * .075
-            yend = numY * .15
+        numY = len(chosenMap)
+        numX = len(chosenMap[0])
+        xend = numX * .075
+        yend = numY * .15
 
-            if self.mmcWindow.map_packet[num][5]:
-                self.mmcWindow.map_packet[num][5].removeWidget(self.mmcWindow.map_packet[num][3])
-                self.mmcWindow.map_packet[num][5].removeWidget(self.mmcWindow.map_packet[num][0])
+        if self.mmcWindow.map_packet[num][5]:
+            self.mmcWindow.map_packet[num][5].removeWidget(self.mmcWindow.map_packet[num][3])
+            self.mmcWindow.map_packet[num][5].removeWidget(self.mmcWindow.map_packet[num][0])
 
-            self.mmcWindow.map_packet[num][0] = FigureCanvas(plt.figure(tight_layout=True))
-            self.mmcWindow.map_packet[num][3] = NavigationToolbar(self.mmcWindow.map_packet[num][0], self)
-            self.mmcWindow.map_packet[num][5].addWidget(self.mmcWindow.map_packet[num][3])
-            self.mmcWindow.map_packet[num][5].addWidget(self.mmcWindow.map_packet[num][0])
-            self.mmcWindow.map_packet[num][1] = self.mmcWindow.map_packet[num][0].figure.subplots()
+        self.mmcWindow.map_packet[num][0] = FigureCanvas(plt.figure(tight_layout=True))
+        self.mmcWindow.map_packet[num][3] = NavigationToolbar(self.mmcWindow.map_packet[num][0], self)
+        self.mmcWindow.map_packet[num][5].addWidget(self.mmcWindow.map_packet[num][3])
+        self.mmcWindow.map_packet[num][5].addWidget(self.mmcWindow.map_packet[num][0])
+        self.mmcWindow.map_packet[num][1] = self.mmcWindow.map_packet[num][0].figure.subplots()
 
-            self.mmcWindow.map_packet[num][2] = self.mmcWindow.map_packet[num][1].imshow(chosenMap, cmap='jet',
-                                                                                         interpolation='gaussian',
-                                                                                         aspect=(yend / xend),
-                                                                                         extent=[0, xend, 0, yend])
-
-            self.mmcWindow.map_packet[num][1].set_xlabel('x, mm')
-            self.mmcWindow.map_packet[num][1].set_ylabel('y, mm')
-            self.mmcWindow.map_packet[num][4] = self.mmcWindow.map_packet[num][0].figure.colorbar(
-                self.mmcWindow.map_packet[num][2])
-            return 0
-
-        self.mmcWindow.map_packet[num][6].setText(pickeditem.text())
-        x_end = self.Maps[pickeditem.text()][1]
-        y_end = self.Maps[pickeditem.text()][2]
-        if self.mmcWindow.map_packet[num][0]:
-            self.mmcWindow.map_packet[num][1].cla()
-            self.mmcWindow.map_packet[num][4].remove()
-            if (len(self.Maps[pickeditem.text()])) == 3:
-                self.mmcWindow.map_packet[num][2] = self.mmcWindow.map_packet[num][1].imshow(
-                    self.Maps[pickeditem.text()][0], cmap='jet',
-                    aspect='auto', extent=[0, x_end, 0, y_end])
-            elif (len(self.Maps[pickeditem.text()])) == 5:
-                zmin = self.Maps[pickeditem.text()][3]
-                tmax = self.Maps[pickeditem.text()][4]
-                self.mmcWindow.map_packet[num][2] = self.mmcWindow.map_packet[num][1].imshow(
-                    self.Maps[pickeditem.text()][0], cmap='jet',
-                    aspect='auto', vmin=zmin, vmax=tmax, extent=[0, x_end, 0, y_end])
-            self.mmcWindow.map_packet[num][1].set_xlabel('x, mm')
-            self.mmcWindow.map_packet[num][1].set_ylabel('y, mm')
-            self.mmcWindow.map_packet[num][4] = self.mmcWindow.map_packet[num][0].figure.colorbar(
-                self.mmcWindow.map_packet[num][2])
-            self.mmcWindow.map_packet[num][1].invert_yaxis()
-            self.mmcWindow.map_packet[num][1].set_aspect('equal')
-            self.mmcWindow.map_packet[num][0].draw()
-        else:
-            self.mmcWindow.map_packet[num][0] = FigureCanvas(plt.figure(tight_layout=True))
-            self.mmcWindow.map_packet[num][3] = NavigationToolbar(self.mmcWindow.map_packet[num][0], self)
-            self.mmcWindow.map_packet[num][5].addWidget(self.mmcWindow.map_packet[num][3])
-            self.mmcWindow.map_packet[num][5].addWidget(self.mmcWindow.map_packet[num][0])
-            self.mmcWindow.map_packet[num][1] = self.mmcWindow.map_packet[num][0].figure.subplots()
-            if (len(self.Maps[pickeditem.text()])) == 3:
-                self.mmcWindow.map_packet[num][2] = self.mmcWindow.map_packet[num][1].imshow(
-                    self.Maps[pickeditem.text()][0], cmap='jet',
-                    aspect='auto', extent=[0, x_end, 0, y_end])
-            elif (len(self.Maps[pickeditem.text()])) == 5:
-                zmin = self.Maps[pickeditem.text()][3]
-                tmax = self.Maps[pickeditem.text()][4]
-                self.mmcWindow.map_packet[num][2] = self.mmcWindow.map_packet[num][1].imshow(
-                    self.Maps[pickeditem.text()][0], cmap='jet',
-                    aspect='auto', vmin=zmin, vmax=tmax, extent=[0, x_end, 0, y_end])
-            self.mmcWindow.map_packet[num][1].set_xlabel('x, mm')
-            self.mmcWindow.map_packet[num][1].set_ylabel('y, mm')
-            self.mmcWindow.map_packet[num][4] = self.mmcWindow.map_packet[num][0].figure.colorbar(
-                self.mmcWindow.map_packet[num][2])
-            self.mmcWindow.map_packet[num][1].invert_yaxis()
-            self.mmcWindow.map_packet[num][1].set_aspect('equal')
+        self.mmcWindow.map_packet[num][2] = self.mmcWindow.map_packet[num][1].imshow(chosenMap, cmap='jet',
+                                                                                     interpolation='gaussian',
+                                                                                     aspect=(yend / xend),
+                                                                                     extent=[0, xend, 0, yend])
+        self.mmcWindow.map_packet[num][1].set_xlabel('x, mm')
+        self.mmcWindow.map_packet[num][1].set_ylabel('y, mm')
+        self.mmcWindow.map_packet[num][4] = self.mmcWindow.map_packet[num][0].figure.colorbar(
+            self.mmcWindow.map_packet[num][2])
+        return 0
 
     def setIM(self):
         global isIM
