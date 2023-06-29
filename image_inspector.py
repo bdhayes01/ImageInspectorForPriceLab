@@ -242,6 +242,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mmcWindow.slot6_load.clicked.connect(
             lambda: self.MultiMapCompare_LoadMap_Callback(self.mmcWindow.slot6_load))
         self.mmcWindow.exportMapData.clicked.connect(self.MultiMapCompare_exportMapData_Callback)
+        self.mmcWindow.importMapData.clicked.connect(self.MultiMapCompare_importMapData_Callback)
 
         # function image_inspector_OpeningFcn
         self.has_data = 0
@@ -1672,27 +1673,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def MultiMapCompare_exportMapData_Callback(self):
         pickeditem = self.mmcWindow.pickitem
-        if isIM:
-            theMap = self.Maps[pickeditem.text()]
-            one = theMap[0]
-            df = pd.DataFrame(theMap)
-            name = self.mmcWindow.exportMapData_filename.text()
-            dirpath = QFileDialog.getExistingDirectory(self, 'Select a directory to export')
-            if dirpath != '':
-                pathfile = os.path.join(dirpath, name + '.csv')
-                df.to_csv(pathfile, index=False)
-            else:
-                print('Please choose a directory')
+        if pickeditem is None:
+            print('Please choose a map')
             return 0
-        if pickeditem:
-            df = pd.DataFrame(self.Maps[pickeditem.text()][0])
-            name = self.mmcWindow.exportMapData_filename.text()
-            dirpath = QFileDialog.getExistingDirectory(self, 'Select a directory to export')
-            if dirpath != '':
-                pathfile = os.path.join(dirpath, name + '.csv')
-                df.to_csv(pathfile, index=False)
-            else:
-                print('Please choose a directory')
+        theMap = self.Maps[pickeditem.text()]
+        df = pd.DataFrame(theMap)
+        name = self.mmcWindow.exportMapData_filename.text()
+        dirpath = QFileDialog.getExistingDirectory(self, 'Select a directory to export')
+        if dirpath != '':
+            pathfile = os.path.join(dirpath, name + '.csv')
+            df.to_csv(pathfile, index=False, header=False)
+        else:
+            print('Please choose a directory')
+
+    def MultiMapCompare_importMapData_Callback(self):
+        return 0
 
     # executes when a load button is clicked
     def MultiMapCompare_LoadMap_Callback(self, button):
