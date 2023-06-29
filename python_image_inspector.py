@@ -792,7 +792,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.pickedPointData = None
         self.displayImage(chosenData, self.pixelSizeX, self.pixelSizeY)
         self.pickedPointData = chosenData
-        self.ConcMapData = theChosenData
+        # self.ConcMapData = theChosenData
 
         if self.massplusone.isChecked():
             self.chosenDataIso = None
@@ -1356,7 +1356,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.Mapcount += 1
 
     def export_IsotopeMap_Callback(self):
-        # when clicking on the exportConcMap button, it will save the filename and concentration the map
+        # when clicking on the exportIsotopeMap button, it will save the filename and concentration the map
         self.Maps[self.exportIsotopeMapname.text()] = self.IsotopeMapData
         self.Mapcount += 1
         self.refreshMaplistbox()

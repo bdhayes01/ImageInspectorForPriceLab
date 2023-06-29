@@ -480,6 +480,19 @@ font: 8pt &quot;Times New Roman&quot;;</string>
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
+    <widget class="QPushButton" name="reset_image">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>170</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Reset Image</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="ROI_listbox_group">
     <property name="geometry">
@@ -2636,19 +2649,6 @@ Drift time</string>
       <string notr="true">background-color: rgb(238, 204, 204);</string>
      </property>
     </widget>
-   </widget>
-   <widget class="QPushButton" name="reset_image">
-    <property name="geometry">
-     <rect>
-      <x>710</x>
-      <y>450</y>
-      <width>75</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Reset Image</string>
-    </property>
    </widget>
    <widget class="QDoubleSpinBox" name="max_mz">
     <property name="geometry">
