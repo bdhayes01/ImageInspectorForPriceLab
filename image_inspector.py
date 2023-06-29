@@ -1673,7 +1673,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def MultiMapCompare_exportMapData_Callback(self):
         pickeditem = self.mmcWindow.pickitem
-        if pickeditem is None:
+        if pickeditem is None or pickeditem == '':
             print('Please choose a map')
             return 0
         theMap = self.Maps[pickeditem.text()]
@@ -1682,11 +1682,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         dirpath = QFileDialog.getExistingDirectory(self, 'Select a directory to export')
         if dirpath != '':
             pathfile = os.path.join(dirpath, name + '.csv')
-            df.to_csv(pathfile, index=False, header=False)
+            # df = df[::-1]
+            df.to_csv(pathfile, index=False)
         else:
             print('Please choose a directory')
 
     def MultiMapCompare_importMapData_Callback(self):
+        path = QFileDialog.getOpenFileName(self, 'Select a map to import', filter='*.csv')
+        df = pd.read_csv(path[0])
+        self.Maps["text"] = df.to_numpy()
         return 0
 
     # executes when a load button is clicked
