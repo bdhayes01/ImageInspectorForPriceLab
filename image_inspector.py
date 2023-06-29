@@ -5,14 +5,6 @@ Created on Wed Feb 10 15:58:09 2021
 @author: wtd14
 """
 
-# Colors: 022b3a-1f7a8c-bfdbf7-e1e5f2-ffffff
-# 01161e-124559-598392-aec3b0-eff6e0 S votes for this one
-# 5c9ead-ffffff-326273-eeeeee-e39774
-# 5d737e-64b6ac-c0fdfb-daffef-fcfffd
-# bdd9bf-2e4052-ffc857-ffffff-412234
-# e53d00-ffe900-fcfff7-21a0a0-046865
-# f7f0f5-decbb7-8f857d-5c5552-433633
-
 import os
 import sys
 from PyQt5 import QtWidgets
@@ -20,13 +12,10 @@ from PyQt5.QtWidgets import (QApplication, QFileDialog, QListWidgetItem, QMainWi
 import PyQt5.uic as uic
 from PyQt5 import QtCore
 import numpy as np
-from scipy import signal
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from copy import copy
 import math
 import csv
 from matplotlib.figure import Figure
@@ -54,12 +43,14 @@ button_style_sheet = ("QRadioButton{border:None}"
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
+    # try:
+    #     # PyInstaller creates a temp folder and stores path in _MEIPASS
+    #     base_path = sys._MEIPASS  # TODO: This doesn't even work. It can be safely deleted.
+    # except Exception:
+    #     base_path = os.path.abspath(".")
+    # return os.path.join(base_path, relative_path)
 
 
 mainWindow_ui_path = resource_path("image_inspector_layout.ui")
@@ -79,7 +70,7 @@ class MultiMapCompareobject(QMainWindow, loaded_ui_multicomp):
 
         self.Map_listbox_mmcWindow.itemClicked.connect(self.MultiMapCompare_Map_listbox_pickitem)
 
-        self.pickitem = ''
+        self.pickitem = None
 
         # canvas
         self.map_canvas1 = None
@@ -187,8 +178,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.pick_point.clicked.connect(self.pick_point_Callback)
         self.mass_up.clicked.connect(self.mass_up_Callback)
         self.mass_down.clicked.connect(self.mass_down_Callback)
-        # self.start.returnPressed.connect(self.start_Callback)
-        # self.msindex.returnPressed.connect(self.msindex_Callback)
         self.zmax.sliderMoved.connect(self.zmax_Callback)
         self.zmax.valueChanged.connect(self.zmax_Callback)
         self.zmin.sliderMoved.connect(self.zmin_Callback)
@@ -444,29 +433,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         intensity = np.asarray(intensity)[in1]
 
         self.displayScatter(mzVals, intensity, None, .3)
-
-        # if self._spectra_ax:  # TODO: Start here
-        #     self.plot_spectra.removeWidget(self.spectra_toolbar)
-        #     self.plot_spectra.removeWidget(self.spectra_canvas)
-        #     # self.spectra_canvas.close()
-        #     # self.spectra_toolbar.close()
-        #     plt.close('all')
-        #     del self.spectra_canvas
-        #     del self.spectra_toolbar
-        #
-        # self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
-        # self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-        # self.spectra_canvas.setFocus()
-        # self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
-        # self.plot_spectra.addWidget(self.spectra_toolbar)
-        # self.plot_spectra.addWidget(self.spectra_canvas)
-        # self._spectra_ax = self.spectra_canvas.figure.subplots()
-        # self._spectra_ax.scatter(mzVals, intensity, s=.3, alpha=0.75, picker=True)
-        # self._spectra_ax.set_title('Points In Selected Region')
-        # self._spectra_ax.set_xlabel('m/z')
-        # self._spectra_ax.set_ylabel('intensity')
-        # self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-        # self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
         return 0
 
     def mass_up_Callback(self):
@@ -508,53 +474,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.zmax.setValue(math.ceil(self.t_max))
             self.scale_image()
 
-    # This function updates the image to the current index
-    def refresh_image(self):
-        # finds the matrix of areas for the specified index
-        bkg = np.zeros((len(self.y), len(self.x)))
-        summarea = np.zeros((len(self.y), len(self.x)))
-        self.areas = np.zeros((len(self.y), len(self.x)))
-        numberpoints = 12
-        for i in range(len(self.y)):
-            for k in range(len(self.x)):
-                sumeach = np.sum(self.intens[i, k, np.arange(self.index - numberpoints, (self.index + 70 + 1))])
-                summarea[i, k] = sumeach
-                sumback = np.sum(
-                    self.intens[i, k, np.arange(self.index + numberpoints, (self.index + 2 * numberpoints + 1))])
-                bkg[i, k] = sumback
-                self.areas[i, k] = (sumeach - sumback)
-        # pull the maximum value from the image and put it in the boxes
-        self.z_max, self.z_min = self.arrlims(self.areas)
-        self.max_int.setText(str(self.z_max))
-        self.temp_max.setText(str(self.z_max))
-        # set up the slider
-        self.zmax.setMinimum(0)
-        self.zmax.setMaximum(math.ceil(self.z_max))
-        self.zmax.setValue(math.ceil(self.z_max))
-        self.zmax.setSingleStep(round(0.01 * self.z_max))
-        self.ConcMapData = [np.flip(self.areas, axis=0), self.x_end, self.y_end]
-        # plot the image
-        if self.con_canvas:
-            self.plot_con.removeWidget(self.con_canvas)
-
-            # self.con_cbar.remove()
-            # Remove the colorbar
-        if self._con_ax:
-            self._con_ax.cla()
-
-            # self.con_cbar.remove()  # Could the error be that there isn't a position set beforehand?
-            # I don't know why this error is ocurring
-            # Could it be that the colorbar should be replaced, not removed?
-            self.con_img = self._con_ax.imshow(np.flip(self.areas, axis=0), cmap='jet', aspect='auto',
-                                               extent=[0, self.x_end, 0, self.y_end])
-            self._con_ax.set_xlabel('x, mm')
-            self._con_ax.set_ylabel('y, mm')
-            self.con_cbar = plt.colorbar(self.con_img)
-            self._con_ax.invert_yaxis()
-            self._con_ax.set_aspect('equal')
-            self.con_canvas.draw()
-            self.exConcflag = True
-
     def arrlims(self, input_array):
         # this function locates the maximum and minimum values in a 2-d array
         minval = np.min(input_array)
@@ -584,7 +503,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def ROI_select_IM_Callback(self):
         self.binI = self.h.get_mask().astype(int)
         self.binI = np.flipud(self.binI)
-        f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0] #TODO: Change all of these to C order, you don't want
+        f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
         x = self.pickedPointData
         y = np.asarray(x).flatten()
         z = y[f]
@@ -608,6 +527,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return 0
 
     def im_point(self):
+        # TODO: Clean this function up!
         # NOTE: to Brian . Okay, here's the deal, when building this the code was so confusing,
         # so we are going to do everything here. In reality, we shouldn't do this, and we won't, in the long run.
         # When cleaning up, this must be factored into several different functions.
@@ -643,6 +563,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         maxIntensityPlusOne = 0
         maxIntensityPlusTwo = 0
 
+        lineData = []
+        lineDataPlusOne = []
+        lineDataPlusTwo = []
+        otherLine = []
+        otherLinePlusOne = []
+        otherLinePlusTwo = []
+        otherVal = []
+        otherValPlusOne = []
+        otherValPlusTwo = []
+
         while numFiles < fileNum:
             if frameDone:
                 chosenData.append(lineData)
@@ -659,7 +589,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             lineData = []
             lineDataPlusOne = []
             lineDataPlusTwo = []
-            otherLine = []
             valAdded = False
             valAddedPlusOne = False
             valAddedPlusTwo = False
@@ -746,7 +675,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.pickedPointData = None
         self.displayImage(chosenData, self.pixelSizeX, self.pixelSizeY)
         self.pickedPointData = chosenData
-        # self.ConcMapData = theChosenData
 
         if self.massplusone.isChecked():
             self.chosenDataIso = None
@@ -968,7 +896,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.plot_kin.removeWidget(self.viewPlusTwo)
 
         zero_for_dev = np.asarray(zero_image).flatten()
-        std_deviation = round(np.std(zero_for_dev), 4)
+        std_deviation = round(float(np.std(zero_for_dev)), 4)
         self.Msumstandard_error.setText(str(std_deviation))
 
         iso_data = self.isotope_scalar(zero_image, imageData)
@@ -976,7 +904,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         iso_for_deviation = np.asarray(iso_data)
         iso_for_deviation = iso_for_deviation.flatten()
 
-        std_deviation = round(np.std(iso_for_deviation), 4)
+        std_deviation = round(float(np.std(iso_for_deviation)), 4)
 
         if self.massplusone.isChecked():
             self.Mplusonesumstandard_error.setText(str(std_deviation))
@@ -1089,7 +1017,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self._spectra_ax.set_xlabel('m/z')
         self._spectra_ax.set_ylabel('intensity')
         self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-        # self.spectra_canvas.mpl_connect('key_press_event', self.data_cursor_key)
         self.exSpecflag = True
         # plt.yscale('log')
         # it is x, y
@@ -1171,6 +1098,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         drifts = []
         chosenData = []
         mapData = []
+        lineData = []
         frameDone = False
 
         while numFiles < fileNum:
@@ -1523,22 +1451,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     intensity.append(self.intensity[i])
 
             self.displayScatter(mzVals, drifts, None)
-            # if self._spectra_ax:
-            #     self.plot_spectra.removeWidget(self.spectra_toolbar)
-            #     self.plot_spectra.removeWidget(self.spectra_canvas)
-            # self.spectra_canvas = FigureCanvas(plt.Figure(tight_layout=True))
-            # self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
-            # self.spectra_canvas.setFocus()
-            # self.spectra_toolbar = NavigationToolbar(self.spectra_canvas, self)
-            # self.plot_spectra.addWidget(self.spectra_toolbar)
-            # self.plot_spectra.addWidget(self.spectra_canvas)
-            # self._spectra_ax = self.spectra_canvas.figure.subplots()
-            # x = self._spectra_ax.scatter(mzVals, drifts, s=.01, alpha=0.75, picker=True)
-            # self._spectra_ax.set_title("Points in selected region")
-            # self._spectra_ax.set_xlabel("m/z")
-            # self._spectra_ax.set_ylabel("drifts")
-            # self.spectra_canvas.mpl_connect("pick_event", self.data_cursor_click)
-            # # self.spectra_canvas.mpl_connect("key_press_event", self.data_cursor_key)
             self.exSpecflag = True
 
             return 0
@@ -1607,61 +1519,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
         self.spectra_canvas.draw()
 
-    # def data_cursor_key(self, event):
-    #     if (event.key == 'left'):
-    #         self.index = self.index - 1
-    #         self.start.setText(str(self.z[self.index]))
-    #         # self.msindex.setText(str(self.index))
-    #         self.Noise_Output_Box.setText(str(self.img_std[self.index]))
-    #         x_val = self.z[self.index]
-    #         y_val = self.img_mean[self.index]
-    #         x_key = '%s' % float('%.6g' % x_val)
-    #         y_key = '%s' % float('%.6g' % y_val)
-    #
-    #         if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-    #             threshold = float(self.pick_IDthreshold.value())
-    #             for i in range(len(self.ids_pd['m/z'])):
-    #                 err = abs((x_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
-    #                 # print(err)
-    #                 if (err < threshold):
-    #                     ID_in = self.ids_pd['Lipid ID'][i]
-    #                     break
-    #                 else:
-    #                     ID_in = 'not defined'
-    #             self.ID_Output_Box.setText(str(ID_in))
-    #             # Annotate
-    #             self.annotate_spectra_ID(x_key, y_key, ID_in)
-    #         else:
-    #             self.annotate_spectra(x_key, y_key)
-    #
-    #     elif (event.key == 'right'):
-    #         self.index = self.index + 1
-    #         self.start.setText(str(self.z[self.index]))
-    #         # self.msindex.setText(str(self.index))
-    #         self.Noise_Output_Box.setText(str(self.img_std[self.index]))
-    #         x_val = self.z[self.index]
-    #         y_val = self.img_mean[self.index]
-    #         x_key = '%s' % float('%.6g' % x_val)
-    #         y_key = '%s' % float('%.6g' % y_val)
-    #
-    #         if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-    #             threshold = float(self.pick_IDthreshold.value())
-    #             for i in range(len(self.ids_pd['m/z'])):
-    #                 err = abs((x_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
-    #                 # print(err)
-    #                 if (err < threshold):
-    #                     ID_in = self.ids_pd['Lipid ID'][i]
-    #                     break
-    #                 else:
-    #                     ID_in = 'not defined'
-    #             self.ID_Output_Box.setText(str(ID_in))
-    #             # Annotate
-    #             self.annotate_spectra_ID(x_key, y_key, ID_in)
-    #         else:
-    #             self.annotate_spectra(x_key, y_key)
-
-
-
     ##########################################
     # Multi Map Compare functions (things related to the 2nd window)
     def MultiMapCompare_Display_Callback(self):
@@ -1697,23 +1554,23 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # executes when a load button is clicked
     def MultiMapCompare_LoadMap_Callback(self, button):
         if self.mmcWindow.pickitem:
+            text = self.mmcWindow.pickitem.text()
             if button is self.mmcWindow.slot1_load:
-                self.MultiMapCompare_LoadMap_func(self.mmcWindow.pickitem, 1)
+                self.MultiMapCompare_LoadMap_func(text, 1)
             elif button is self.mmcWindow.slot2_load:
-                self.MultiMapCompare_LoadMap_func(self.mmcWindow.pickitem, 2)
+                self.MultiMapCompare_LoadMap_func(text, 2)
             elif button is self.mmcWindow.slot3_load:
-                self.MultiMapCompare_LoadMap_func(self.mmcWindow.pickitem, 3)
+                self.MultiMapCompare_LoadMap_func(text, 3)
             elif button is self.mmcWindow.slot4_load:
-                self.MultiMapCompare_LoadMap_func(self.mmcWindow.pickitem, 4)
+                self.MultiMapCompare_LoadMap_func(text, 4)
             elif button is self.mmcWindow.slot5_load:
-                self.MultiMapCompare_LoadMap_func(self.mmcWindow.pickitem, 5)
+                self.MultiMapCompare_LoadMap_func(text, 5)
             elif button is self.mmcWindow.slot6_load:
-                self.MultiMapCompare_LoadMap_func(self.mmcWindow.pickitem, 6)
+                self.MultiMapCompare_LoadMap_func(text, 6)
         else:
             print("Choose an item from the listbox")
 
-    def MultiMapCompare_LoadMap_func(self, pickeditem, num):
-        item = pickeditem.text()
+    def MultiMapCompare_LoadMap_func(self, item, num):
         self.mmcWindow.map_packet[num][6].setText(item)
         chosenMap = self.Maps[item]
 
@@ -1763,10 +1620,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    mainwindow = MainGUIobject()
-    # widget = mainwindow(None)
+    main_window = MainGUIobject()
+    # widget = main_window(None)
     widget = QtWidgets.QStackedWidget()
-    widget.addWidget(mainwindow)
+    widget.addWidget(main_window)
     widget.setFixedWidth(MW_width)
     widget.setFixedHeight(MW_height)
     widget.setWindowTitle("image_inspector")
