@@ -63,7 +63,7 @@ def resource_path(relative_path):
 
 
 mainWindow_ui_path = resource_path("image_inspector_layout.ui")
-mmcWindow_ui_path = resource_path("python_image_inspector_multicomp.ui")
+mmcWindow_ui_path = resource_path("image_inspector_multicomp.ui")
 DESI_ID_path = resource_path("DESI_ID_File.csv")
 
 loaded_ui_multicomp = uic.loadUiType(mmcWindow_ui_path)[0]
@@ -1716,24 +1716,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if isIM:
             item = pickeditem.text()
             self.mmcWindow.map_packet[num][6].setText(item)
-            thePlot = self.Maps[item]
-
-            chosenMap = []
-
-            for row in thePlot:
-                tempRow = []
-                for frame in row:
-                    if frame != 0:
-                        tot = 0
-                        if isinstance(frame, np.float64):
-                            tot = frame
-                        else:
-                            for eachBin in frame:
-                                tot += eachBin[1]
-                        tempRow.append(tot)
-                    else:
-                        tempRow.append(0)
-                chosenMap.append(tempRow)
+            chosenMap = self.Maps[item]
 
             numY = len(chosenMap)
             numX = len(chosenMap[0])
