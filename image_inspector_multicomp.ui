@@ -429,7 +429,7 @@ border: 1px solid black;</string>
 border: 1px solid black;</string>
     </property>
     <property name="text">
-     <string>filename</string>
+     <string>Map Name</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>

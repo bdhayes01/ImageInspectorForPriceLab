@@ -1690,7 +1690,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def MultiMapCompare_importMapData_Callback(self):
         path = QFileDialog.getOpenFileName(self, 'Select a map to import', filter='*.csv')
         df = pd.read_csv(path[0])
-        self.Maps["text"] = df.to_numpy()
+        self.Maps[self.mmcWindow.importMapData_filename.text()] = df.to_numpy()
+        self.MultiMapCompare_Display_Callback()
         return 0
 
     # executes when a load button is clicked
