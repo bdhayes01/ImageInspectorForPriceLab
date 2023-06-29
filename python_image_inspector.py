@@ -149,6 +149,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.ROI_outline = None
         self.pickedPointData = None
         self.mapData = None
         self.label = None
@@ -164,6 +165,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.viewPlusTwo = None
         self.con_cbar = None
         self.original_image = None
+        self.ROIData = None
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowSystemMenuHint)
 
@@ -629,35 +631,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.binI = self.h.get_mask().astype(int)
         self.binI = np.flipud(self.binI)
         f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0] #TODO: Change all of these to C order, you don't want
-
         x = self.pickedPointData
-
         y = np.asarray(x).flatten()
-
         z = y[f]
-
+        self.ROI_outline = f
         theList = z[np.nonzero(z)]
-
-        # theList = []
-
-        # i = 0
         self.numberpoints.setText(str(len(f)))
-        # for line in x:
-        #     for frame in line:
-        #         if i in f and frame != 0:
-        #             theList.append(frame)
-        #         i += 1
-        #     i += 1
-
-        # filtered = []
-        # if isIM:
-        #     for val in theList:
-        #         for val2 in val:
-        #             filtered.append(val2)
-        # else:
-        #     filtered = theList
-
-        self.ROIData = theList
 
     # This function plots a mass spectrum corresponing to a selected point
     # on the displayed image, or an image corresponding to a selected point
@@ -1237,6 +1216,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         intensity = []
         drifts = []
         chosenData = []
+        mapData = []
         frameDone = False
 
         while numFiles < fileNum:
@@ -1250,11 +1230,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             lineData = []
             valAdded = False
             theVal = 0
+            mapLine = []
             while numFrames < frameNum:
                 totalDriftBins = data[i]
                 frameDone = True
                 currdriftBin = 0
                 i += 1
+                frameVal = []
                 while currdriftBin < totalDriftBins:
                     numValues = data[i]
                     i += 1
@@ -1266,9 +1248,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                         intensity.append(data[i + 1])
                         drifts.append(driftTime)
                         mzVals.append(data[i])
+                        frameVal.append([data[i], data[i + 1], driftTime])
                         i += 2
                     currdriftBin += 1
 
+                mapLine.append(frameVal)
                 if not valAdded:
                     lineData.append(0)
                 elif valAdded:
@@ -1276,6 +1260,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 valAdded = False
                 theVal = 0
                 numFrames += 1
+            mapData.append(mapLine)
 
         self.displayScatter(mzVals, intensity, drifts)
         self.set_min_max_mz(mzVals)
@@ -1283,6 +1268,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mzVals = mzVals
         self.intensity = intensity
         self.drifts = drifts
+        self.mapData = mapData
 
         self.displayImage(chosenData, self.pixelSizeX, self.pixelSizeY)
 
@@ -1457,24 +1443,51 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if (self.ROI_listselect_text == ""):
             print("No item selected")
         else:
-            # TODO: Just take the data again here.
-
-            orig_mz = self.mzVals
-
-            mzVals = np.asarray(orig_mz)
-
             chosenVal = float(self.start.text())
             ppm = self.ppm_calc(chosenVal)
 
-            mzVals = np.where((chosenVal + ppm) >= mzVals, mzVals, 0)
+            self.ROIData = []
 
-            x = (np.where((chosenVal - ppm) <= mzVals, mzVals, 0)).nonzero()
-
-            mzVals = np.asarray(orig_mz)[x]
-            intensities = np.asarray(self.intensity)[x]
+            mzVals = []
+            intensities = []
             drifts = None
-            if self.drifts is not None:
-                drifts = np.asarray(self.drifts)[x]
+
+            outline = self.ROI_outline
+            mapData = self.mapData
+            if self.drifts is None:
+                counter = 0
+                for line in mapData:
+                    for scan in line:
+                        if counter not in outline:
+                            counter += 1
+                            continue
+                        else:
+                            for point in scan:
+                                mz = point[0]
+                                if chosenVal + ppm >= mz >= chosenVal - ppm:
+                                    mzVals.append(mz)
+                                    intensities.append(point[1])
+                            counter += 1
+                for i in range(len(mzVals)):
+                    self.ROIData.append([mzVals[i], intensities[i]])
+            else:
+                drifts = []
+                counter = 0
+                for line in mapData:
+                    for frame in line:
+                        if counter not in outline:
+                            counter += 1
+                            continue
+                        else:
+                            for point in frame:
+                                mz = point[0]
+                                if chosenVal + ppm >= mz >= chosenVal - ppm:
+                                    mzVals.append(mz)
+                                    intensities.append(point[1])
+                                    drifts.append(point[2])
+                            counter += 1
+                for i in range(len(mzVals)):
+                    self.ROIData.append([mzVals[i], intensities[i], drifts[i]])
 
             self.displayScatter(mzVals, intensities, drifts, 100/len(mzVals))
             self.set_min_max_mz(mzVals)
@@ -1483,21 +1496,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if (self.ROI_listselect_text == ""):
             print("No item selected. Double click an item in the ROI listbox")
         else:
-            img_mean = self.ROI_img_mean[self.ROI_listselect_text]
             path = QFileDialog.getSaveFileName(self, 'Save CSV', os.getenv('HOME'), 'CSV(*.csv)')
             if path[0] != '':
-                if isIM:
-                    with open(path[0], 'w', newline='') as csv_file:
-                        writer = csv.writer(csv_file, dialect='excel', delimiter=',', lineterminator='\n')
-                        writer.writerow(["M/Z Value", "Intensity", "Drift Time", "Line", "Frame Num"])
+                with open(path[0], 'w', newline='') as csv_file:
+                    writer = csv.writer(csv_file, dialect='excel', delimiter=',', lineterminator='\n')
+                    if isIM:
+                        writer.writerow(["M/Z Value", "Intensity", "Drift Time"])
                         for line in self.ROIData:
                             writer.writerow(line)
-                else:
-                    with open(path[0], 'w', newline='') as csv_file:
-                        writer = csv.writer(csv_file, dialect='excel', delimiter=',', lineterminator='\n')
-                        writer.writerow(('m/z', 'intensity'))
-                        for row in range(len(self.z)):
-                            writer.writerow((self.z[row], img_mean[row]))
+                    else:
+                        writer.writerow(["M/Z Value", "Intensity"])
+                        for line in self.ROIData:
+                            writer.writerow(line)
             else:
                 print("No location selected. Please select a location")
 
@@ -1856,8 +1866,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def setMS(self):
         global isIM
         isIM = False
-        self.all_drift_times.setCheckable(False)
         self.all_drift_times.setChecked(False)
+        self.all_drift_times.setCheckable(False)
         self.one_drift_time.setCheckable(False)
         self.drift_time.setDisabled(True)
         self.drift_scrollbar.setDisabled(True)
