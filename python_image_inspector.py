@@ -187,7 +187,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.pick_point.clicked.connect(self.pick_point_Callback)
         self.mass_up.clicked.connect(self.mass_up_Callback)
         self.mass_down.clicked.connect(self.mass_down_Callback)
-        self.start.returnPressed.connect(self.start_Callback)
+        # self.start.returnPressed.connect(self.start_Callback)
         # self.msindex.returnPressed.connect(self.msindex_Callback)
         self.zmax.sliderMoved.connect(self.zmax_Callback)
         self.zmax.valueChanged.connect(self.zmax_Callback)
@@ -489,53 +489,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.im_point()
             return 0
 
-    # This function reads a mass input by the user, and then finds
-    # the mass nearest to the input mass in the z data array.
-    # It displays that mass and its index, then displays the image
-    # at that mass.
-    def start_Callback(self):
-        if self.has_data:
-            set_mass = self.start.text()  # returns contents of start as a double
-            isNum = True
-            try:
-                float(set_mass)
-            except ValueError:
-                isNum = False
-            if isNum == False:
-                self.index = 1
-                # self.msindex.setText(str(self.index))
-                print("Wrong Input Mass")
-            else:
-                set_mass = float(set_mass)
-                # finds the index of the closest value to the set_mass value
-                self.index = np.where(abs(self.z - set_mass) == (abs(self.z - set_mass)).min())[0][0]
-            self.start.setText(str(self.z[self.index]))
-            # self.msindex.setText(str(self.index))
-            self.refresh_image()
-            # Update the Noise boxes
-            self.Noise_Output_Box.setText(str(self.img_std[self.index]))
-            # Update spectra annotation
-            x_start_val = self.z[self.index]
-            y_start_val = self.img_mean[self.index]
-            x_start_type = '%s' % float('%.6g' % x_start_val)
-            y_start_type = '%s' % float('%.6g' % y_start_val)
-
-            if (pd.notnull(self.spectra_df['max'][self.index])) and (self.spectra_df['max'][self.index] != 0):
-                threshold = float(self.pick_IDthreshold.value())
-                for i in range(len(self.ids_pd['m/z'])):
-                    err = abs((x_start_val - self.ids_pd['m/z'][i]) / self.ids_pd['m/z'][i]) * self.err_multp
-                    # print(err)
-                    if (err < threshold):
-                        ID_in = self.ids_pd['Lipid ID'][i]
-                        break
-                    else:
-                        ID_in = 'not defined'
-                self.ID_Output_Box.setText(str(ID_in))
-                # Annotate
-                self.annotate_spectra_ID(x_start_type, y_start_type, ID_in)
-            else:
-                self.annotate_spectra(x_start_type, y_start_type)
-
     def temp_max_Callback(self):
         if self.has_data:
             temp = self.temp_max.text()
@@ -545,7 +498,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             except ValueError:
                 isNum = False
             if isNum == False:
-                self.temp_max.setText(str(self.zmax))
+                self.temp_max.setText(str(self.zmax.sliderPosition()))
                 print("Wrong Input Max")
             else:
                 set_temp = int(temp)
