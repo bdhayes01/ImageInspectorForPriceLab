@@ -146,8 +146,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.drifts = None
         self.chosenDataIso = None
         self.view = None
-        self.viewPlusOne = None
-        self.viewPlusTwo = None
+        self.iso_view = None
         self.con_cbar = None
         self.original_image = None
         self.ROIData = None
@@ -204,14 +203,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.reset_image.clicked.connect(self.reset_orig_image)
         self.set_mz_minmax.clicked.connect(self.change_mz)
 
-        # imButton = self.find_el
         self.IMDataButton.clicked.connect(self.setIM)
         self.MSDataButton.clicked.connect(self.setMS)
-        # self.MSDataButton.clicked(isIM = False)
-        # self.IMDataButton.clicked(isIM = True)
 
         self.multiMW.clicked.connect(self.MultiMapCompare_Display_Callback)
-        # self.mmcWindow.slot1_load.clicked.connect(self.MultiMapCompare_LoadMap_Callback)
         self.mmcWindow.slot1_load.clicked.connect(
             lambda: self.MultiMapCompare_LoadMap_Callback(self.mmcWindow.slot1_load))
         self.mmcWindow.slot2_load.clicked.connect(
@@ -492,17 +487,17 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # --- Executes on button press in ROI_process.
     def ROI_select_Callback_process(self):
         if self.view:
-            self.ROI_select_IM_Callback()
+            self.ROI_select_Callback()
 
-    def ROI_select_IM_Callback(self):
+    def ROI_select_Callback(self):
         self.binI = self.h.get_mask().astype(int)
         self.binI = np.flipud(self.binI)
         f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
         x = self.pickedPointData
         y = np.asarray(x).flatten()
-        z = y[f]
+        # z = y[f]
         self.ROI_outline = f
-        theList = z[np.nonzero(z)]
+        # theList = z[np.nonzero(z)]
         self.numberpoints.setText(str(len(f)))
 
     # This function plots a mass spectrum corresponing to a selected point
@@ -740,12 +735,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             child = self.plot_kin.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
-        self.viewPlusOne = None
-        self.viewPlusTwo = None
-        # if self.viewPlusOne:
-        #     self.plot_kin.removeWidget(self.viewPlusOne)
-        # if self.viewPlusTwo:
-        #     self.plot_kin.removeWidget(self.viewPlusTwo)
+        self.iso_view = None
 
         self.chosenDataIso = None
 
@@ -804,10 +794,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         xend = len(imageData[0]) * (pixelSizeX / 1000)
         yend = len(imageData) * (pixelSizeY / 1000)
 
-        if self.viewPlusOne:
-            self.plot_kin.removeWidget(self.viewPlusOne)
-        if self.viewPlusTwo:
-            self.plot_kin.removeWidget(self.viewPlusTwo)
+        if self.iso_view:
+            self.plot_kin.removeWidget(self.iso_view)
 
         zero_for_dev = np.asarray(zero_image).flatten()
         std_deviation = round(float(np.std(zero_for_dev)), 4)
@@ -820,30 +808,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         std_deviation = round(float(np.std(iso_for_deviation)), 4)
 
-        if self.massplusone.isChecked():
-            self.Mplusonesumstandard_error.setText(str(std_deviation))
-            self.viewPlusOne = FigureCanvas(Figure(figsize=(5, 3)))
-            self.axes = self.viewPlusOne.figure.subplots()
-            self.toolbar = NavigationToolbar(self.viewPlusOne, self)
-            self.plot_kin.addWidget(self.viewPlusOne)
-            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno', aspect=(yend / xend),
-                                             extent=[0, xend * self.scalefact, 0, yend * self.scalefact])
-            self.axes.set_xlabel("x, " + self.label)
-            self.axes.set_ylabel("y, " + self.label)
-            plt.colorbar(self.con_img2)
-            self.viewPlusOne.draw()
-        elif self.massplustwo.isChecked():
-            self.Mplustwosumstandard_error.setText(str(std_deviation))
-            self.viewPlusTwo = FigureCanvas(Figure(figsize=(5, 3)))
-            self.axes = self.viewPlusTwo.figure.subplots()
-            self.toolbar = NavigationToolbar(self.viewPlusTwo, self)
-            self.plot_kin.addWidget(self.viewPlusTwo)
-            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno', aspect=(yend/xend),
-                                             extent=[0, xend * self.scalefact, 0, yend * self.scalefact])
-            plt.colorbar(self.con_img2)
-            self.axes.set_xlabel("x, " + self.label)
-            self.axes.set_ylabel("y, " + self.label)
-            self.viewPlusTwo.draw()
+        self.Mplusonesumstandard_error.setText(str(std_deviation))
+        self.iso_view = FigureCanvas(Figure(figsize=(5, 3)))
+        self.axes = self.iso_view.figure.subplots()
+        self.toolbar = NavigationToolbar(self.iso_view, self)
+        self.plot_kin.addWidget(self.iso_view)
+        self.con_img2 = self.axes.imshow(iso_data, cmap='inferno', aspect=(yend / xend),
+                                         extent=[0, xend * self.scalefact, 0, yend * self.scalefact])
+        self.axes.set_xlabel("x, " + self.label)
+        self.axes.set_ylabel("y, " + self.label)
+        plt.colorbar(self.con_img2)
+        self.iso_view.draw()
+
         if not self.chosenDataIso:
             theMin, theMax = self.find_min_max_image(imageData)  # If this needs to be the scaled image just change this line
             self.max_int_iso.setText(str(theMax))
