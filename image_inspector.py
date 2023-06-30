@@ -203,7 +203,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.reset_image.clicked.connect(self.reset_orig_image)
         self.set_mz_minmax.clicked.connect(self.change_mz)
         self.flipButton.clicked.connect(self.flip_figure)
-        self.rotate_right_button.clicked.connect(self.rotate_right)
+        self.rotate_right_button.clicked.connect(self.rightRotate)
+        self.rotate_left_button.clicked.connect(self.leftRotate)
 
         self.IMDataButton.clicked.connect(self.setIM)
         self.MSDataButton.clicked.connect(self.setMS)
@@ -336,7 +337,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.IsotopeMapData.reverse()
             self.displayIsoImage(self.ConcMapData, self.IsotopeMapData, self.pixelSizeX, self.pixelSizeY)
 
-    def rotate_right(self):
+    def rightRotate(self):
+        self.rotate(True)
+    def leftRotate(self):
+        self.rotate(False)
+
+    def rotate(self, isRight):
         if self.mapData is None:
             return 0
 
@@ -344,16 +350,22 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.pixelSizeX = self.pixelSizeY
         self.pixelSizeY = temp
 
-        # x = self.rotate(self.ConcMapData)
-        # y = self.ConcMapData
-
-        self.mapData = self.rotateRight(self.mapData)
+        if isRight:
+            self.mapData = self.rotateRight(self.mapData)
+        else:
+            self.mapData = self.rotateLeft(self.mapData)
 
         if self.ConcMapData:
-            self.ConcMapData = self.rotateRight(self.ConcMapData)
+            if isRight:
+                self.ConcMapData = self.rotateRight(self.ConcMapData)
+            else:
+                self.ConcMapData = self.rotateLeft(self.ConcMapData)
             self.displayImage(self.ConcMapData, self.pixelSizeX, self.pixelSizeY)
         if self.IsotopeMapData:
-            self.IsotopeMapData = self.rotateRight(self.IsotopeMapData)
+            if isRight:
+                self.IsotopeMapData = self.rotateRight(self.IsotopeMapData)
+            else:
+                self.IsotopeMapData = self.rotateLeft(self.IsotopeMapData)
             self.displayIsoImage(self.ConcMapData, self.IsotopeMapData, self.pixelSizeX, self.pixelSizeY)
         return 0
     def rotateRight(self, origMap):
