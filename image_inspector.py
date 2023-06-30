@@ -337,8 +337,42 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.displayIsoImage(self.ConcMapData, self.IsotopeMapData, self.pixelSizeX, self.pixelSizeY)
 
     def rotate_right(self):
-        print("not implemented ")
+        if self.mapData is None:
+            return 0
+
+        temp = self.pixelSizeX
+        self.pixelSizeX = self.pixelSizeY
+        self.pixelSizeY = temp
+
+        # x = self.rotate(self.ConcMapData)
+        # y = self.ConcMapData
+
+        self.mapData = self.rotateRight(self.mapData)
+
+        if self.ConcMapData:
+            self.ConcMapData = self.rotateRight(self.ConcMapData)
+            self.displayImage(self.ConcMapData, self.pixelSizeX, self.pixelSizeY)
+        if self.IsotopeMapData:
+            self.IsotopeMapData = self.rotateRight(self.IsotopeMapData)
+            self.displayIsoImage(self.ConcMapData, self.IsotopeMapData, self.pixelSizeX, self.pixelSizeY)
         return 0
+    def rotateRight(self, origMap):
+        newMap = []
+        for i in range(len(origMap[0])):
+            newLine = []
+            for j in range(len(origMap) - 1, -1, -1):
+                newLine.append(origMap[j][i])
+            newMap.append(newLine)
+        return newMap
+
+    def rotateLeft(self, origMap):
+        newMap = []
+        for i in range(len(origMap[0]) - 1, -1, -1):
+            newLine = []
+            for j in range(len(origMap)):
+                newLine.append(origMap[j][i])
+            newMap.append(newLine)
+        return newMap
 
     def reset_orig_image(self):
         if self.original_image:
@@ -809,6 +843,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         xend = len(imageData[0]) * (pixelSizeX / 1000)
         yend = len(imageData) * (pixelSizeY / 1000)
+
+        while self.plot_kin.count():
+            child = self.plot_kin.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
 
         if self.iso_view:
             self.plot_kin.removeWidget(self.iso_view)
