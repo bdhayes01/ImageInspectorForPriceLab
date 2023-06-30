@@ -521,90 +521,49 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return 0
 
     def im_point(self):
-        # TODO: Clean this function up!
-        # NOTE: to Brian . Okay, here's the deal, when building this the code was so confusing,
-        # so we are going to do everything here. In reality, we shouldn't do this, and we won't, in the long run.
-        # When cleaning up, this must be factored into several different functions.
-
-        # A couple more notes:
-        # 2. You probably shouldn't do all of these calculations over again,
-        # probably should pull them out of chosen data.
-
-        x = self.mapData
-
         picked_point = float(self.start.text())
         max_diff = self.ppm_calc(picked_point)
         ideal_ratio = float(self.ideal_ratio.text())
-
         self.massbox.setText(self.start.text())
-
-        fileID = open(self.cubefilename)
-        data = np.fromfile(fileID, dtype=np.float32)
-        frameNum = data[0]
-        fileNum = data[1]
-
-        numFrames = 0
-        numFiles = 0
-        i = 2
+        mapData = self.mapData
 
         chosenData = []
         chosenDataPlusOne = []
         chosenDataPlusTwo = []
-        frameDone = False
-
         maxIntensity = 0
         maxIntensityPlusOne = 0
         maxIntensityPlusTwo = 0
 
-        lineData = []
-        lineDataPlusOne = []
-        lineDataPlusTwo = []
-
-        while numFiles < fileNum:
-            if frameDone:
-                chosenData.append(lineData)
-                chosenDataPlusOne.append(lineDataPlusOne)
-                chosenDataPlusTwo.append(lineDataPlusTwo)
-                numFiles += 1
-                numFrames = 0
-                frameDone = False
-                continue
-            frameDone = False
+        for line in mapData:
             lineData = []
             lineDataPlusOne = []
             lineDataPlusTwo = []
-            while numFrames < frameNum:
-                totalDriftBins = data[i]
-                frameDone = True
-                currdriftBin = 0
-                i += 1
+            for frame in line:
                 theVal = 0
                 theValPlusOne = 0
                 theValPlusTwo = 0
-                while currdriftBin < totalDriftBins:
-                    numValues = data[i]
-                    i += 2
-                    for a in range(int(numValues)):
-                        if picked_point - max_diff <= data[i] < picked_point + max_diff:
-                            theVal += data[i + 1]
-                            if theVal > maxIntensity:
-                                maxIntensity = theVal
-                        elif picked_point + (1 / ideal_ratio) - max_diff <= data[i] < picked_point + (
-                                1 / ideal_ratio) + max_diff:
-                            theValPlusOne += data[i + 1]
-                            if theValPlusOne > maxIntensityPlusOne:
-                                maxIntensityPlusOne = theValPlusOne
-                        elif picked_point + (2 / ideal_ratio) - max_diff <= data[i] < picked_point + (
-                                2 / ideal_ratio) + max_diff:
-                            theValPlusTwo += data[i + 1]
-                            if theValPlusTwo > maxIntensityPlusTwo:
-                                maxIntensityPlusTwo = theValPlusTwo
-                        i += 2
-                    currdriftBin += 1
+                for scan in frame:
+                    if picked_point - max_diff <= scan[0] < picked_point + max_diff:
+                        theVal += scan[1]
+                        if theVal > maxIntensity:
+                            maxIntensity = theVal
+                    elif picked_point + (1 / ideal_ratio) - max_diff <= scan[0] < picked_point + (
+                            1 / ideal_ratio) + max_diff:
+                        theValPlusOne += scan[1]
+                        if theValPlusOne > maxIntensityPlusOne:
+                            maxIntensityPlusOne = theValPlusOne
+                    elif picked_point + (2 / ideal_ratio) - max_diff <= scan[0] < picked_point + (
+                            2 / ideal_ratio) + max_diff:
+                        theValPlusTwo += scan[1]
+                        if theValPlusTwo > maxIntensityPlusTwo:
+                            maxIntensityPlusTwo = theValPlusTwo
                 lineData.append(theVal)
                 lineDataPlusOne.append(theValPlusOne)
                 lineDataPlusTwo.append(theValPlusTwo)
-                numFrames += 1
+            chosenData.append(lineData)
+            chosenDataPlusOne.append(lineDataPlusOne)
+            chosenDataPlusTwo.append(lineDataPlusTwo)
+
         m_zero_sum = 0
         m_one_sum = 0
         m_two_sum = 0
