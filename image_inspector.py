@@ -202,6 +202,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.reset_scatter.clicked.connect(self.reset_scatter_callback)
         self.reset_image.clicked.connect(self.reset_orig_image)
         self.set_mz_minmax.clicked.connect(self.change_mz)
+        self.flipButton.clicked.connect(self.flip_figure)
 
         self.IMDataButton.clicked.connect(self.setIM)
         self.MSDataButton.clicked.connect(self.setMS)
@@ -310,8 +311,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ROI_listselect_array = []
 
         # multipmap compare variables
-        self.ConcMapData = 0  # map data, x_end, y_end, ()
-        self.IsotopeMapData = 0  # # map data, x_end, y_end, (iso_min, iso_max)
+        self.ConcMapData = None  # map data, x_end, y_end, ()
+        self.IsotopeMapData = None  # # map data, x_end, y_end, (iso_min, iso_max)
 
         # Style sheets
         self.micrometer.setStyleSheet(button_style_sheet)
@@ -323,6 +324,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.massplustwo.setStyleSheet(button_style_sheet)
         self.one_drift_time.setStyleSheet(button_style_sheet)
         self.all_drift_times.setStyleSheet(button_style_sheet)
+
+    def flip_figure(self):
+        if self.mapData:
+            self.mapData.reverse()
+        if self.ConcMapData:
+            self.ConcMapData.reverse()
+            self.displayImage(self.ConcMapData, self.pixelSizeX, self.pixelSizeY)
+        if self.IsotopeMapData:
+            self.IsotopeMapData.reverse()
+            self.displayIsoImage(self.ConcMapData, self.IsotopeMapData, self.pixelSizeX, self.pixelSizeY)
 
     def reset_orig_image(self):
         if self.original_image:
