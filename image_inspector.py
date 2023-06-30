@@ -893,11 +893,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             child = self.plot_spectra.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
-        # if self._spectra_ax:
-        #     self.plot_spectra.removeWidget(self.spectra_toolbar)
-        #     self.plot_spectra.removeWidget(self.spectra_canvas)
-        # plt.cla()
-        # plt.clf()
         plt.close('all')
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
@@ -923,8 +918,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self._spectra_ax.set_ylabel('intensity')
         self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
         self.exSpecflag = True
-        # plt.yscale('log')
-        # it is x, y
         plt.ylabel('intensity')
         plt.xlabel('m/z')
 
@@ -1342,6 +1335,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.fName_mzOI_flag = True
 
     def mzOI_extractMap_Callback(self):
+        # TODO: Make this work for MS too
         if isIM:
             chosen_val = float(self.start.text())
             diff = self.ppm_calc(chosen_val)
@@ -1354,15 +1348,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     mzVals.append(self.mzVals[i])
                     drifts.append(self.drifts[i])
                     intensity.append(self.intensity[i])
-
             self.displayScatter(mzVals, drifts, None)
             self.exSpecflag = True
-
             return 0
 
     def data_cursor_click(self, event):
-        indexes = event.ind
-        i = indexes[0]
+        # indexes = event.ind
+        # i = indexes[0]
         theXmOverZ = event.mouseevent.lastevent.xdata
         theY = event.mouseevent.lastevent.ydata
 
@@ -1402,9 +1394,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             vals = np.where(mz + diff > mz_vals, mz_vals, 0)
             vals = np.where(mz - diff < vals, drifts, 0)
 
-            abc = vals.nonzero()
-
-            finals = drifts[abc]
+            vals = vals.nonzero()
+            finals = drifts[vals]
             if len(finals) != 0:
                 range_low = min(finals)
                 range_high = max(finals)
@@ -1444,7 +1435,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         dirpath = QFileDialog.getExistingDirectory(self, 'Select a directory to export')
         if dirpath != '':
             pathfile = os.path.join(dirpath, name + '.csv')
-            # df = df[::-1]
             df.to_csv(pathfile, index=False)
         else:
             print('Please choose a directory')
@@ -1522,7 +1512,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.drift_time.setDisabled(True)
         self.drift_scrollbar.setDisabled(True)
 
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     main_window = MainGUIobject()
@@ -1534,10 +1523,3 @@ if __name__ == "__main__":
     widget.setWindowTitle("image_inspector")
     widget.show()
     sys.exit(app.exec_())
-
-# Check if there is a ID file
-# allow browsing and loading an ID file
-# if there isn't an ID file, only annotate the m/z values and intensity
-# do I really need to do the local max?
-
-# New ID file may give multiple IDs, display all of them -> maybe loop them?
