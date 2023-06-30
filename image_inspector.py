@@ -237,7 +237,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.exConcflag = False
         self.exIsotopeflag = False
         self.fName_mzOI_flag = False
-        self.micrometer.setChecked(True)
+        self.millimeter.setChecked(True)
         self.massplusone.setChecked(True)
         self.all_drift_times.setChecked(True)
         self.ideal_ratio.setText('1')
@@ -510,6 +510,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # on the mass spectrum
     # --- Executes on button press in pick_point.
     def pick_point_Callback(self):
+        if self.micrometer.isChecked():
+            self.scalefact = 1e3
+            self.label = 'μm'
+        elif self.millimeter.isChecked():
+            self.scalefact = 1
+            self.label = 'mm'
+        elif self.centimeter.isChecked():
+            self.scalefact = 0.1
+            self.label = 'cm'
         if self.start.text() == '':
             print("You must choose or input a point to the 'Selected Mass' box first.")
             return 0
@@ -817,8 +826,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.axes = self.viewPlusOne.figure.subplots()
             self.toolbar = NavigationToolbar(self.viewPlusOne, self)
             self.plot_kin.addWidget(self.viewPlusOne)
-            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno',
-                                             aspect=(yend / xend), extent=[0, xend, 0, yend])
+            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno', aspect=(yend / xend),
+                                             extent=[0, xend * self.scalefact, 0, yend * self.scalefact])
+            self.axes.set_xlabel("x, " + self.label)
+            self.axes.set_ylabel("y, " + self.label)
             plt.colorbar(self.con_img2)
             self.viewPlusOne.draw()
         elif self.massplustwo.isChecked():
@@ -827,9 +838,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.axes = self.viewPlusTwo.figure.subplots()
             self.toolbar = NavigationToolbar(self.viewPlusTwo, self)
             self.plot_kin.addWidget(self.viewPlusTwo)
-            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno',
-                                             aspect=(yend/xend), extent=[0, xend, 0, yend])
+            self.con_img2 = self.axes.imshow(iso_data, cmap='inferno', aspect=(yend/xend),
+                                             extent=[0, xend * self.scalefact, 0, yend * self.scalefact])
             plt.colorbar(self.con_img2)
+            self.axes.set_xlabel("x, " + self.label)
+            self.axes.set_ylabel("y, " + self.label)
             self.viewPlusTwo.draw()
         if not self.chosenDataIso:
             theMin, theMax = self.find_min_max_image(imageData)  # If this needs to be the scaled image just change this line
