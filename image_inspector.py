@@ -1061,6 +1061,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         data = []
         maximum = self.zmax.sliderPosition()
         minimum = self.zmin.sliderPosition()
+        if minimum >= maximum:
+            newMap = np.zeros((len(x), len(x[0])))
+            self.displayImage(newMap, self.pixelSizeX, self.pixelSizeY)
+            return 0
         if isIM:
             for line in x:
                 newLine = []
@@ -1103,16 +1107,19 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return 0
         x = self.chosenDataIso
         data = []
-        highest = self.zmax_isotope.sliderPosition()
-        lowest = self.zmin_isotope.sliderPosition()
-
+        maximum = self.zmax_isotope.sliderPosition()
+        minimum = self.zmin_isotope.sliderPosition()
+        if minimum >= maximum:
+            newMap = np.zeros((len(x), len(x[0])))
+            self.displayIsoImage(newMap, newMap, self.pixelSizeX, self.pixelSizeY)
+            return 0
         for line in x:
             newLine = []
             for frame in line:
                 newFrame = 0
-                if frame > highest:
-                    newFrame = highest
-                elif highest >= frame >= lowest:
+                if frame > maximum:
+                    newFrame = maximum
+                elif maximum >= frame >= minimum:
                     newFrame = frame
                 newLine.append(newFrame)
             data.append(newLine)
