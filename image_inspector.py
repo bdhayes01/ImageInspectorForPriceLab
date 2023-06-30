@@ -11,6 +11,7 @@ Created on Wed Feb 10 15:58:09 2021
 # 3. Write a user manual for Image Inspector
 # 4. Figure out if noise button should be implemented or not
 # 5. Test the app for any unexpected behavior, make sure all buttons play well together.
+# 6. Ask if the ROI should contain all data in the ROI or only the pointed data.
 
 
 import os
@@ -874,10 +875,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes.set_ylabel("y, " + self.label)
         plt.colorbar(self.con_img2)
         self.iso_view.draw()
-
         if not self.chosenDataIso:
-            theMin, theMax = self.find_min_max_image(
-                imageData)  # If this needs to be the scaled image just change this line
+            theMin, theMax = self.find_min_max_image(imageData)
+            # If this needs to be the scaled image just change the above line
             self.max_int_iso.setText(str(theMax))
             self.min_int_iso.setText(str(theMin))
             self.max_iso.setText(str(theMax))
@@ -1182,13 +1182,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.displayIsoImage(self.pickedPointData, data, self.pixelSizeX, self.pixelSizeY)
 
     def export_ConcMap_Callback(self):
-        # when clicking on the exportConcMap button, it will save the filename and concentration the map
+        # when clicking on the exportConcMap button, it will save the filename and concentration of the map
         self.Maps[self.exportConcMapname.text()] = self.ConcMapData
         self.refreshMaplistbox()
         self.Mapcount += 1
 
     def export_IsotopeMap_Callback(self):
-        # when clicking on the exportIsotopeMap button, it will save the filename and concentration the map
+        # when clicking on the exportIsotopeMap button, it will save the filename and concentration of the map
         self.Maps[self.exportIsotopeMapname.text()] = self.IsotopeMapData
         self.Mapcount += 1
         self.refreshMaplistbox()
@@ -1199,7 +1199,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def deleteMapbutton_Callback(self):
         if self.Mapcount == 0:
             return
-            # print('There are no maps in the listbox')
         else:
             if self.Map_listselect_text:
                 del self.Maps[self.Map_listselect_text]
@@ -1212,7 +1211,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def clearMapbutton_Callback(self):
         if self.Mapcount == 0:
             return
-            # print('There are no maps in the listbox')
         else:
             self.Maps.clear()
             self.Mapcount = 0
