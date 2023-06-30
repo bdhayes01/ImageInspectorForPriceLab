@@ -5,6 +5,14 @@ Created on Wed Feb 10 15:58:09 2021
 @author: wtd14
 """
 
+# TODO: for 4th of July week:
+# 1. Make it crash proof, so that the program will not terminate early under any circumstances.
+# 2. Write good, python best practices comments for every function
+# 3. Write a user manual for Image Inspector
+# 4. Figure out if noise button should be implemented or not
+# 5. Test the app for any unexpected behavior, make sure all buttons play well together.
+
+
 import os
 import sys
 from PyQt5 import QtWidgets
@@ -27,24 +35,15 @@ MW_width = 1591
 MW_height = 1051
 isIM = None
 
-button_style_sheet = ("QRadioButton{border:None}"
-                      "QRadioButton::indicator:unchecked{"
-                      "border : 1px solid black;"
-                      "width : 25px;"
-                      "height : 12px;"
-                      "border-radius : 7px;}"
-                      "QRadioButton::indicator:checked{"
-                      "border : 1px solid black;"
-                      "width : 25px;"
-                      "height : 12px;"
-                      "border-radius : 7px;"
-                      "background-color : #598392}")
+button_style_sheet = ("QRadioButton{border:None}QRadioButton::indicator:unchecked{"
+                      "border : 1px solid black;width : 25px;height : 12px;border-radius : 7px;}"
+                      "QRadioButton::indicator:checked{border : 1px solid black;width : 25px;"
+                      "height : 12px;border-radius : 7px;background-color : #598392}")
 
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     return os.path.join(os.path.abspath("."), relative_path)
-
 
 
 mainWindow_ui_path = resource_path("image_inspector_layout.ui")
@@ -339,6 +338,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def rightRotate(self):
         self.rotate(True)
+
     def leftRotate(self):
         self.rotate(False)
 
@@ -368,6 +368,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.IsotopeMapData = self.rotateLeft(self.IsotopeMapData)
             self.displayIsoImage(self.ConcMapData, self.IsotopeMapData, self.pixelSizeX, self.pixelSizeY)
         return 0
+
     def rotateRight(self, origMap):
         newMap = []
         for i in range(len(origMap[0])):
@@ -741,7 +742,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             new_data.append(theLine)
         return new_data
 
-
     # --- Executes on button press in find_file.
     def find_file_Callback(self):
         # But this code does not handle .h5 or .mat files
@@ -749,16 +749,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.wspc_name.setText(self.fName[0])
 
         # --- Executes on button press in start_cube.
-
     def start_cube_Callback(self):
-
-
-        # TODO: For testing purposes only!
-        # global isIM
-        # isIM = True
-        # self.cubefilename = "C:/Users/Brian/Desktop/Price Lab/Multiplexed-new.bin"
-
-        # TODO: Removed this but needs to be added back in after testing
         self.cubefilename = self.fName[0]
         filename = self.cubefilename
         print("Working to read datacube")
@@ -835,9 +826,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.pickedPointData = None
         self.pick_IDthreshold.setValue(20)
-        # self.pick_mzthreshold.setValue(20)
         self.pick_IDthreshold.setMaximum(1000)
-        # self.pick_mzthreshold.setMaximum(1000)
 
         self.zmax_isotope.setMaximum(99)
         self.zmax_isotope.setMinimum(0)
@@ -846,7 +835,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mzVals = None
         self.drifts = None
         self.intensity = None
-
 
     def displayIsoImage(self, zero_image, imageData, pixelSizeX, pixelSizeY):
         # This needs to be a different function for both the original point and the scaling functions
@@ -888,7 +876,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.iso_view.draw()
 
         if not self.chosenDataIso:
-            theMin, theMax = self.find_min_max_image(imageData)  # If this needs to be the scaled image just change this line
+            theMin, theMax = self.find_min_max_image(
+                imageData)  # If this needs to be the scaled image just change this line
             self.max_int_iso.setText(str(theMax))
             self.min_int_iso.setText(str(theMin))
             self.max_iso.setText(str(theMax))
@@ -1147,7 +1136,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         else:
             for line in x:
                 newLine = []
-                for scan in line: # Same as above line
+                for scan in line:  # Same as above line
                     newScan = 0
                     if scan > maximum:
                         newFrame = maximum
@@ -1203,7 +1192,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.Maps[self.exportIsotopeMapname.text()] = self.IsotopeMapData
         self.Mapcount += 1
         self.refreshMaplistbox()
-
 
     def Map_listbox_Callback(self, item):
         self.Map_listselect_text = item.text()
@@ -1279,7 +1267,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # self.ROI[self.ROI_listselect_text] =
         return 0
 
-
     # loads the spectra from the selected ROI in the ROI_listbox
     # --- Executes on button press in 'Load selected ROI spectra' button
     def importROI_Callback(self):
@@ -1332,7 +1319,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 for i in range(len(mzVals)):
                     self.ROIData.append([mzVals[i], intensities[i], drifts[i]])
 
-            self.displayScatter(mzVals, intensities, drifts, 100/len(mzVals))
+            self.displayScatter(mzVals, intensities, drifts, 100 / len(mzVals))
             self.set_min_max_mz(mzVals)
 
     def exportROI_spectra_val_Callback(self):
@@ -1588,6 +1575,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.one_drift_time.setCheckable(False)
         self.drift_time.setDisabled(True)
         self.drift_scrollbar.setDisabled(True)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
