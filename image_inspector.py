@@ -530,6 +530,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # 2. You probably shouldn't do all of these calculations over again,
         # probably should pull them out of chosen data.
 
+        x = self.mapData
+
         picked_point = float(self.start.text())
         max_diff = self.ppm_calc(picked_point)
         ideal_ratio = float(self.ideal_ratio.text())
