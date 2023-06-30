@@ -203,6 +203,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.reset_image.clicked.connect(self.reset_orig_image)
         self.set_mz_minmax.clicked.connect(self.change_mz)
         self.flipButton.clicked.connect(self.flip_figure)
+        self.rotate_right_button.clicked.connect(self.rotate_right)
 
         self.IMDataButton.clicked.connect(self.setIM)
         self.MSDataButton.clicked.connect(self.setMS)
@@ -334,6 +335,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if self.IsotopeMapData:
             self.IsotopeMapData.reverse()
             self.displayIsoImage(self.ConcMapData, self.IsotopeMapData, self.pixelSizeX, self.pixelSizeY)
+
+    def rotate_right(self):
+        print("not implemented ")
+        return 0
 
     def reset_orig_image(self):
         if self.original_image:
