@@ -45,12 +45,6 @@ def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     return os.path.join(os.path.abspath("."), relative_path)
 
-    # try:
-    #     # PyInstaller creates a temp folder and stores path in _MEIPASS
-    #     base_path = sys._MEIPASS  # TODO: This doesn't even work. It can be safely deleted.
-    # except Exception:
-    #     base_path = os.path.abspath(".")
-    # return os.path.join(base_path, relative_path)
 
 
 mainWindow_ui_path = resource_path("image_inspector_layout.ui")
@@ -552,11 +546,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         i = 2
 
         chosenData = []
-        theChosenData = []
         chosenDataPlusOne = []
-        theChosenDataPlusOne = []
         chosenDataPlusTwo = []
-        theChosenDataPlusTwo = []
         frameDone = False
 
         maxIntensity = 0
@@ -566,21 +557,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         lineData = []
         lineDataPlusOne = []
         lineDataPlusTwo = []
-        otherLine = []
-        otherLinePlusOne = []
-        otherLinePlusTwo = []
-        otherVal = []
-        otherValPlusOne = []
-        otherValPlusTwo = []
 
         while numFiles < fileNum:
             if frameDone:
                 chosenData.append(lineData)
-                theChosenData.append(otherLine)
                 chosenDataPlusOne.append(lineDataPlusOne)
-                theChosenDataPlusOne.append(otherLinePlusOne)
                 chosenDataPlusTwo.append(lineDataPlusTwo)
-                theChosenDataPlusTwo.append(otherLinePlusTwo)
                 numFiles += 1
                 numFrames = 0
                 frameDone = False
@@ -589,75 +571,37 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             lineData = []
             lineDataPlusOne = []
             lineDataPlusTwo = []
-            valAdded = False
-            valAddedPlusOne = False
-            valAddedPlusTwo = False
-            theVal = 0
-            theValPlusOne = 0
-            theValPlusTwo = 0
-            otherLine = []
-            otherLinePlusOne = []
-            otherLinePlusTwo = []
             while numFrames < frameNum:
                 totalDriftBins = data[i]
                 frameDone = True
                 currdriftBin = 0
                 i += 1
+                theVal = 0
+                theValPlusOne = 0
+                theValPlusTwo = 0
                 while currdriftBin < totalDriftBins:
                     numValues = data[i]
-                    driftTime = data[i + 1]
                     i += 2
                     for a in range(int(numValues)):
                         if picked_point - max_diff <= data[i] < picked_point + max_diff:
                             theVal += data[i + 1]
-                            otherVal.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
-                            valAdded = True
                             if theVal > maxIntensity:
                                 maxIntensity = theVal
-                        if picked_point + (1 / ideal_ratio) - max_diff <= data[i] < picked_point + (
+                        elif picked_point + (1 / ideal_ratio) - max_diff <= data[i] < picked_point + (
                                 1 / ideal_ratio) + max_diff:
                             theValPlusOne += data[i + 1]
-                            otherValPlusOne.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
-                            valAddedPlusOne = True
                             if theValPlusOne > maxIntensityPlusOne:
                                 maxIntensityPlusOne = theValPlusOne
-                        if picked_point + (2 / ideal_ratio) - max_diff <= data[i] < picked_point + (
+                        elif picked_point + (2 / ideal_ratio) - max_diff <= data[i] < picked_point + (
                                 2 / ideal_ratio) + max_diff:
                             theValPlusTwo += data[i + 1]
-                            otherValPlusTwo.append([data[i], data[i + 1], driftTime, numFiles, numFrames])
-                            valAddedPlusTwo = True
                             if theValPlusTwo > maxIntensityPlusTwo:
                                 maxIntensityPlusTwo = theValPlusTwo
                         i += 2
                     currdriftBin += 1
-
-                if not valAdded:
-                    lineData.append(0)
-                    otherLine.append(0)
-                elif valAdded:
-                    lineData.append(theVal)
-                    otherLine.append(otherVal)
-                if not valAddedPlusOne:
-                    lineDataPlusOne.append(0)
-                    otherLinePlusOne.append(0)
-                elif valAddedPlusOne:
-                    lineDataPlusOne.append(theValPlusOne)
-                    otherLinePlusOne.append(otherValPlusOne)
-                if not valAddedPlusTwo:
-                    lineDataPlusTwo.append(0)
-                    otherLinePlusTwo.append(0)
-                elif valAddedPlusTwo:
-                    lineDataPlusTwo.append(theValPlusTwo)
-                    otherLinePlusTwo.append(otherValPlusTwo)
-                valAdded = False
-                valAddedPlusOne = False
-                valAddedPlusTwo = False
-                otherVal = []
-                otherValPlusOne = []
-                otherValPlusTwo = []
-                theVal = 0
-                theValPlusOne = 0
-                theValPlusTwo = 0
+                lineData.append(theVal)
+                lineDataPlusOne.append(theValPlusOne)
+                lineDataPlusTwo.append(theValPlusTwo)
                 numFrames += 1
         m_zero_sum = 0
         m_one_sum = 0
