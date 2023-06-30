@@ -773,9 +773,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.pickedPointData = None
         self.pick_IDthreshold.setValue(20)
-        self.pick_mzthreshold.setValue(20)
+        # self.pick_mzthreshold.setValue(20)
         self.pick_IDthreshold.setMaximum(1000)
-        self.pick_mzthreshold.setMaximum(1000)
+        # self.pick_mzthreshold.setMaximum(1000)
 
         self.zmax_isotope.setMaximum(99)
         self.zmax_isotope.setMinimum(0)
@@ -1331,22 +1331,36 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.fName_mzOI_flag = True
 
     def mzOI_extractMap_Callback(self):
-        # TODO: Make this work for MS too
-        if isIM:
-            chosen_val = float(self.start.text())
-            diff = self.ppm_calc(chosen_val)
-
-            mzVals = []
-            drifts = []
-            intensity = []
-            for i in range(len(self.mzVals)):
-                if chosen_val + diff >= self.mzVals[i] >= chosen_val - diff:
-                    mzVals.append(self.mzVals[i])
-                    drifts.append(self.drifts[i])
-                    intensity.append(self.intensity[i])
-            self.displayScatter(mzVals, drifts, None)
-            self.exSpecflag = True
+        if self.mzOI_listname.text() == '':
+            print("Please choose a .csv file with m/z values")
             return 0
+        if self.mzVals is None:
+            print("Please choose a .bin file to process")
+            return 0
+        mzOI = []
+        try:
+            mzOI = pd.read_csv(self.mzOI_listname.text())
+        except Exception:
+            print("Please choose a .csv file with m/z values")
+            return 0
+        mzOI = mzOI.to_numpy()
+
+        mzVals = []
+        intensity = []
+        drifts = None
+        if isIM:
+            drifts = []
+
+        for mz in mzOI:
+            diff = self.ppm_calc(mz)
+            for i in range(len(self.mzVals)):
+                if mz + diff >= self.mzVals[i] >= mz - diff:
+                    mzVals.append(self.mzVals[i])
+                    intensity.append(self.intensity[i])
+                    if isIM:
+                        drifts.append(self.drifts[i])
+
+        self.displayScatter(mzVals, intensity, drifts)
 
     def data_cursor_click(self, event):
         # indexes = event.ind
