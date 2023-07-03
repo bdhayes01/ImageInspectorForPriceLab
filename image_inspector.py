@@ -12,6 +12,7 @@ Created on Wed Feb 10 15:58:09 2021
 # 4. Figure out if noise button should be implemented or not
 # 5. Test the app for any unexpected behavior, make sure all buttons play well together.
 # 6. Ask if the ROI should contain all data in the ROI or only the pointed data.
+# 7. Ask JC if the standard dev increasing when the image is flipped is okay?
 
 
 import os
@@ -327,14 +328,19 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.all_drift_times.setStyleSheet(button_style_sheet)
 
     def flip_figure(self):
-        if self.mapData:
-            self.mapData.reverse()
-        if self.ConcMapData:
-            self.ConcMapData.reverse()
-            self.displayImage(self.ConcMapData, self.pixelSizeX, self.pixelSizeY)
-        if self.IsotopeMapData:
-            self.IsotopeMapData.reverse()
-            self.displayIsoImage(self.ConcMapData, self.IsotopeMapData, self.pixelSizeX, self.pixelSizeY)
+        try:
+            if self.mapData is not None:
+                self.mapData.reverse()
+            if self.ConcMapData is not None:
+                self.ConcMapData.reverse()
+                self.displayImage(self.ConcMapData, self.pixelSizeX, self.pixelSizeY)
+            if self.IsotopeMapData is not None:
+                self.IsotopeMapData.reverse()
+                self.displayIsoImage(self.ConcMapData, self.IsotopeMapData, self.pixelSizeX, self.pixelSizeY)
+        except AttributeError:
+            print("Error: Flipping an array with no values.\n"
+                  "Please return to an image with data if you wish to flip the image.")
+            return
 
     def rightRotate(self):
         self.rotate(True)
