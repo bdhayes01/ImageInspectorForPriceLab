@@ -41,7 +41,6 @@ button_style_sheet = ("QRadioButton{border:None}QRadioButton::indicator:unchecke
                       "QRadioButton::indicator:checked{border : 1px solid black;width : 25px;"
                       "height : 12px;border-radius : 7px;background-color : #598392}")
 
-
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     return os.path.join(os.path.abspath("."), relative_path)
@@ -726,19 +725,19 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 if orig_line[j] == 0:
                     ratio = 0
                 else:
-                    if isinstance(orig_line[j], list):
-                        m_zero_intensity = 0
-                        for line in orig_line[j]:
-                            m_zero_intensity += line[1]
-                        if isinstance(iso_line[j], list):
-                            iso_intensity = 0
-                            for line in iso_line[j]:
-                                iso_intensity += line[1]
-                            ratio = iso_intensity / m_zero_intensity + iso_intensity
-                        else:
-                            ratio = iso_line[j] / m_zero_intensity + iso_line[j]
-                    else:
-                        ratio = iso_line[j] / orig_line[j] + iso_line[j]
+                    # if isinstance(orig_line[j], list):
+                    #     m_zero_intensity = 0
+                    #     for line in orig_line[j]:
+                    #         m_zero_intensity += line[1]
+                    #     if isinstance(iso_line[j], list):
+                    #         iso_intensity = 0
+                    #         for line in iso_line[j]:
+                    #             iso_intensity += line[1]
+                    #         ratio = iso_intensity / m_zero_intensity + iso_intensity
+                    #     else:
+                    #         ratio = iso_line[j] / m_zero_intensity + iso_line[j]
+                    # else:
+                    ratio = iso_line[j] / orig_line[j] + iso_line[j]
                 theLine.append(ratio)
             new_data.append(theLine)
         return new_data
@@ -864,7 +863,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         std_deviation = round(float(np.std(iso_for_deviation)), 4)
 
-        self.Mplusonesumstandard_error.setText(str(std_deviation))
+        if self.massplusone.isChecked():
+            self.Mplusonesumstandard_error.setText(str(std_deviation))
+            self.Mplustwosumstandard_error.clear()
+        elif self.massplustwo.isChecked():
+            self.Mplustwosumstandard_error.setText(str(std_deviation))
+            self.Mplusonesumstandard_error.clear()
+        else:
+            print("Please choose whether to display mass plus one or mass plus two.")
+            return
+
         self.iso_view = FigureCanvas(Figure(figsize=(5, 3)))
         self.axes = self.iso_view.figure.subplots()
         self.toolbar = NavigationToolbar(self.iso_view, self)
