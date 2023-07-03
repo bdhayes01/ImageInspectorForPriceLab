@@ -227,14 +227,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         # function image_inspector_OpeningFcn
         self.has_data = 0
-        self.ptflag = False
-        self.rgflag = False
-        self.rgflagROI = False
-        self.rgflagROIexportMS = False
-        self.exSpecflag = False
-        self.exConcflag = False
-        self.exIsotopeflag = False
-        self.fName_mzOI_flag = False
+        # self.ptflag = False
+        # self.rgflag = False
+        # self.rgflagROI = False
+        # self.rgflagROIexportMS = False
+        # self.exSpecflag = False
+        # self.exConcflag = False
+        # self.exIsotopeflag = False
+        # self.fName_mzOI_flag = False
         self.millimeter.setChecked(True)
         self.massplusone.setChecked(True)
         self.all_drift_times.setChecked(True)
@@ -293,22 +293,22 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mplusonenormintratiowithmassplustwo = 0
         self.mplustwointratiowithmassplustwo = 0
         self.mplustwonormintratiowithmassplustwo = 0
-        self.i_max = 0
-        self.i_min = 0
-        self.iso_max = 0
-        self.iso_min = 0
+        # self.i_max = 0
+        # self.i_min = 0
+        # self.iso_max = 0
+        # self.iso_min = 0
 
-        self.x_picked = 0
-        self.y_picked = 0
+        # self.x_picked = 0
+        # self.y_picked = 0
 
         # canvas
         self.spectra_canvas = None
-        self.con_canvas = None
-        self.kin_canvas = None
+        # self.con_canvas = None
+        # self.kin_canvas = None
 
         # ROI
         self.h = None
-        self.mask = None
+        # self.mask = None
         self.ROI_listselect_text = ""
         self.ROI_listselect_array = []
 
@@ -976,7 +976,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self._spectra_ax.set_xlabel('m/z')
         self._spectra_ax.set_ylabel('intensity')
         self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-        self.exSpecflag = True
+        # self.exSpecflag = True
         plt.ylabel('intensity')
         plt.xlabel('m/z')
 
@@ -1394,7 +1394,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def find_file_mzOI_Callback(self):
         self.fName_mzOI = QFileDialog.getOpenFileName(self, 'Pick list: m/z of interest', filter='*.csv')
         self.mzOI_listname.setText(self.fName_mzOI[0])
-        self.fName_mzOI_flag = True
+        # self.fName_mzOI_flag = True
 
     def mzOI_extractMap_Callback(self):
         if self.mzOI_listname.text() == '':
