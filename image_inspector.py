@@ -14,6 +14,10 @@ Created on Wed Feb 10 15:58:09 2021
 # 6. Ask if the ROI should contain all data in the ROI or only the pointed data.
 # 7. Ask JC if the standard dev increasing when the image is flipped is okay?
 # 8. Implement the user being able to input a min and max with the scaling sliders
+# (done) 9. Put a try-catch around the IM and MS initializing buttons
+# 10. Create a toast with an error message if the user puts an incorrect input in.
+# 11. Allow the user to input a .csv file with the data.
+# 12. Put pixelSizeX and pixelSizeY in the IM Data in D to Bin.
 
 
 import os
@@ -42,6 +46,7 @@ button_style_sheet = ("QRadioButton{border:None}QRadioButton::indicator:unchecke
                       "border : 1px solid black;width : 25px;height : 12px;border-radius : 7px;}"
                       "QRadioButton::indicator:checked{border : 1px solid black;width : 25px;"
                       "height : 12px;border-radius : 7px;background-color : #598392}")
+
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -177,6 +182,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.zmin.sliderMoved.connect(self.zmin_Callback)
         self.zmin.valueChanged.connect(self.zmin_Callback)
         self.temp_max.returnPressed.connect(self.temp_max_Callback)
+        self.temp_min.returnPressed.connect(self.temp_min_Callback)
         self.zmax_isotope.sliderMoved.connect(self.zmax_isotope_Callback)
         self.zmax_isotope.valueChanged.connect(self.zmax_isotope_Callback)
         self.zmin_isotope.sliderMoved.connect(self.zmin_isotope_Callback)
@@ -273,7 +279,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.img_std = 0
         self.z_max = 0
         self.z_min = 0
-        self.t_max = 0
+        # self.t_max = 0
         self.areas = 0
         self.includemassplustwo = False
         self.mintratio = 0
@@ -516,22 +522,29 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return 0
 
     def temp_max_Callback(self):
-        if self.has_data:
-            temp = self.temp_max.text()
-            isNum = True
-            try:
-                float(temp)
-            except ValueError:
-                isNum = False
-            if isNum == False:
-                self.temp_max.setText(str(self.zmax.sliderPosition()))
-                print("Wrong Input Max")
-            else:
-                set_temp = int(temp)
-                self.t_max = set_temp
-            self.temp_max.setText(str(self.t_max))
-            self.zmax.setValue(math.ceil(self.t_max))
-            self.scale_image()
+        newMax = self.plot_con_temp_pressed_callback(self.temp_max.text())
+        self.zmax.setValue(math.ceil(newMax))
+        self.scale_image()
+
+    def temp_min_Callback(self):
+        newMin = self.plot_con_temp_pressed_callback(self.temp_min.text())
+        self.zmin.setValue(math.ceil(newMin))
+        self.scale_image()
+
+    def plot_con_temp_pressed_callback(self, temp):
+        try:
+            newVal = float(temp)
+        except ValueError:
+            print("Please enter a numeric value.")
+            newVal = float(self.min_int.text())
+            return newVal
+        if newVal > float(self.max_int.text()):
+            print("Error: Trying to set the value above the max")
+            newVal = float(self.max_int.text())
+        elif newVal < float(self.min_int.text()):
+            print("Error: Trying to set the value below the min")
+            newVal = float(self.min_int.text())
+        return newVal
 
     def arrlims(self, input_array):
         # this function locates the maximum and minimum values in a 2-d array
@@ -756,6 +769,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.wspc_name.setText(self.fName[0])
 
         # --- Executes on button press in start_cube.
+
     def start_cube_Callback(self):
         self.cubefilename = self.fName[0]
         filename = self.cubefilename
@@ -769,13 +783,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif filename.endswith('.bin'):
             print("File extension: .bin")
             self.functionsCommonToAll()
-            if isIM:
-                self.cubeAsIMData()
-            elif self.MSDataButton.isChecked():
-                self.cubeAsMSData()
-            else:
-                print("Please select whether the file is IM or MS Data")
-                return
+            try:
+                if isIM:
+                    self.cubeAsIMData()
+                elif self.MSDataButton.isChecked():
+                    self.cubeAsMSData()
+                else:
+                    print("Please select whether the file is IM or MS Data")
+                    return
+            except IndexError:
+                if isIM:
+                    print("Is the file MS Data?")
+                    return
+                else:
+                    print("Is the file IM Data?")
+                    return
         else:
             print('Unexpected file extension')
             return
