@@ -18,6 +18,8 @@ Created on Wed Feb 10 15:58:09 2021
 # 10. Create a toast with an error message if the user puts an incorrect input in.
 # 11. Allow the user to input a .csv file with the data.
 # (done) 12. Put pixelSizeX and pixelSizeY in the IM Data in D to Bin.
+# 13. Should I take out the exportROI Button??
+# 14. Should I make the reset image delete plot_kin, or keep it as is?
 
 
 import os
@@ -575,8 +577,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.binI = self.h.get_mask().astype(int)
         self.binI = np.flipud(self.binI)
         f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
-        x = self.pickedPointData
-        y = np.asarray(x).flatten()
+        # x = self.pickedPointData
+        # y = np.asarray(x).flatten()
         # z = y[f]
         self.ROI_outline = f
         # theList = z[np.nonzero(z)]
@@ -1270,8 +1272,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ROIcount = self.ROIcount + 1
         self.ROIcountbox.setText(str(self.ROIcount))
         self.ROI[self.exportROIfilename.text()] = self.binI
-        ROI = self.ROI
-        ROIcount = self.ROIcount
+        # ROI = self.ROI
+        # ROIcount = self.ROIcount
         self.refreshROIlistbox()
         return 0
 
