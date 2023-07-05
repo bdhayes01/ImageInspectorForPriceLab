@@ -21,7 +21,6 @@ Created on Wed Feb 10 15:58:09 2021
 # 13. Should I take out the exportROI Button??
 # 14. Should I make the reset image delete plot_kin, or keep it as is?
 # 15. Make ML heuristic scorer.
-# 16. Set all lines that shouldn't be edited to not editable.
 
 
 import os
