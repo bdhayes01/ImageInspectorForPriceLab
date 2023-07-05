@@ -141,6 +141,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.binI = None
         self.ROI_outline = None
         self.pickedPointData = None
         self.mapData = None
@@ -539,6 +540,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # --- Executes on button press in ROI_process.
     def ROI_select_Callback_process(self):
+        if self.binI is None:
+            print("Please choose an ROI before processing")
+            return
         if self.view:
             self.ROI_select_Callback()
 
@@ -974,10 +978,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         plt.xlabel('m/z')
 
     def set_min_max_mz(self, mzVals):
-        self.min_mz.setRange(min(mzVals), max(mzVals))
-        self.max_mz.setRange(min(mzVals), max(mzVals))
-        self.min_mz.setValue(min(mzVals))
-        self.max_mz.setValue(max(mzVals))
+        try:
+            self.min_mz.setRange(min(mzVals), max(mzVals))
+            self.max_mz.setRange(min(mzVals), max(mzVals))
+            self.min_mz.setValue(min(mzVals))
+            self.max_mz.setValue(max(mzVals))
+        except TypeError:
+            print("Error: There is no original plot. Please select a .bin file and press 'GO' ")
 
     def cubeAsMSData(self):
         file = open(self.cubefilename)
@@ -1238,6 +1245,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.Map_listbox.addItem(listboxitems[i])
 
     def exportROI_Callback(self):
+        if self.binI is None:
+            print("Please choose an ROI before exporting")
+            return
         self.ROIcount = self.ROIcount + 1
         self.ROIcountbox.setText(str(self.ROIcount))
         self.ROI[self.exportROIfilename.text()] = self.binI
@@ -1262,9 +1272,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def ROI_listbox_Callback(self, item):
         # this should tell me which number in list is selected
         # now I need the outline of the ROI to appear
-        # if isIM:
+        try:
+            self.ROI_listselect_array = self.ROI[item.text()]
+        except KeyError:
+            print("This is not a ROI. Please choose a ROI. ")
+            return
         self.ROI_listselect_text = item.text()
-        self.ROI_listselect_array = self.ROI[item.text()]
         self.ROI_img_mean[item.text()] = self.img_mean
         self._con_ax = 1
         self.ROIplots[self.ROI_listselect_text] = item  # What am I doing here??
