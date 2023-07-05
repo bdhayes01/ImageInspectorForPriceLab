@@ -540,7 +540,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # --- Executes on button press in ROI_process.
     def ROI_select_Callback_process(self):
-        if self.binI is None:
+        if self.h is None:
             print("Please choose an ROI before processing")
             return
         if self.view:
