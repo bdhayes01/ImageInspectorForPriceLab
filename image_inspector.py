@@ -17,7 +17,7 @@ Created on Wed Feb 10 15:58:09 2021
 # (done) 9. Put a try-catch around the IM and MS initializing buttons
 # 10. Create a toast with an error message if the user puts an incorrect input in.
 # 11. Allow the user to input a .csv file with the data.
-# 12. Put pixelSizeX and pixelSizeY in the IM Data in D to Bin.
+# (done) 12. Put pixelSizeX and pixelSizeY in the IM Data in D to Bin.
 
 
 import os
@@ -1089,9 +1089,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def cubeAsIMData(self):
         fileID = open(self.cubefilename)
         data = np.fromfile(fileID, dtype=np.float32)
-
-        # self.pixelSizeX = 75
-        # self.pixelSizeY = 150
 
         frameNum = data[0]
         fileNum = data[1]
