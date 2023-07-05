@@ -13,6 +13,7 @@ Created on Wed Feb 10 15:58:09 2021
 # 5. Test the app for any unexpected behavior, make sure all buttons play well together.
 # 6. Ask if the ROI should contain all data in the ROI or only the pointed data.
 # 7. Ask JC if the standard dev increasing when the image is flipped is okay?
+# 8. Implement the user being able to input a min and max with the scaling sliders
 
 
 import os
