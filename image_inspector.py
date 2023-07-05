@@ -13,11 +13,9 @@ Created on Wed Feb 10 15:58:09 2021
 # 5. Test the app for any unexpected behavior, make sure all buttons play well together.
 # 6. Ask if the ROI should contain all data in the ROI or only the pointed data.
 # 7. Ask JC if the standard dev increasing when the image is flipped is okay?
-# (done) 8. Implement the user being able to input a min and max with the scaling sliders
-# (done) 9. Put a try-catch around the IM and MS initializing buttons
 # 10. Create a toast with an error message if the user puts an incorrect input in.
+# (This ^ will need to be custom built, so it might not be worth it.)
 # 11. Allow the user to input a .csv file with the data.
-# (done) 12. Put pixelSizeX and pixelSizeY in the IM Data in D to Bin.
 # 13. Should I take out the exportROI Button??
 # 14. Should I make the reset image delete plot_kin, or keep it as is?
 # 15. Make ML heuristic scorer.
@@ -256,37 +254,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.Maps = {}
         self.Mapcount = 0
         self.Map_listselect_text = ""
-        # self.x = 0
-        # self.x_end = 0
-        # self.y = 0
-        # self.y_end = 0
-        # self.z = 0
-        # self.intens = 0
-        # self.a = 0
-        # self.b = 0
-        # self.c = 0
         self.img_mean = 0
-        # self.reshaped = 0
-        # self.PS_Peak_Intensity = 0
-        # self.PS_Sum_Intensity = 0
-        # self.PS_Index = 0
-        # self.PS_Mean_Intensity = 0
-        # self.Background = 0
-        # self.Noise = 0
-        # self.img_std = 0
-        # self.z_max = 0
-        # self.z_min = 0
-        # self.areas = 0
-        # self.includemassplustwo = False
-        # self.mnormintratio = 0
-        # self.mintratiowithmassplustwo = 0
-        # self.mnormintratiowithmassplustwo = 0
-        # self.mplusoneintratio = 0
-        # self.mplusonenormintratio = 0
-        # self.mplusoneintratiowithmassplustwo = 0
-        # self.mplusonenormintratiowithmassplustwo = 0
-        # self.mplustwointratiowithmassplustwo = 0
-        # self.mplustwonormintratiowithmassplustwo = 0
 
         # canvas
         self.spectra_canvas = None
