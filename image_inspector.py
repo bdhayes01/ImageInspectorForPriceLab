@@ -1481,8 +1481,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 range_low = min(finals)
                 range_high = max(finals)
             else:
-                range_low = 0
-                range_high = "Error. Try a higher minimum ppm."
+                range_low = "None."
+                range_high = "Try a higher minimum ppm."
             self.annotation = self._spectra_ax.annotate(
                 "X = {0:.4f}\nY = {1:.4f}\nID = {2}\nDrift Range = {3}-{4}".format
                 (mz, intensity, lipid_id, range_low, range_high), xy=(mz, intensity), xycoords='data',
@@ -1550,10 +1550,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mmcWindow.map_packet[num][6].setText(item)
         chosenMap = self.Maps[item]
 
-        numY = len(chosenMap)
-        numX = len(chosenMap[0])
-        xend = numX * .075
-        yend = numY * .15
+        xend = len(chosenMap[0]) * (self.pixelSizeX / 1000)
+        yend = len(chosenMap) * (self.pixelSizeY / 1000)
 
         if self.mmcWindow.map_packet[num][5]:
             self.mmcWindow.map_packet[num][5].removeWidget(self.mmcWindow.map_packet[num][3])
