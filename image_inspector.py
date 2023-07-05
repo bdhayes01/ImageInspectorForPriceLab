@@ -820,10 +820,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     return
             except IndexError:
                 if isIM:
-                    print("Is the file MS Data?")
+                    print("Did you mean to select MS Data?")
                     return
                 else:
-                    print("Is the file IM Data?")
+                    print("Did you mean to select IM Data?")
                     return
         else:
             print('Unexpected file extension')
@@ -1090,15 +1090,17 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         fileID = open(self.cubefilename)
         data = np.fromfile(fileID, dtype=np.float32)
 
-        self.pixelSizeX = 75
-        self.pixelSizeY = 150
+        # self.pixelSizeX = 75
+        # self.pixelSizeY = 150
 
         frameNum = data[0]
         fileNum = data[1]
+        self.pixelSizeX = data[2]
+        self.pixelSizeY = data[3]
 
         numFrames = 0
         numFiles = 0
-        i = 2
+        i = 4
 
         mzVals = []
         intensity = []
