@@ -20,6 +20,7 @@ Created on Wed Feb 10 15:58:09 2021
 # (done) 12. Put pixelSizeX and pixelSizeY in the IM Data in D to Bin.
 # 13. Should I take out the exportROI Button??
 # 14. Should I make the reset image delete plot_kin, or keep it as is?
+# 15. Make ML heuristic scorer.
 
 
 import os
