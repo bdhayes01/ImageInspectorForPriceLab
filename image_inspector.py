@@ -183,6 +183,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.zmin.valueChanged.connect(self.zmin_Callback)
         self.temp_max.returnPressed.connect(self.temp_max_Callback)
         self.temp_min.returnPressed.connect(self.temp_min_Callback)
+        self.max_iso.returnPressed.connect(self.temp_max_iso_Callback)
+        self.min_iso.returnPressed.connect(self.temp_min_iso_Callback)
         self.zmax_isotope.sliderMoved.connect(self.zmax_isotope_Callback)
         self.zmax_isotope.valueChanged.connect(self.zmax_isotope_Callback)
         self.zmin_isotope.sliderMoved.connect(self.zmin_isotope_Callback)
@@ -544,6 +546,31 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif newVal < float(self.min_int.text()):
             print("Error: Trying to set the value below the min")
             newVal = float(self.min_int.text())
+        return newVal
+
+    def temp_max_iso_Callback(self):
+        newMax = self.plot_kin_temp_pressed_callback(self.max_iso.text())
+        self.zmax_isotope.setValue(math.ceil(newMax))
+        self.scale_iso_image()
+
+    def temp_min_iso_Callback(self):
+        newMin = self.plot_kin_temp_pressed_callback(self.min_iso.text())
+        self.zmin_isotope.setValue(math.ceil(newMin))
+        self.scale_iso_image()
+
+    def plot_kin_temp_pressed_callback(self, temp):
+        try:
+            newVal = float(temp)
+        except ValueError:
+            print("Please enter a numeric value.")
+            newVal = float(self.min_int_iso.text())
+            return newVal
+        if newVal > float(self.max_int_iso.text()):
+            print("Error: Trying to set the value above the max")
+            newVal = float(self.max_int_iso.text())
+        elif newVal < float(self.min_int_iso.text()):
+            print("Error: Trying to set the value below the min")
+            newVal = float(self.min_int_iso.text())
         return newVal
 
     def arrlims(self, input_array):
