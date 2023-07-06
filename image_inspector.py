@@ -665,7 +665,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def ms_point(self):
         if self.start.text() == '':
             return
-        picked_point = float(self.start.text())
+        try:
+            picked_point = float(self.start.text())
+        except ValueError:
+            print("Please enter a number for the selected mass.")
+            return
         max_diff = self.ppm_calc(picked_point)
         try:
             ideal_ratio = float(self.ideal_ratio.text())
