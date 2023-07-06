@@ -1394,14 +1394,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def deleteROIbutton_Callback(self):
         if self.ROIcount == 0:
+            self.ROI_listselect_text = ""
             return
-            # print('There are no ROIs in the listbox')
         else:
             if self._con_ax:
                 if self.ROI_listselect_text in self.ROIplots:
-                    # How to get the plot removed from the graph?
-                    # if not isIM:
-                    #     self.ROIplots[self.ROI_listselect_text].pop(0).remove()
                     del self.ROIplots[self.ROI_listselect_text]
                     del self.ROI[self.ROI_listselect_text]
                     del self.ROI_img_mean[self.ROI_listselect_text]
@@ -1415,6 +1412,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                         self.ms_point()
                 else:
                     print('Item does not exist. Please double click on another item')
+        self.ROI_listselect_text = ""
 
     def clearROI_Callback(self):
         self.ROIplots.clear()
@@ -1424,6 +1422,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ROIcountbox.setText("0")
         self.refreshROIlistbox()
         self.reset_scatter_callback()
+        self.ROI_listselect_text = ""
         if isIM:
             self.im_point()
         else:
