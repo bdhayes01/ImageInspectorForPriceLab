@@ -12,14 +12,19 @@ Created on Wed Feb 10 15:58:09 2021
 # 4. Figure out if noise button should be implemented or not
 # 5. Test the app for any unexpected behavior, make sure all buttons play well together.
 # 6. (Esteban)Ask if the ROI should contain all data in the ROI or only the pointed data.
-# 7. (Esteban)Ask JC if the standard dev increasing when the image is flipped is okay?
+# Fix so that you can't point it. When you reset, reset the selected point too.
+# So you can't select an ROI when it's the original image
+# 7. Ask JC if the standard dev increasing when the image is flipped is okay?
 # 10. Create a toast with an error message if the user puts an incorrect input in.
 # (This ^ will need to be custom built, so it might not be worth it.)
 # 11. (JC)Allow the user to input a .csv file with the data.
 # 13. (Esteban)Should I take out the exportROI Button??
+# Take it out!
 # 14. (Esteban)Should I make the reset image delete plot_kin, or keep it as is?
+# Delete it
 # 15. Make ML heuristic scorer.
 # 16. (Esteban)What color should the spectra plot colormap be?
+# Ask JC
 
 
 import os
