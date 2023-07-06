@@ -391,7 +391,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     processed_mz.append(mzVals[i])
                     processed_intens.append(intensities[i])
             self.displayScatter(processed_mz, processed_intens, None)
-        self.set_min_max_mz(processed_mz)
+        try:
+            self.set_min_max_mz(processed_mz)
+        except ValueError:
+            print("Error: There is no spectra to plot")
+            return
 
     # --- Executes on button press in find_IDlist.
     # can load a new ID list the consists of two columns
@@ -421,8 +425,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         val = self.drift_time.value()
         self.drift_scrollbar.setValue(val)
         if self.drifts is None:
-            print("Error: There is no plot, or the plot does not contain IM data")
-            return 0
+            if isIM:
+                print("Error: There is no plot, or the plot does not contain IM data")
+            return
         if self.one_drift_time.isChecked():
             self.show_mz_map(val)
 
@@ -969,17 +974,24 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if drifts is not None:
             x = self._spectra_ax.scatter(mzVals, intensity, s=pt_size, c=drifts, cmap="turbo", alpha=0.75, picker=True)
             plt.colorbar(x).set_label('Drift times')
-            self.drift_scrollbar.setMinimum(int(min(drifts)))
-            self.drift_scrollbar.setMaximum(int(max(drifts)))
-            self.drift_time.setMinimum(int(min(drifts)))
-            self.drift_time.setMaximum(int(max(drifts)))
+            try:
+                self.drift_scrollbar.setMinimum(int(min(drifts)))
+                self.drift_scrollbar.setMaximum(int(max(drifts)))
+                self.drift_time.setMinimum(int(min(drifts)))
+                self.drift_time.setMaximum(int(max(drifts)))
+            except ValueError:
+                print("There are no values in the spectra")
+                self.drift_scrollbar.setMinimum(0)
+                self.drift_scrollbar.setMaximum(0)
+                self.drift_time.setMinimum(0)
+                self.drift_time.setMaximum(0)
+
         else:
             self._spectra_ax.scatter(mzVals, intensity, color='#393424', s=pt_size, alpha=0.75, picker=True)  # Can change to peaks here
         self._spectra_ax.set_title('Points In Selected Region')
         self._spectra_ax.set_xlabel('m/z')
         self._spectra_ax.set_ylabel('intensity')
         self.spectra_canvas.mpl_connect('pick_event', self.data_cursor_click)
-        # self.exSpecflag = True
         plt.ylabel('intensity')
         plt.xlabel('m/z')
 
@@ -990,7 +1002,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.min_mz.setValue(min(mzVals))
             self.max_mz.setValue(max(mzVals))
         except TypeError:
-            print("Error: There is no original plot. Please select a .bin file and press 'GO' ")
+            print("Error: There is no plot. Please select a .bin file and press 'GO' ")
+            return
 
     def cubeAsMSData(self):
         file = open(self.cubefilename)
@@ -1307,7 +1320,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if (self.ROI_listselect_text == ""):
             print("No item selected")
         else:
-            chosenVal = float(self.start.text())
+            try:
+                chosenVal = float(self.start.text())
+            except ValueError:
+                print("Error: The chosen m/z must be numeric")
+                return
             ppm = self.ppm_calc(chosenVal)
 
             self.ROIData = []
