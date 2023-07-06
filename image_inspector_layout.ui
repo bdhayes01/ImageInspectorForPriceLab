@@ -2225,34 +2225,6 @@ background-color: rgb(238, 204, 204);</string>
       <string>Browse</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="IDlist_name">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>50</y>
-       <width>141</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Times New Roman</family>
-       <pointsize>8</pointsize>
-       <weight>50</weight>
-       <italic>false</italic>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(238, 204, 204);</string>
-     </property>
-     <property name="text">
-      <string>Default ID List</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
     <widget class="QLabel" name="ID_Output_Box">
      <property name="geometry">
       <rect>
@@ -2276,6 +2248,34 @@ background-color: rgb(238, 204, 204);</string>
      </property>
      <property name="text">
       <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QLabel" name="IDlist_name">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>50</y>
+       <width>141</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Times New Roman</family>
+       <pointsize>8</pointsize>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(238, 204, 204);</string>
+     </property>
+     <property name="text">
+      <string>Default ID List</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

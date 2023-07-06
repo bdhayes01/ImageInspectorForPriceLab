@@ -550,11 +550,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.binI = self.h.get_mask().astype(int)
         self.binI = np.flipud(self.binI)
         f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
-        # x = self.pickedPointData
-        # y = np.asarray(x).flatten()
-        # z = y[f]
         self.ROI_outline = f
-        # theList = z[np.nonzero(z)]
         self.numberpoints.setText(str(len(f)))
 
     # This function plots a mass spectrum corresponing to a selected point
@@ -719,18 +715,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 if orig_line[j] == 0:
                     ratio = 0
                 else:
-                    # if isinstance(orig_line[j], list):
-                    #     m_zero_intensity = 0
-                    #     for line in orig_line[j]:
-                    #         m_zero_intensity += line[1]
-                    #     if isinstance(iso_line[j], list):
-                    #         iso_intensity = 0
-                    #         for line in iso_line[j]:
-                    #             iso_intensity += line[1]
-                    #         ratio = iso_intensity / m_zero_intensity + iso_intensity
-                    #     else:
-                    #         ratio = iso_line[j] / m_zero_intensity + iso_line[j]
-                    # else:
                     ratio = iso_line[j] / orig_line[j] + iso_line[j]
                 theLine.append(ratio)
             new_data.append(theLine)
@@ -742,8 +726,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.fName = QFileDialog.getOpenFileName(self, 'Pick Data Cube', filter='*.mat, *.h5 *.bin')
         self.wspc_name.setText(self.fName[0])
 
-        # --- Executes on button press in start_cube.
-
+    # --- Executes on button press in start_cube.
     def start_cube_Callback(self):
         self.cubefilename = self.fName[0]
         filename = self.cubefilename
@@ -961,7 +944,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if drifts is not None:
             # Switched this from isIM to checking drifts, so that if IM data needs to be plotted as MS,
             # it can be plotted this way.
-            x = self._spectra_ax.scatter(mzVals, intensity, s=pt_size, c=drifts, cmap="Greens", alpha=0.75, picker=True)
+            x = self._spectra_ax.scatter(mzVals, intensity, s=pt_size, c=drifts, cmap="turbo", alpha=0.75, picker=True)
             plt.colorbar(x).set_label('Drift times')
             self.drift_scrollbar.setMinimum(int(min(drifts)))
             self.drift_scrollbar.setMaximum(int(max(drifts)))
