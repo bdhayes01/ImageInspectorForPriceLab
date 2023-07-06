@@ -193,7 +193,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.zmin_isotope.sliderMoved.connect(self.zmin_isotope_Callback)
         self.zmin_isotope.valueChanged.connect(self.zmin_isotope_Callback)
         self.ROI_select.clicked.connect(self.ROI_select_Callback_mask)
-        self.ROI_process.clicked.connect(self.ROI_select_Callback_process)
         self.exportROI.clicked.connect(self.exportROI_Callback)
         self.ROI_listbox.itemDoubleClicked.connect(self.ROI_listbox_Callback)
         self.importROI.clicked.connect(self.importROI_Callback)
@@ -558,21 +557,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             if self.h:
                 self.h.disconnect()
             self.h = roi.new_ROI(self.con_img)
-
-    # --- Executes on button press in ROI_process.
-    def ROI_select_Callback_process(self):
-        if self.h is None:
-            print("Please choose an ROI before processing")
-            return
-        if self.view:
-            self.ROI_select_Callback()
-
-    def ROI_select_Callback(self):
-        self.binI = self.h.get_mask().astype(int)
-        self.binI = np.flipud(self.binI)
-        f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
-        self.ROI_outline = f
-        self.numberpoints.setText(str(len(f)))
 
     # This function plots a mass spectrum corresponing to a selected point
     # on the displayed image, or an image corresponding to a selected point
@@ -1270,14 +1254,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.Map_listbox.addItem(listboxitems[i])
 
     def exportROI_Callback(self):
-        if self.binI is None:
-            print("Please choose an ROI before exporting")
+        if self.h is None:
+            print("Please choose an ROI before processing")
             return
+        if self.view:
+            self.binI = self.h.get_mask().astype(int)
+            self.binI = np.flipud(self.binI)
+            f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
+            self.ROI_outline = f
+            self.numberpoints.setText(str(len(f)))
+        # if self.binI is None:
+        #     print("Please choose an ROI before exporting")
+        #     return
         self.ROIcount = self.ROIcount + 1
         self.ROIcountbox.setText(str(self.ROIcount))
         self.ROI[self.exportROIfilename.text()] = self.binI
-        # ROI = self.ROI
-        # ROIcount = self.ROIcount
         self.refreshROIlistbox()
         return 0
 
