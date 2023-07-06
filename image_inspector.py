@@ -400,6 +400,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # But this code does not handle .h5 or .mat files
         self.fName_IDlist = QFileDialog.getOpenFileName(self, 'Pick ID List', filter='*.csv')
         self.IDlist_name.setText(self.fName_IDlist[0])
+        if self.fName_IDlist[0] == '':
+            print("Please select a file to import as the ID list.")
+            return
         self.ids_pd = pd.read_csv(self.fName_IDlist[0])
 
     def button_changed_callback(self):
@@ -588,9 +591,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return 0
 
     def im_point(self):
+        if self.start.text() == '':
+            return
         picked_point = float(self.start.text())
         max_diff = self.ppm_calc(picked_point)
-        ideal_ratio = float(self.ideal_ratio.text())
+        try:
+            ideal_ratio = float(self.ideal_ratio.text())
+        except ValueError:
+            print("Please enter a number above 0 for the m/z spacing.")
+            return
+        if ideal_ratio <= 0:
+            print("Please enter a spacing greater than 0")
+            return
         self.massbox.setText(self.start.text())
         mapData = self.mapData
 
@@ -662,7 +674,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return
         picked_point = float(self.start.text())
         max_diff = self.ppm_calc(picked_point)
-        ideal_ratio = float(self.ideal_ratio.text())
+        try:
+            ideal_ratio = float(self.ideal_ratio.text())
+        except ValueError:
+            print("Please enter a number above 0 for the m/z spacing.")
+            return
+        if ideal_ratio <= 0:
+            print("Please enter a spacing greater than 0")
+            return
 
         self.massbox.setText(self.start.text())
 
@@ -1116,7 +1135,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # This function updates the image to the current index
     def scale_image(self):
         if not self.pickedPointData:
-            return 0
+            return
         x = self.pickedPointData
         data = []
         maximum = self.zmax.sliderPosition()
@@ -1186,12 +1205,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.displayIsoImage(self.pickedPointData, data, self.pixelSizeX, self.pixelSizeY)
 
     def export_ConcMap_Callback(self):
+        if self.ConcMapData is None:
+            print("There is no image to export")
+            return
         # when clicking on the exportConcMap button, it will save the filename and concentration of the map
         self.Maps[self.exportConcMapname.text()] = self.ConcMapData
         self.refreshMaplistbox()
         self.Mapcount += 1
 
     def export_IsotopeMap_Callback(self):
+        if self.IsotopeMapData is None:
+            print("There is no image to export")
+            return
         # when clicking on the exportIsotopeMap button, it will save the filename and concentration of the map
         self.Maps[self.exportIsotopeMapname.text()] = self.IsotopeMapData
         self.Mapcount += 1
@@ -1513,6 +1538,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def MultiMapCompare_importMapData_Callback(self):
         path = QFileDialog.getOpenFileName(self, 'Select a map to import', filter='*.csv')
+        if path[0] == '':
+            print("No map to import.")
+            return
         df = pd.read_csv(path[0])
         self.Maps[self.mmcWindow.importMapData_filename.text()] = df.to_numpy()
         self.MultiMapCompare_Display_Callback()
