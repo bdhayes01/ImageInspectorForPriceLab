@@ -11,13 +11,13 @@ Created on Wed Feb 10 15:58:09 2021
 # 3. Write a user manual for Image Inspector
 # 4. Figure out if noise button should be implemented or not
 # 5. Test the app for any unexpected behavior, make sure all buttons play well together.
-# 6. Ask if the ROI should contain all data in the ROI or only the pointed data.
-# 7. Ask JC if the standard dev increasing when the image is flipped is okay?
+# 6. (Esteban)Ask if the ROI should contain all data in the ROI or only the pointed data.
+# 7. (Esteban)Ask JC if the standard dev increasing when the image is flipped is okay?
 # 10. Create a toast with an error message if the user puts an incorrect input in.
 # (This ^ will need to be custom built, so it might not be worth it.)
-# 11. Allow the user to input a .csv file with the data.
-# 13. Should I take out the exportROI Button??
-# 14. Should I make the reset image delete plot_kin, or keep it as is?
+# 11. (JC)Allow the user to input a .csv file with the data.
+# 13. (Esteban)Should I take out the exportROI Button??
+# 14. (Esteban)Should I make the reset image delete plot_kin, or keep it as is?
 # 15. Make ML heuristic scorer.
 
 
