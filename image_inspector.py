@@ -354,8 +354,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def reset_orig_image(self):
         if self.original_image:
-            self.pickedPointData = None
             self.displayImage(self.original_image, self.pixelSizeX, self.pixelSizeY)
+            self.pickedPointData = None
 
     def reset_scatter_callback(self):
         if isIM:
