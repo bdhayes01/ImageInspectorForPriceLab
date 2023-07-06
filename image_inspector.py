@@ -1071,7 +1071,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                         frameVal.append([data[i], data[i + 1], driftTime])
                         i += 2
                     currdriftBin += 1
-
                 mapLine.append(frameVal)
                 if not valAdded:
                     lineData.append(0)
