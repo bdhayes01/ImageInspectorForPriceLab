@@ -19,6 +19,7 @@ Created on Wed Feb 10 15:58:09 2021
 # 13. (Esteban)Should I take out the exportROI Button??
 # 14. (Esteban)Should I make the reset image delete plot_kin, or keep it as is?
 # 15. Make ML heuristic scorer.
+# 16. (Esteban)What color should the spectra plot colormap be?
 
 
 import os
@@ -355,6 +356,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if isIM:
             self.one_drift_time.setChecked(False)
             self.all_drift_times.setChecked(True)
+        if self.mzVals is None:
+            print("Error: There is no original plot. Please select a .bin file and press 'GO' ")
+            return
         self.displayScatter(self.mzVals, self.intensity, self.drifts)
         self.set_min_max_mz(self.mzVals)
 
@@ -411,12 +415,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def drift_time_callback(self):
         val = self.drift_time.value()
         self.drift_scrollbar.setValue(val)
+        if self.drifts is None:
+            print("Error: There is no plot, or the plot does not contain IM data")
+            return 0
         if self.one_drift_time.isChecked():
             self.show_mz_map(val)
 
     def drift_scrollbar_callback(self):
         val = self.drift_scrollbar.sliderPosition()
         self.drift_time.setValue(val)
+        if self.drifts is None:
+            print("Error: There is no plot, or the plot does not contain IM data")
+            return 0
         if self.one_drift_time.isChecked():
             self.show_mz_map(val)
 
@@ -648,6 +658,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.chosenDataIso = chosenDataPlusTwo
 
     def ms_point(self):
+        if self.start.text() == '':
+            return
         picked_point = float(self.start.text())
         max_diff = self.ppm_calc(picked_point)
         ideal_ratio = float(self.ideal_ratio.text())
@@ -942,8 +954,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.plot_spectra.addWidget(self.spectra_canvas)
         self._spectra_ax = self.spectra_canvas.figure.subplots()
         if drifts is not None:
-            # Switched this from isIM to checking drifts, so that if IM data needs to be plotted as MS,
-            # it can be plotted this way.
             x = self._spectra_ax.scatter(mzVals, intensity, s=pt_size, c=drifts, cmap="turbo", alpha=0.75, picker=True)
             plt.colorbar(x).set_label('Drift times')
             self.drift_scrollbar.setMinimum(int(min(drifts)))
@@ -951,7 +961,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.drift_time.setMinimum(int(min(drifts)))
             self.drift_time.setMaximum(int(max(drifts)))
         else:
-            self._spectra_ax.scatter(mzVals, intensity, s=pt_size, alpha=0.75, picker=True)  # Can change to peaks here
+            self._spectra_ax.scatter(mzVals, intensity, color='#393424', s=pt_size, alpha=0.75, picker=True)  # Can change to peaks here
         self._spectra_ax.set_title('Points In Selected Region')
         self._spectra_ax.set_xlabel('m/z')
         self._spectra_ax.set_ylabel('intensity')
