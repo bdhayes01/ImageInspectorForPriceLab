@@ -11,17 +11,12 @@ Created on Wed Feb 10 15:58:09 2021
 # 3. Write a user manual for Image Inspector
 # 4. Figure out if noise button should be implemented or not
 # 5. Test the app for any unexpected behavior, make sure all buttons play well together.
-# 6. (Esteban)Ask if the ROI should contain all data in the ROI or only the pointed data.
-# Fix so that you can't point it. When you reset, reset the selected point too.
-# So you can't select an ROI when it's the original image
 # 7. Ask JC if the standard dev increasing when the image is flipped is okay?
 # 10. Create a toast with an error message if the user puts an incorrect input in.
 # (This ^ will need to be custom built, so it might not be worth it.)
 # 11. (JC)Allow the user to input a .csv file with the data.
 # 13. (Esteban)Should I take out the exportROI Button??
 # Take it out!
-# 14. (Esteban)Should I make the reset image delete plot_kin, or keep it as is?
-# Delete it
 # 15. Make ML heuristic scorer.
 # 16. (Esteban)What color should the spectra plot colormap be?
 # Ask JC
@@ -354,8 +349,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def reset_orig_image(self):
         if self.original_image:
-            self.displayImage(self.original_image, self.pixelSizeX, self.pixelSizeY)
             self.pickedPointData = None
+            self.displayImage(self.original_image, self.pixelSizeX, self.pixelSizeY)
+            self.start.clear()
+            self.massbox.clear()
+            while self.plot_kin.count():
+                child = self.plot_kin.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
 
     def reset_scatter_callback(self):
         if isIM:
@@ -549,11 +550,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def ROI_select_Callback_mask(self):
         if self.start.text() == '':
             print("You must choose or input a point to the 'Selected Mass' box first.")
-            return 0
-        if self.pickedPointData:
+            return
+        if self.massbox.text() == '':
+            print("There is no plot to select")
+            return
+        else:
             if self.h:
                 self.h.disconnect()
-
             self.h = roi.new_ROI(self.con_img)
 
     # --- Executes on button press in ROI_process.
@@ -871,9 +874,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             child = self.plot_kin.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
-
-        if self.iso_view:
-            self.plot_kin.removeWidget(self.iso_view)
 
         zero_for_dev = np.asarray(zero_image).flatten()
         std_deviation = round(float(np.std(zero_for_dev)), 4)
