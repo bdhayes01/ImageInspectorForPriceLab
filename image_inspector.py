@@ -594,6 +594,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if self.start.text() == '':
             return
         picked_point = float(self.start.text())
+        # TODO: Make sure the input start.text isn't letters here!!
         max_diff = self.ppm_calc(picked_point)
         try:
             ideal_ratio = float(self.ideal_ratio.text())
