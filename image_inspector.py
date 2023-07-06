@@ -974,9 +974,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         data = np.fromfile(file, dtype=np.float32)
         file.close()
 
-        mzVals = []
-        intensities = []
-
         numLines = data[0]
         numScans = data[1]
         self.pixelSizeX = data[2]
@@ -985,6 +982,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         lineNum = 0
         i = 4
 
+        mzVals = []
+        intensities = []
         imageData = []
         mapData = []
 
