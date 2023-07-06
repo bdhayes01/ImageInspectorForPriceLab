@@ -11,15 +11,12 @@ Created on Wed Feb 10 15:58:09 2021
 # 3. Write a user manual for Image Inspector
 # 4. Figure out if noise button should be implemented or not
 # 5. Test the app for any unexpected behavior, make sure all buttons play well together.
-# 7. Ask JC if the standard dev increasing when the image is flipped is okay?
+# 7. (JC)Ask JC if the standard dev increasing when the image is flipped is okay?
 # 10. Create a toast with an error message if the user puts an incorrect input in.
 # (This ^ will need to be custom built, so it might not be worth it.)
 # 11. (JC)Allow the user to input a .csv file with the data.
-# 13. (Esteban)Should I take out the exportROI Button??
-# Take it out!
 # 15. Make ML heuristic scorer.
-# 16. (Esteban)What color should the spectra plot colormap be?
-# Ask JC
+# 16. (JC)What color should the spectra plot colormap be?
 
 
 import os
