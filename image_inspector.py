@@ -1427,7 +1427,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return 0
         try:
             mzOI = pd.read_csv(self.mzOI_listname.text())
-        except BaseException:
+        except IOError:
             print("Please choose a .csv file with m/z values")
             return 0
         mzOI = mzOI.to_numpy()
