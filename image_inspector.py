@@ -139,7 +139,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
         self.binI = None
-        self.ROI_outline = None
+        self.ROI_outline = {}
+        self.ROI_Map_Data = {}
         self.pickedPointData = None
         self.mapData = None
         self.label = None
@@ -1266,12 +1267,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.binI = self.h.get_mask().astype(int)
             self.binI = np.flipud(self.binI)
             f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
-            self.ROI_outline = f
+            self.ROI_outline[self.exportROIfilename.text()] = f
             self.numberpoints.setText(str(len(f)))
         self.ROIcount = self.ROIcount + 1
         self.ROIcountbox.setText(str(self.ROIcount))
         self.ROI[self.exportROIfilename.text()] = self.binI
         self.ROI_Mass[self.exportROIfilename.text()] = float(self.massbox.text())
+        self.ROI_Map_Data[self.exportROIfilename.text()] = self.mapData
         self.refreshROIlistbox()
         return 0
 
@@ -1322,8 +1324,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             intensities = []
             drifts = None
 
-            outline = self.ROI_outline
-            mapData = self.mapData
+            outline = self.ROI_outline[self.ROI_listselect_text]
+            mapData = self.ROI_Map_Data[self.ROI_listselect_text]
             if self.drifts is None:
                 counter = 0
                 for line in mapData:
