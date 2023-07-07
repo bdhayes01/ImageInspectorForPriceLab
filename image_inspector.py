@@ -21,6 +21,8 @@ Created on Wed Feb 10 15:58:09 2021
 
 import os
 import sys
+
+import numpy
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QListWidgetItem, QMainWindow)
 import PyQt5.uic as uic
@@ -425,8 +427,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         val = self.drift_time.value()
         self.drift_scrollbar.setValue(val)
         if self.drifts is None:
-            if isIM:
-                print("Error: There is no plot, or the plot does not contain IM data")
             return
         if self.one_drift_time.isChecked():
             self.show_mz_map(val)
@@ -435,8 +435,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         val = self.drift_scrollbar.sliderPosition()
         self.drift_time.setValue(val)
         if self.drifts is None:
-            print("Error: There is no plot, or the plot does not contain IM data")
-            return 0
+            return
         if self.one_drift_time.isChecked():
             self.show_mz_map(val)
 
@@ -756,13 +755,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # --- Executes on button press in find_file.
     def find_file_Callback(self):
         # But this code does not handle .h5 or .mat files
-        self.fName = QFileDialog.getOpenFileName(self, 'Pick Data Cube', filter='*.mat, *.h5 *.bin')
+        self.fName = QFileDialog.getOpenFileName(self, 'Pick Data Cube', filter='*.mat, *.h5, *.bin *.csv')
         self.wspc_name.setText(self.fName[0])
 
     # --- Executes on button press in start_cube.
     def start_cube_Callback(self):
         self.cubefilename = self.fName[0]
         filename = self.cubefilename
+        self.functionsCommonToAll()
         print("Working to read datacube")
         if filename.endswith('.mat'):
             print("This code can't process .mat files")
@@ -770,27 +770,28 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif filename.endswith('.h5'):
             print("This code can't process .h5 files")
             return
+        elif filename.endswith('.csv'):
+            data = (pd.read_csv(self.cubefilename)).to_numpy(numpy.float32)
         elif filename.endswith('.bin'):
-            print("File extension: .bin")
-            self.functionsCommonToAll()
-            try:
-                if isIM:
-                    self.cubeAsIMData()
-                elif self.MSDataButton.isChecked():
-                    self.cubeAsMSData()
-                else:
-                    print("Please select whether the file is IM or MS Data")
-                    return
-            except IndexError:
-                if isIM:
-                    print("Did you mean to select MS Data?")
-                    return
-                else:
-                    print("Did you mean to select IM Data?")
-                    return
+            file = open(self.cubefilename)
+            data = np.fromfile(file, dtype=np.float32)
+            file.close()
         else:
             print('Unexpected file extension')
             return
+
+        try:
+            if isIM:
+                self.cubeAsIMData(data)
+            elif self.MSDataButton.isChecked():
+                self.cubeAsMSData(data)
+            else:
+                print("Please select whether the file is IM or MS Data")
+        except IndexError:
+            if isIM:
+                print("Did you mean to select MS Data?")
+            else:
+                print("Did you mean to select IM Data?")
 
     def functionsCommonToAll(self):
         if self.micrometer.isChecked():
@@ -1005,11 +1006,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("Error: There is no plot. Please select a .bin file and press 'GO' ")
             return
 
-    def cubeAsMSData(self):
-        file = open(self.cubefilename)
-        data = np.fromfile(file, dtype=np.float32)
-        file.close()
-
+    def cubeAsMSData(self, data):
         numLines = data[0]
         numScans = data[1]
         self.pixelSizeX = data[2]
@@ -1054,10 +1051,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.intensity = intensities
         self.original_image = imageData
 
-    def cubeAsIMData(self):
-        fileID = open(self.cubefilename)
-        data = np.fromfile(fileID, dtype=np.float32)
-
+    def cubeAsIMData(self, data):
         frameNum = data[0]
         fileNum = data[1]
         self.pixelSizeX = data[2]
