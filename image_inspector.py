@@ -1557,6 +1557,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def MultiMapCompare_LoadMap_Callback(self, button):
         if self.mmcWindow.pickitem:
             text = self.mmcWindow.pickitem.text()
+            if text == '':
+                print("Please select a map.")
+                return 0
             if button is self.mmcWindow.slot1_load:
                 self.MultiMapCompare_LoadMap_func(text, 1)
             elif button is self.mmcWindow.slot2_load:
