@@ -14,10 +14,8 @@ Created on Wed Feb 10 15:58:09 2021
 # 15. Make ML heuristic scorer.
 # 16. (JC)What color should the spectra plot colormap be?
 
-
 import os
 import sys
-
 import numpy
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import (QApplication, QFileDialog, QListWidgetItem, QMainWindow)
