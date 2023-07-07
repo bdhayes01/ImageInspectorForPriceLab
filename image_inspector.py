@@ -13,7 +13,6 @@ Created on Wed Feb 10 15:58:09 2021
 # 7. (JC)Ask JC if the standard dev increasing when the image is flipped is okay?
 # 15. Make ML heuristic scorer.
 # 16. (JC)What color should the spectra plot colormap be?
-# 17. (Esteban)Should the multimap maps disappear when it is destroyed?
 
 
 import os
