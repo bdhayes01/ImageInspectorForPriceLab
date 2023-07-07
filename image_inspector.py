@@ -771,7 +771,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("This code can't process .h5 files")
             return
         elif filename.endswith('.csv'):
-            data = (pd.read_csv(self.cubefilename)).to_numpy(numpy.float32)
+            data = ((pd.read_csv(self.cubefilename, header=None)).to_numpy(numpy.float32)).flatten()
         elif filename.endswith('.bin'):
             file = open(self.cubefilename)
             data = np.fromfile(file, dtype=np.float32)
@@ -779,7 +779,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         else:
             print('Unexpected file extension')
             return
-
         try:
             if isIM:
                 self.cubeAsIMData(data)
