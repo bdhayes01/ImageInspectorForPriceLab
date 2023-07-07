@@ -5,14 +5,20 @@ Created on Wed Feb 10 15:58:09 2021
 @author: wtd14
 """
 
-# TODO: for 4th of July week:
-# 1. Make it crash proof, so that the program will not terminate early under any circumstances.
-# 2. Write good, python best practices comments for every function
-# 3. Write a user manual for Image Inspector
-# 4. (JC)Figure out if noise button should be implemented or not
-# 7. (JC)Ask JC if the standard dev increasing when the image is flipped is okay?
-# 15. Make ML heuristic scorer.
-# 16. (JC)What color should the spectra plot colormap be?
+# TODO: for 10th of July week:
+# 1. Group all functions based on where in the ui layout they are.
+# 2. Make an outline of the different documents that you will write.
+#       a. User manual (Quickstart guide and more complicated functions.
+#       b. Input formatting notes and examples.
+#       c. In-depth code comments (to be written in the python editor, using best practices)
+# 3. Write Image Inspector documents
+# 4. Make it crash proof, so that the program will not terminate early under any circumstances.
+# 5. Make ML heuristic scorer.
+#           Questions:
+# 6. (JC)Should the noise button be implemented?
+# 7. (JC)The standard dev increases when the image is flipped or rotated. Is that okay?
+# 8. (JC)What color should the spectra plot colormap be?
+#       a. Make examples for this in colab that can be shown to JC. Screenshot them!
 
 import os
 import sys
@@ -51,7 +57,6 @@ def resource_path(relative_path):
 mainWindow_ui_path = resource_path("image_inspector_layout.ui")
 mmcWindow_ui_path = resource_path("image_inspector_multicomp.ui")
 DESI_ID_path = resource_path("DESI_ID_File.csv")
-
 loaded_ui_multicomp = uic.loadUiType(mmcWindow_ui_path)[0]
 
 
@@ -478,11 +483,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def mass_up_Callback(self):
         if not self.view:
             return 0
+        val = float(self.start.text()) + 1.0
+        self.start.setText(str(val))
         if isIM:
-            val = float(self.start.text()) + 1.0
-            self.start.setText(str(val))
             self.im_point()
-            return 0
+        else:
+            self.ms_point()
+        return 0
 
     # --- Executes on button press in mass_down.
     # When the button is clicked, the mass index is decremented by 1
@@ -490,11 +497,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def mass_down_Callback(self):
         if not self.view:
             return 0
+        val = float(self.start.text()) - 1.0
+        self.start.setText(str(val))
         if isIM:
-            val = float(self.start.text()) - 1.0
-            self.start.setText(str(val))
             self.im_point()
-            return 0
+        else:
+            self.ms_point()
+        return 0
 
     def temp_max_Callback(self):
         newMax = self.plot_con_temp_pressed_callback(self.temp_max.text())
