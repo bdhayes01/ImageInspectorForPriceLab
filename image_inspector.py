@@ -247,6 +247,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ROI = {}
         self.ROIplots = {}
         self.ROI_img_mean = {}
+        self.ROI_Mass = {}
         self.ROIcount = 0
         self.Maps = {}
         self.Mapcount = 0
@@ -1267,12 +1268,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
             self.ROI_outline = f
             self.numberpoints.setText(str(len(f)))
-        # if self.binI is None:
-        #     print("Please choose an ROI before exporting")
-        #     return
         self.ROIcount = self.ROIcount + 1
         self.ROIcountbox.setText(str(self.ROIcount))
         self.ROI[self.exportROIfilename.text()] = self.binI
+        self.ROI_Mass[self.exportROIfilename.text()] = float(self.massbox.text())
         self.refreshROIlistbox()
         return 0
 
@@ -1311,7 +1310,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("No item selected")
         else:
             try:
-                chosenVal = float(self.start.text())
+                chosenVal = self.ROI_Mass[self.ROI_listselect_text]
             except ValueError:
                 print("Error: The chosen m/z must be numeric")
                 return
