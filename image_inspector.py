@@ -281,6 +281,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def flip_figure(self):
         try:
+            if self.original_image is not None:
+                self.original_image.reverse()
             if self.mapData is not None:
                 self.mapData.reverse()
             if self.ConcMapData is not None:
@@ -313,12 +315,19 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         else:
             self.mapData = self.rotateLeft(self.mapData)
 
+        if self.original_image:
+            if isRight:
+                self.original_image = self.rotateRight(self.original_image)
+            else:
+                self.original_image = self.rotateLeft(self.original_image)
+
         if self.ConcMapData:
             if isRight:
                 self.ConcMapData = self.rotateRight(self.ConcMapData)
             else:
                 self.ConcMapData = self.rotateLeft(self.ConcMapData)
             self.displayImage(self.ConcMapData, self.pixelSizeX, self.pixelSizeY)
+
         if self.IsotopeMapData:
             if isRight:
                 self.IsotopeMapData = self.rotateRight(self.IsotopeMapData)
@@ -351,6 +360,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.displayImage(self.original_image, self.pixelSizeX, self.pixelSizeY)
             self.start.clear()
             self.massbox.clear()
+            self.IsotopeMapData = None
             while self.plot_kin.count():
                 child = self.plot_kin.takeAt(0)
                 if child.widget():
@@ -1515,6 +1525,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     ##########################################
     # Multi Map Compare functions (things related to the 2nd window)
     def MultiMapCompare_Display_Callback(self):
+        self.mmcWindow.pick_item = None
         self.mmcWindow.Map_listbox_mmcWindow.clear()
         listboxitems = list(self.Maps.keys())
         for i in range(len(listboxitems)):
