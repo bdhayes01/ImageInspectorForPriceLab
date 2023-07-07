@@ -966,6 +966,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 child.widget().deleteLater()
         plt.close('all')
 
+        if 100/len(mzVals) > pt_size:
+            pt_size = 100 / len(mzVals)
+
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.spectra_canvas.setFocus()
