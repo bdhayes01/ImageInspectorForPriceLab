@@ -1319,7 +1319,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             ppm = self.ppm_calc(chosenVal)
 
             self.ROIData = []
-
             mzVals = []
             intensities = []
             drifts = None
