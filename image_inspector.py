@@ -13,7 +13,7 @@ Created on Wed Feb 10 15:58:09 2021
 # 7. (JC)Ask JC if the standard dev increasing when the image is flipped is okay?
 # 15. Make ML heuristic scorer.
 # 16. (JC)What color should the spectra plot colormap be?
-# 17. Should the multimap maps disappear when it is destroyed?
+# 17. (Esteban)Should the multimap maps disappear when it is destroyed?
 
 
 import os
@@ -1573,6 +1573,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("Choose an item from the listbox")
 
     def MultiMapCompare_LoadMap_func(self, item, num):
+        if item == '':
+            print("No item selected. Please double click on an item in the map listbox.")
+            return
         self.mmcWindow.map_packet[num][6].setText(item)
         chosenMap = self.Maps[item]
 
