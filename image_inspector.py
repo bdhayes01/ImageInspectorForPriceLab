@@ -9,7 +9,7 @@ Created on Wed Feb 10 15:58:09 2021
 # 1. Make it crash proof, so that the program will not terminate early under any circumstances.
 # 2. Write good, python best practices comments for every function
 # 3. Write a user manual for Image Inspector
-# 4. Figure out if noise button should be implemented or not
+# 4. (JC)Figure out if noise button should be implemented or not
 # 7. (JC)Ask JC if the standard dev increasing when the image is flipped is okay?
 # 15. Make ML heuristic scorer.
 # 16. (JC)What color should the spectra plot colormap be?
@@ -62,10 +62,8 @@ class MultiMapCompareobject(QMainWindow, loaded_ui_multicomp):
         self.setFixedWidth(int(MW_width * 0.9))
         self.setFixedHeight(871)
         self.setupUi(self)
-
         self.Map_listbox_mmcWindow.itemClicked.connect(self.MultiMapCompare_Map_listbox_pickitem)
-
-        self.pickitem = None
+        self.pick_item = None
 
         # canvas
         self.map_canvas1 = None
@@ -99,7 +97,7 @@ class MultiMapCompareobject(QMainWindow, loaded_ui_multicomp):
         self.map_toolbar5 = None
         self.map_toolbar6 = None
 
-        # colorbars
+        # color_bars
         self.map_cbar1 = None
         self.map_cbar2 = None
         self.map_cbar3 = None
@@ -122,7 +120,7 @@ class MultiMapCompareobject(QMainWindow, loaded_ui_multicomp):
                 self.slot6_name]}
 
     def MultiMapCompare_Map_listbox_pickitem(self, item):
-        self.pickitem = item
+        self.pick_item = item
 
     def display_mmcWindow(self):
         self.show()
@@ -135,13 +133,19 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def __init__(self, parent=None):  # Initialization of the code
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
+        self.con_img = None
+        self.con_img2 = None
+        self.toolbar = None
+        self.axes = None
+        self.pixelSizeX = None
+        self.pixelSizeY = None
         self.binI = None
         self.ROI_outline = {}
         self.ROI_Map_Data = {}
         self.pickedPointData = None
         self.mapData = None
         self.label = None
-        self.scalefact = None
+        self.scale_fact = None
         self.spectra_toolbar = None
         self.annotation = None
         self.mzVals = None
@@ -241,7 +245,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.fName = ""
         self.fName_mzOI = ""
-        self.cubefilename = ""
+        self.cube_file_name = ""
         self.ROI = {}
         self.ROIplots = {}
         self.ROI_img_mean = {}
@@ -402,12 +406,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # the 2nd column must be named "Lipid ID"
     def find_IDlist_Callback(self):
         # But this code does not handle .h5 or .mat files
-        self.fName_IDlist = QFileDialog.getOpenFileName(self, 'Pick ID List', filter='*.csv')
-        self.IDlist_name.setText(self.fName_IDlist[0])
-        if self.fName_IDlist[0] == '':
+        fName_IDlist = QFileDialog.getOpenFileName(self, 'Pick ID List', filter='*.csv')
+        self.IDlist_name.setText(fName_IDlist[0])
+        if fName_IDlist[0] == '':
             print("Please select a file to import as the ID list.")
             return
-        self.ids_pd = pd.read_csv(self.fName_IDlist[0])
+        self.ids_pd = pd.read_csv(fName_IDlist[0])
 
     def button_changed_callback(self):
         if not self.drifts:
@@ -532,14 +536,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             newVal = float(self.min_int_iso.text())
         return newVal
 
-    def arrlims(self, input_array):
-        # this function locates the maximum and minimum values in a 2-d array
-        minval = np.min(input_array)
-        arrmin = np.min(minval)
-        maxval = np.max(input_array)
-        arrmax = np.max(maxval)
-        return arrmax, arrmin
-
     # This function allows the user to select a region of interest,
     # then plots the mass spectrum averaged over that ROI
     # --- Executes on button press in ROI_select.
@@ -561,13 +557,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # --- Executes on button press in pick_point.
     def pick_point_Callback(self):
         if self.micrometer.isChecked():
-            self.scalefact = 1e3
+            self.scale_fact = 1e3
             self.label = 'μm'
         elif self.millimeter.isChecked():
-            self.scalefact = 1
+            self.scale_fact = 1
             self.label = 'mm'
         elif self.centimeter.isChecked():
-            self.scalefact = 0.1
+            self.scale_fact = 0.1
             self.label = 'cm'
         if self.start.text() == '':
             print("You must choose or input a point to the 'Selected Mass' box first.")
@@ -756,8 +752,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # --- Executes on button press in start_cube.
     def start_cube_Callback(self):
-        self.cubefilename = self.fName[0]
-        filename = self.cubefilename
+        self.cube_file_name = self.fName[0]
+        filename = self.cube_file_name
         self.functionsCommonToAll()
         print("Working to read datacube")
         if filename.endswith('.mat'):
@@ -767,9 +763,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("This code can't process .h5 files")
             return
         elif filename.endswith('.csv'):
-            data = ((pd.read_csv(self.cubefilename, header=None)).to_numpy(numpy.float32)).flatten()
+            data = ((pd.read_csv(self.cube_file_name, header=None)).to_numpy(numpy.float32)).flatten()
         elif filename.endswith('.bin'):
-            file = open(self.cubefilename)
+            file = open(self.cube_file_name)
             data = np.fromfile(file, dtype=np.float32)
             file.close()
         else:
@@ -790,13 +786,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def functionsCommonToAll(self):
         if self.micrometer.isChecked():
-            self.scalefact = 1e3
+            self.scale_fact = 1e3
             self.label = 'μm'
         elif self.millimeter.isChecked():
-            self.scalefact = 1
+            self.scale_fact = 1
             self.label = 'mm'
         elif self.centimeter.isChecked():
-            self.scalefact = 0.1
+            self.scale_fact = 0.1
             self.label = 'cm'
 
         while self.plot_kin.count():
@@ -856,8 +852,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         count = len(zero_image) * len(zero_image[0])
         self.numberpoints.setText(str(count))
 
-        xend = len(imageData[0]) * (pixelSizeX / 1000)
-        yend = len(imageData) * (pixelSizeY / 1000)
+        x_end = len(imageData[0]) * (pixelSizeX / 1000)
+        y_end = len(imageData) * (pixelSizeY / 1000)
 
         while self.plot_kin.count():
             child = self.plot_kin.takeAt(0)
@@ -889,8 +885,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes = self.iso_view.figure.subplots()
         self.toolbar = NavigationToolbar(self.iso_view, self)
         self.plot_kin.addWidget(self.iso_view)
-        self.con_img2 = self.axes.imshow(iso_data, cmap='inferno', aspect=(yend / xend),
-                                         extent=[0, xend * self.scalefact, 0, yend * self.scalefact])
+        self.con_img2 = self.axes.imshow(iso_data, cmap='inferno', aspect=(y_end / x_end),
+                                         extent=[0, x_end * self.scale_fact, 0, y_end * self.scale_fact])
         self.axes.set_xlabel("x, " + self.label)
         self.axes.set_ylabel("y, " + self.label)
         plt.colorbar(self.con_img2)
@@ -910,8 +906,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.zmin_isotope.setValue(math.floor(theMin))
 
     def displayImage(self, imageData, pixelSizeX, pixelSizeY):
-        xend = len(imageData[0]) * (pixelSizeX / 1000)
-        yend = len(imageData) * (pixelSizeY / 1000)
+        x_end = len(imageData[0]) * (pixelSizeX / 1000)
+        y_end = len(imageData) * (pixelSizeY / 1000)
 
         if self.view:
             self.plot_con.removeWidget(self.view)
@@ -919,8 +915,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes = self.view.figure.subplots()
         self.toolbar = NavigationToolbar(self.view, self)
         self.plot_con.addWidget(self.view)
-        self.con_img = self.axes.imshow(imageData, cmap='jet', aspect=(yend / xend),
-                                        extent=[0, xend * self.scalefact, 0, yend * self.scalefact])
+        self.con_img = self.axes.imshow(imageData, cmap='jet', aspect=(y_end / x_end),
+                                        extent=[0, x_end * self.scale_fact, 0, y_end * self.scale_fact])
         plt.colorbar(self.con_img)
         self.axes.set_title('Points In Selected Region')
         self.axes.set_xlabel("x, " + self.label)
@@ -983,7 +979,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.drift_time.setMaximum(0)
 
         else:
-            self._spectra_ax.scatter(mzVals, intensity, color='#393424', s=pt_size, alpha=0.75, picker=True)  # Can change to peaks here
+            self._spectra_ax.scatter(mzVals, intensity, color='#393424', s=pt_size, alpha=0.75, picker=True)
+            # Can change to peaks here
         self._spectra_ax.set_title('Points In Selected Region')
         self._spectra_ax.set_xlabel('m/z')
         self._spectra_ax.set_ylabel('intensity')
@@ -1158,7 +1155,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 for scan in line:  # Same as above line
                     newScan = 0
                     if scan > maximum:
-                        newFrame = maximum
+                        newScan = maximum
                     elif maximum >= scan >= minimum:
                         newScan = scan
                     newLine.append(newScan)
@@ -1271,10 +1268,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ROI[self.exportROIfilename.text()] = self.binI
         self.ROI_Mass[self.exportROIfilename.text()] = float(self.massbox.text())
         self.ROI_Map_Data[self.exportROIfilename.text()] = self.mapData
-        self.refreshROIlistbox()
+        self.refresh_ROI_listbox()
         return 0
 
-    def refreshROIlistbox(self):
+    def refresh_ROI_listbox(self):
         if len(self.ROI) == 0:
             # set box with default text
             self.ROI_listbox.clear()
@@ -1305,7 +1302,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     # loads the spectra from the selected ROI in the ROI_listbox
     # --- Executes on button press in 'Load selected ROI spectra' button
     def importROI_Callback(self):
-        if (self.ROI_listselect_text == ""):
+        if self.ROI_listselect_text == "":
             print("No item selected")
         else:
             try:
@@ -1361,7 +1358,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.set_min_max_mz(mzVals)
 
     def exportROI_spectra_val_Callback(self):
-        if (self.ROI_listselect_text == ""):
+        if self.ROI_listselect_text == "":
             print("No item selected. Double click an item in the ROI listbox")
         else:
             path = QFileDialog.getSaveFileName(self, 'Save CSV', os.getenv('HOME'), 'CSV(*.csv)')
@@ -1391,7 +1388,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     del self.ROI_img_mean[self.ROI_listselect_text]
                     self.ROIcount = self.ROIcount - 1
                     self.ROIcountbox.setText(str(self.ROIcount))
-                    self.refreshROIlistbox()
+                    self.refresh_ROI_listbox()
                     print('plot removed')
                     if isIM:
                         self.im_point()
@@ -1407,7 +1404,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ROI_img_mean.clear()
         self.ROIcount = 0
         self.ROIcountbox.setText("0")
-        self.refreshROIlistbox()
+        self.refresh_ROI_listbox()
         self.reset_scatter_callback()
         self.ROI_listselect_text = ""
         if isIM:
@@ -1428,10 +1425,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if self.mzVals is None:
             print("Please choose a .bin file to process")
             return 0
-        mzOI = []
         try:
             mzOI = pd.read_csv(self.mzOI_listname.text())
-        except Exception:
+        except BaseException:
             print("Please choose a .csv file with m/z values")
             return 0
         mzOI = mzOI.to_numpy()
@@ -1526,7 +1522,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mmcWindow.display_mmcWindow()
 
     def MultiMapCompare_exportMapData_Callback(self):
-        pickeditem = self.mmcWindow.pickitem
+        pickeditem = self.mmcWindow.pick_item
         if pickeditem is None or pickeditem == '':
             print('Please choose a map')
             return 0
@@ -1552,8 +1548,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     # executes when a load button is clicked
     def MultiMapCompare_LoadMap_Callback(self, button):
-        if self.mmcWindow.pickitem:
-            text = self.mmcWindow.pickitem.text()
+        if self.mmcWindow.pick_item:
+            text = self.mmcWindow.pick_item.text()
             if text == '':
                 print("Please select a map.")
                 return 0
@@ -1579,8 +1575,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mmcWindow.map_packet[num][6].setText(item)
         chosenMap = self.Maps[item]
 
-        xend = len(chosenMap[0]) * (self.pixelSizeX / 1000)
-        yend = len(chosenMap) * (self.pixelSizeY / 1000)
+        x_end = len(chosenMap[0]) * (self.pixelSizeX / 1000)
+        y_end = len(chosenMap) * (self.pixelSizeY / 1000)
 
         if self.mmcWindow.map_packet[num][5]:
             self.mmcWindow.map_packet[num][5].removeWidget(self.mmcWindow.map_packet[num][3])
@@ -1594,8 +1590,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.mmcWindow.map_packet[num][2] = self.mmcWindow.map_packet[num][1].imshow(chosenMap, cmap='jet',
                                                                                      interpolation='gaussian',
-                                                                                     aspect=(yend / xend),
-                                                                                     extent=[0, xend, 0, yend])
+                                                                                     aspect=(y_end / x_end),
+                                                                                     extent=[0, x_end, 0, y_end])
         self.mmcWindow.map_packet[num][1].set_xlabel('x, mm')
         self.mmcWindow.map_packet[num][1].set_ylabel('y, mm')
         self.mmcWindow.map_packet[num][4] = self.mmcWindow.map_packet[num][0].figure.colorbar(
