@@ -2110,7 +2110,7 @@ background-color: rgb(238, 204, 204);</string>
       <height>421</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="plot_kin"/>
+    <layout class="QVBoxLayout" name="iso_plot"/>
    </widget>
    <widget class="QWidget" name="verticalLayoutWidget_3">
     <property name="geometry">
