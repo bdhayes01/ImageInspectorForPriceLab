@@ -404,6 +404,124 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.drifts = None
         self.intensity = None
 
+    def cubeAsMSData(self, data):
+        numLines = data[0]
+        numScans = data[1]
+        self.pixelSizeX = data[2]
+        self.pixelSizeY = data[3]
+
+        lineNum = 0
+        i = 4
+
+        mzVals = []
+        intensities = []
+        imageData = []
+        mapData = []
+
+        while lineNum < numLines:
+            scanNum = 0
+            line = []
+            mapLine = []
+            while scanNum < numScans:
+                scan = 0
+                numDataPoints = data[i]
+                i += 1
+                currDataPoint = 0
+                scanVal = []
+                while currDataPoint < numDataPoints:
+                    currDataPoint += 1
+                    mzVals.append(data[i])
+                    intensities.append(data[i + 1])
+                    scan += data[i + 1]
+                    scanVal.append([data[i], data[i + 1]])
+                    i += 2
+                scanNum += 1
+                line.append(scan)
+                mapLine.append(scanVal)
+            lineNum += 1
+            imageData.append(line)
+            mapData.append(mapLine)
+        self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
+        self.displayScatter(mzVals, intensities, None)
+        self.set_min_max_mz(mzVals)
+        self.mapData = mapData
+        self.mzVals = mzVals
+        self.intensity = intensities
+        self.original_image = imageData
+
+    def cubeAsIMData(self, data):
+        frameNum = data[0]
+        fileNum = data[1]
+        self.pixelSizeX = data[2]
+        self.pixelSizeY = data[3]
+
+        numFrames = 0
+        numFiles = 0
+        i = 4
+
+        mzVals = []
+        intensity = []
+        drifts = []
+        chosenData = []
+        mapData = []
+        lineData = []
+        frameDone = False
+
+        while numFiles < fileNum:
+            if frameDone:
+                chosenData.append(lineData)
+                numFiles += 1
+                numFrames = 0
+                frameDone = False
+                continue
+            frameDone = False
+            lineData = []
+            valAdded = False
+            theVal = 0
+            mapLine = []
+            while numFrames < frameNum:
+                totalDriftBins = data[i]
+                frameDone = True
+                currdriftBin = 0
+                i += 1
+                frameVal = []
+                while currdriftBin < totalDriftBins:
+                    numValues = data[i]
+                    i += 1
+                    driftTime = data[i]
+                    i += 1
+                    for a in range(int(numValues)):
+                        theVal += data[i + 1]
+                        valAdded = True
+                        intensity.append(data[i + 1])
+                        drifts.append(driftTime)
+                        mzVals.append(data[i])
+                        frameVal.append([data[i], data[i + 1], driftTime])
+                        i += 2
+                    currdriftBin += 1
+                mapLine.append(frameVal)
+                if not valAdded:
+                    lineData.append(0)
+                elif valAdded:
+                    lineData.append(theVal)
+                valAdded = False
+                theVal = 0
+                numFrames += 1
+            mapData.append(mapLine)
+
+        self.displayScatter(mzVals, intensity, drifts)
+        self.set_min_max_mz(mzVals)
+
+        self.mzVals = mzVals
+        self.intensity = intensity
+        self.drifts = drifts
+        self.mapData = mapData
+
+        self.displayImage(chosenData, self.pixelSizeX, self.pixelSizeY)
+
+        self.has_data = 1
+        self.original_image = chosenData
+
     ##### Functions in the MS Image Controls box #####
     def mass_up_Callback(self):
         if not self.view:
@@ -1088,6 +1206,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         else:
             self.ms_point()
 
+    def refresh_ROI_listbox(self):
+        if len(self.ROI) == 0:
+            self.ROI_listbox.clear()
+            QListWidgetItem('ROI list appears here', self.ROI_listbox)
+        else:
+            self.ROI_listbox.clear()
+            listboxitems = list(self.ROI.keys())
+            for i in range(len(listboxitems)):
+                self.ROI_listbox.addItem(listboxitems[i])
+
     ##### Map Listbox functions #####
     def deleteMapbutton_Callback(self):
         if self.Mapcount == 0:
@@ -1109,22 +1237,61 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.Mapcount = 0
             self.refreshMaplistbox()
 
+    def Map_listbox_Callback(self, item):
+        self.Map_listselect_text = item.text()
 
+    def refreshMaplistbox(self):
+        if len(self.Maps) == 0:
+            # set box with default text
+            self.Map_listbox.clear()
+            if "Map_listselect_text" in locals():
+                del self.Map_listselect_text
+            QListWidgetItem('Map list appears here', self.Map_listbox)
+        else:
+            self.Map_listbox.clear()
+            if "Map_listselect_text" in locals():
+                del self.Map_listselect_text
+            listboxitems = list(self.Maps.keys())
+            for i in range(len(listboxitems)):
+                self.Map_listbox.addItem(listboxitems[i])
 
+    ##### m/z of interest box functions #####
+    def find_file_mzOI_Callback(self):
+        self.fName_mzOI = QFileDialog.getOpenFileName(self, 'Pick list: m/z of interest', filter='*.csv')
+        self.mzOI_listname.setText(self.fName_mzOI[0])
 
+    def mzOI_extractMap_Callback(self):
+        if self.mzOI_listname.text() == '':
+            print("Please choose a .csv file with m/z values")
+            return 0
+        if self.mzVals is None:
+            print("Please choose a .bin file to process")
+            return 0
+        try:
+            mzOI = pd.read_csv(self.mzOI_listname.text())
+        except IOError:
+            print("Please choose a .csv file with m/z values")
+            return 0
+        mzOI = mzOI.to_numpy()
 
+        mzVals = []
+        intensity = []
+        drifts = None
+        if isIM:
+            drifts = []
 
+        for mz in mzOI:
+            diff = self.ppm_calc(mz)
+            for i in range(len(self.mzVals)):
+                if mz + diff >= self.mzVals[i] >= mz - diff:
+                    mzVals.append(self.mzVals[i])
+                    intensity.append(self.intensity[i])
+                    if isIM:
+                        drifts.append(self.drifts[i])
 
+        self.displayScatter(mzVals, intensity, drifts)
 
-
-
-
-
-
-
-
-
-
+    ##### m/z ID box functions #####
     def find_IDlist_Callback(self):
         # But this code does not handle .h5 or .mat files
         fName_IDlist = QFileDialog.getOpenFileName(self, 'Pick ID List', filter='*.csv')
@@ -1134,21 +1301,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return
         self.ids_pd = pd.read_csv(fName_IDlist[0])
 
-    def isotope_scalar(self, m_zero_intensity, isotope_intensity):
-        new_data = []
-        for i in range(len(m_zero_intensity)):
-            theLine = []
-            orig_line = m_zero_intensity[i]
-            iso_line = isotope_intensity[i]
-            for j in range(len(orig_line)):
-                if orig_line[j] == 0:
-                    ratio = 0
-                else:
-                    ratio = iso_line[j] / orig_line[j] + iso_line[j]
-                theLine.append(ratio)
-            new_data.append(theLine)
-        return new_data
-
+    ##### Image display functions #####
     def displayIsoImage(self, zero_image, imageData, pixelSizeX, pixelSizeY):
         # This needs to be a different function for both the original point and the scaling functions
         count = len(zero_image) * len(zero_image[0])
@@ -1207,6 +1360,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.zmax_isotope.setValue(math.ceil(theMax))
             self.zmin_isotope.setValue(math.floor(theMin))
 
+    def isotope_scalar(self, m_zero_intensity, isotope_intensity):
+        new_data = []
+        for i in range(len(m_zero_intensity)):
+            theLine = []
+            orig_line = m_zero_intensity[i]
+            iso_line = isotope_intensity[i]
+            for j in range(len(orig_line)):
+                if orig_line[j] == 0:
+                    ratio = 0
+                else:
+                    ratio = iso_line[j] / orig_line[j] + iso_line[j]
+                theLine.append(ratio)
+            new_data.append(theLine)
+        return new_data
+
     def displayImage(self, imageData, pixelSizeX, pixelSizeY):
         x_end = len(imageData[0]) * (pixelSizeX / 1000)
         y_end = len(imageData) * (pixelSizeY / 1000)
@@ -1239,18 +1407,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.zmin.setValue(math.floor(theMin))
             self.pickedPointData = imageData
 
-    def find_min_max_image(self, imageData):
-        theMin = sys.maxsize
-        theMax = 0
-        for line in imageData:
-            lineMin = min(line)
-            lineMax = max(line)
-            if lineMax > theMax:
-                theMax = lineMax
-            if lineMin < theMin:
-                theMin = lineMin
-        return theMin, theMax
-
+    ##### Spectra display functions #####
     def displayScatter(self, mzVals, intensity, drifts=None, pt_size=.01):
         while self.plot_spectra.count():  # This solved the double figure problem
             child = self.plot_spectra.takeAt(0)
@@ -1293,219 +1450,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         plt.ylabel('intensity')
         plt.xlabel('m/z')
 
-    def set_min_max_mz(self, mzVals):
-        try:
-            self.min_mz.setRange(min(mzVals), max(mzVals))
-            self.max_mz.setRange(min(mzVals), max(mzVals))
-            self.min_mz.setValue(min(mzVals))
-            self.max_mz.setValue(max(mzVals))
-        except TypeError:
-            print("Error: There is no plot. Please select a .bin file and press 'GO' ")
-            return
-
-    def cubeAsMSData(self, data):
-        numLines = data[0]
-        numScans = data[1]
-        self.pixelSizeX = data[2]
-        self.pixelSizeY = data[3]
-
-        lineNum = 0
-        i = 4
-
-        mzVals = []
-        intensities = []
-        imageData = []
-        mapData = []
-
-        while lineNum < numLines:
-            scanNum = 0
-            line = []
-            mapLine = []
-            while scanNum < numScans:
-                scan = 0
-                numDataPoints = data[i]
-                i += 1
-                currDataPoint = 0
-                scanVal = []
-                while currDataPoint < numDataPoints:
-                    currDataPoint += 1
-                    mzVals.append(data[i])
-                    intensities.append(data[i + 1])
-                    scan += data[i + 1]
-                    scanVal.append([data[i], data[i + 1]])
-                    i += 2
-                scanNum += 1
-                line.append(scan)
-                mapLine.append(scanVal)
-            lineNum += 1
-            imageData.append(line)
-            mapData.append(mapLine)
-        self.displayImage(imageData, self.pixelSizeX, self.pixelSizeY)
-        self.displayScatter(mzVals, intensities, None)
-        self.set_min_max_mz(mzVals)
-        self.mapData = mapData
-        self.mzVals = mzVals
-        self.intensity = intensities
-        self.original_image = imageData
-
-    def cubeAsIMData(self, data):
-        frameNum = data[0]
-        fileNum = data[1]
-        self.pixelSizeX = data[2]
-        self.pixelSizeY = data[3]
-
-        numFrames = 0
-        numFiles = 0
-        i = 4
-
-        mzVals = []
-        intensity = []
-        drifts = []
-        chosenData = []
-        mapData = []
-        lineData = []
-        frameDone = False
-
-        while numFiles < fileNum:
-            if frameDone:
-                chosenData.append(lineData)
-                numFiles += 1
-                numFrames = 0
-                frameDone = False
-                continue
-            frameDone = False
-            lineData = []
-            valAdded = False
-            theVal = 0
-            mapLine = []
-            while numFrames < frameNum:
-                totalDriftBins = data[i]
-                frameDone = True
-                currdriftBin = 0
-                i += 1
-                frameVal = []
-                while currdriftBin < totalDriftBins:
-                    numValues = data[i]
-                    i += 1
-                    driftTime = data[i]
-                    i += 1
-                    for a in range(int(numValues)):
-                        theVal += data[i + 1]
-                        valAdded = True
-                        intensity.append(data[i + 1])
-                        drifts.append(driftTime)
-                        mzVals.append(data[i])
-                        frameVal.append([data[i], data[i + 1], driftTime])
-                        i += 2
-                    currdriftBin += 1
-                mapLine.append(frameVal)
-                if not valAdded:
-                    lineData.append(0)
-                elif valAdded:
-                    lineData.append(theVal)
-                valAdded = False
-                theVal = 0
-                numFrames += 1
-            mapData.append(mapLine)
-
-        self.displayScatter(mzVals, intensity, drifts)
-        self.set_min_max_mz(mzVals)
-
-        self.mzVals = mzVals
-        self.intensity = intensity
-        self.drifts = drifts
-        self.mapData = mapData
-
-        self.displayImage(chosenData, self.pixelSizeX, self.pixelSizeY)
-
-        self.has_data = 1
-        self.original_image = chosenData
-
-    def Map_listbox_Callback(self, item):
-        self.Map_listselect_text = item.text()
-
-
-
-    def refreshMaplistbox(self):
-        if len(self.Maps) == 0:
-            # set box with default text
-            self.Map_listbox.clear()
-            if "Map_listselect_text" in locals():
-                del self.Map_listselect_text
-            QListWidgetItem('Map list appears here', self.Map_listbox)
-        else:
-            self.Map_listbox.clear()
-            if "Map_listselect_text" in locals():
-                del self.Map_listselect_text
-            listboxitems = list(self.Maps.keys())
-            for i in range(len(listboxitems)):
-                self.Map_listbox.addItem(listboxitems[i])
-
-    def refresh_ROI_listbox(self):
-        if len(self.ROI) == 0:
-            # set box with default text
-            self.ROI_listbox.clear()
-            # del self.ROI_listselect_text
-            QListWidgetItem('ROI list appears here', self.ROI_listbox)
-        else:
-            self.ROI_listbox.clear()
-            listboxitems = list(self.ROI.keys())
-            for i in range(len(listboxitems)):
-                self.ROI_listbox.addItem(listboxitems[i])
-
-
-
-    # --- Executes on button press in find_file_mzOI.
-    def find_file_mzOI_Callback(self):
-        self.fName_mzOI = QFileDialog.getOpenFileName(self, 'Pick list: m/z of interest', filter='*.csv')
-        self.mzOI_listname.setText(self.fName_mzOI[0])
-        # self.fName_mzOI_flag = True
-
-    def mzOI_extractMap_Callback(self):
-        if self.mzOI_listname.text() == '':
-            print("Please choose a .csv file with m/z values")
-            return 0
-        if self.mzVals is None:
-            print("Please choose a .bin file to process")
-            return 0
-        try:
-            mzOI = pd.read_csv(self.mzOI_listname.text())
-        except IOError:
-            print("Please choose a .csv file with m/z values")
-            return 0
-        mzOI = mzOI.to_numpy()
-
-        mzVals = []
-        intensity = []
-        drifts = None
-        if isIM:
-            drifts = []
-
-        for mz in mzOI:
-            diff = self.ppm_calc(mz)
-            for i in range(len(self.mzVals)):
-                if mz + diff >= self.mzVals[i] >= mz - diff:
-                    mzVals.append(self.mzVals[i])
-                    intensity.append(self.intensity[i])
-                    if isIM:
-                        drifts.append(self.drifts[i])
-
-        self.displayScatter(mzVals, intensity, drifts)
-
     def data_cursor_click(self, event):
-        # indexes = event.ind
-        # i = indexes[0]
         theXmOverZ = event.mouseevent.lastevent.xdata
         theY = event.mouseevent.lastevent.ydata
-
         self.start.setText("%.5f" % theXmOverZ)
         self.spectra_annotation(theXmOverZ, theY)
-
-    # This is a function that calculates how far away a value must be to be defined as a different lipid.
-    def ppm_calc(self, mzVal):
-        if float(self.pick_IDthreshold.value()) == 0:
-            return 0  # is this correct??
-        return mzVal * float(self.pick_IDthreshold.value()) / 1e6
 
     def spectra_annotation(self, mz, intensity):
         diff = self.ppm_calc(mz)
@@ -1554,6 +1503,34 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 va='bottom', ha='left',
                 bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
         self.spectra_canvas.draw()
+
+    def set_min_max_mz(self, mzVals):
+        try:
+            self.min_mz.setRange(min(mzVals), max(mzVals))
+            self.max_mz.setRange(min(mzVals), max(mzVals))
+            self.min_mz.setValue(min(mzVals))
+            self.max_mz.setValue(max(mzVals))
+        except TypeError:
+            print("Error: There is no plot. Please select a .bin file and press 'GO' ")
+            return
+
+    ##### Misc. functions #####
+    def find_min_max_image(self, imageData):
+        theMin = sys.maxsize
+        theMax = 0
+        for line in imageData:
+            lineMin = min(line)
+            lineMax = max(line)
+            if lineMax > theMax:
+                theMax = lineMax
+            if lineMin < theMin:
+                theMin = lineMin
+        return theMin, theMax
+
+    def ppm_calc(self, mzVal):
+        if float(self.pick_IDthreshold.value()) == 0:
+            return 0  # is this correct??
+        return mzVal * float(self.pick_IDthreshold.value()) / 1e6
 
     ##########################################
     # Multi Map Compare functions (things related to the 2nd window)
