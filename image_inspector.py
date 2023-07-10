@@ -19,6 +19,7 @@ Created on Wed Feb 10 15:58:09 2021
 # 7. (JC)The standard dev increases when the image is flipped or rotated. Is that okay?
 # 8. (JC)What color should the spectra plot colormap be?
 #       a. Make examples for this in colab that can be shown to JC. Screenshot them!
+# 9. Put the documents onto the lab website online.
 
 import os
 import sys
@@ -175,9 +176,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mmcWindow = MultiMapCompareobject()
 
         # Function connections
-        self.find_file.clicked.connect(self.find_file_Callback)
+        self.find_file.clicked.connect(self.find_data_file)
         self.find_file_mzOI.clicked.connect(self.find_file_mzOI_Callback)
-        self.start_cube.clicked.connect(self.start_cube_Callback)
+        self.start_cube.clicked.connect(self.process_file)
         self.pick_point.clicked.connect(self.pick_point_Callback)
         self.mass_up.clicked.connect(self.mass_up_Callback)
         self.mass_down.clicked.connect(self.mass_down_Callback)
@@ -245,7 +246,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         QListWidgetItem('ROI list appears here', self.ROI_listbox)
         QListWidgetItem('Map list appears here', self.Map_listbox)
 
-        self.fName = ""
+        self.fileName = ""
         self.ROI = {}
         self.ROIplots = {}
         self.ROI_Mass = {}
@@ -277,11 +278,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.all_drift_times.setStyleSheet(button_style_sheet)
 
     #####  Functions in the top boxes  #####
-    def find_file_Callback(self):
-        # But this code does not handle .h5 or .mat files
-        self.fName = QFileDialog.getOpenFileName(self, 'Pick Data Cube', filter='*.mat, *.h5, *.bin *.csv')
-        self.wspc_name.setText(self.fName[0])
+    def find_data_file(self):
+        self.fileName = QFileDialog.getOpenFileName(self, 'Pick Data Cube', filter='*.mat, *.h5, *.bin *.csv')
+        self.working_file_name.setText(self.fileName[0])
 
+    # setIM sets the global isIM variable to true and enables all buttons needed to inspect IM data. 
     def setIM(self):
         global isIM
         isIM = True
@@ -291,6 +292,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.drift_time.setDisabled(False)
         self.drift_scrollbar.setDisabled(False)
 
+    # setMS sets the global isIM variable to false and disables any buttons not needed to inspect MS data. 
     def setMS(self):
         global isIM
         isIM = False
@@ -300,21 +302,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.drift_time.setDisabled(True)
         self.drift_scrollbar.setDisabled(True)
 
-    def start_cube_Callback(self):
-        cube_file_name = self.fName[0]
-        filename = cube_file_name
+    def process_file(self):
+        file_Name = self.fileName[0]
         self.functionsCommonToAll()
         print("Working to read datacube")
-        if filename.endswith('.mat'):
+        if file_Name.endswith('.mat'):
             print("This code can't process .mat files")
             return
-        elif filename.endswith('.h5'):
+        elif file_Name.endswith('.h5'):
             print("This code can't process .h5 files")
             return
-        elif filename.endswith('.csv'):
-            data = ((pd.read_csv(cube_file_name, header=None)).to_numpy(numpy.float32)).flatten()
-        elif filename.endswith('.bin'):
-            file = open(cube_file_name)
+        elif file_Name.endswith('.csv'):
+            data = ((pd.read_csv(file_Name, header=None)).to_numpy(numpy.float32)).flatten()
+            # Opens the input csv file and converts the file to the correct format.
+        elif file_Name.endswith('.bin'):
+            file = open(file_Name)
             data = np.fromfile(file, dtype=np.float32)
             file.close()
         else:
@@ -328,6 +330,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             else:
                 print("Please select whether the file is IM or MS Data")
         except IndexError:
+            # If an error is thrown it could be because the user selected the incorrect input format
             if isIM:
                 print("Did you mean to select MS Data?")
             else:

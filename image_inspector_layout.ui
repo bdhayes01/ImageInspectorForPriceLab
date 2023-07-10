@@ -834,7 +834,7 @@ border-radius:7px;</string>
       <string>GO</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="wspc_name">
+    <widget class="QLineEdit" name="working_file_name">
      <property name="geometry">
       <rect>
        <x>20</x>
@@ -908,7 +908,7 @@ border: 1px solid black;</string>
       </property>
      </widget>
     </widget>
-    <zorder>wspc_name</zorder>
+    <zorder>working_file_name</zorder>
     <zorder>find_file</zorder>
     <zorder>Unitbuttons</zorder>
     <zorder>start_cube</zorder>
