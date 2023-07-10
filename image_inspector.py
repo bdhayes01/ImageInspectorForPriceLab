@@ -284,6 +284,180 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.one_drift_time.setStyleSheet(button_style_sheet)
         self.all_drift_times.setStyleSheet(button_style_sheet)
 
+    #####  Functions in the top boxes  #####
+    def find_file_Callback(self):
+        # But this code does not handle .h5 or .mat files
+        self.fName = QFileDialog.getOpenFileName(self, 'Pick Data Cube', filter='*.mat, *.h5, *.bin *.csv')
+        self.wspc_name.setText(self.fName[0])
+
+    def setIM(self):
+        global isIM
+        isIM = True
+        self.all_drift_times.setCheckable(True)
+        self.all_drift_times.setChecked(True)
+        self.one_drift_time.setCheckable(True)
+        self.drift_time.setDisabled(False)
+        self.drift_scrollbar.setDisabled(False)
+
+    def setMS(self):
+        global isIM
+        isIM = False
+        self.all_drift_times.setChecked(False)
+        self.all_drift_times.setCheckable(False)
+        self.one_drift_time.setCheckable(False)
+        self.drift_time.setDisabled(True)
+        self.drift_scrollbar.setDisabled(True)
+
+    def start_cube_Callback(self):
+        self.cube_file_name = self.fName[0]
+        filename = self.cube_file_name
+        self.functionsCommonToAll()
+        print("Working to read datacube")
+        if filename.endswith('.mat'):
+            print("This code can't process .mat files")
+            return
+        elif filename.endswith('.h5'):
+            print("This code can't process .h5 files")
+            return
+        elif filename.endswith('.csv'):
+            data = ((pd.read_csv(self.cube_file_name, header=None)).to_numpy(numpy.float32)).flatten()
+        elif filename.endswith('.bin'):
+            file = open(self.cube_file_name)
+            data = np.fromfile(file, dtype=np.float32)
+            file.close()
+        else:
+            print('Unexpected file extension')
+            return
+        try:
+            if isIM:
+                self.cubeAsIMData(data)
+            elif self.MSDataButton.isChecked():
+                self.cubeAsMSData(data)
+            else:
+                print("Please select whether the file is IM or MS Data")
+        except IndexError:
+            if isIM:
+                print("Did you mean to select MS Data?")
+            else:
+                print("Did you mean to select IM Data?")
+
+    def functionsCommonToAll(self):
+        if self.micrometer.isChecked():
+            self.scale_fact = 1e3
+            self.label = 'μm'
+        elif self.millimeter.isChecked():
+            self.scale_fact = 1
+            self.label = 'mm'
+        elif self.centimeter.isChecked():
+            self.scale_fact = 0.1
+            self.label = 'cm'
+
+        while self.plot_kin.count():
+            child = self.plot_kin.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        self.iso_view = None
+
+        self.chosenDataIso = None
+
+        self.max_int.clear()
+        self.min_int.clear()
+        self.max_int_iso.clear()
+        self.min_int_iso.clear()
+        self.max_iso.clear()
+        self.min_iso.clear()
+        self.temp_max.clear()
+        self.temp_min.clear()
+        self.Msumratio.clear()
+        self.Msumstandard_error.clear()
+        self.numberpoints.clear()
+        self.Mplusonesumratio.clear()
+        self.Mplusonesumstandard_error.clear()
+        self.Mplustwosumratio.clear()
+        self.Mplustwosumstandard_error.clear()
+        self.start.clear()
+        self.Noise_Output_Box.clear()
+        self.exportConcMapname.setText("Conc. Map Name")
+        self.exportIsotopeMapname.setText("Isotope Map Name")
+        self.ID_Output_Box.clear()
+        self.massbox.clear()
+
+        self.ROIplots.clear()
+        self.ROI.clear()
+        self.ROI_img_mean.clear()
+        self.ROIcount = 0
+        self.ROIcountbox.setText("0")
+        self.ROI_listbox.clear()
+        QListWidgetItem('ROI list appears here', self.ROI_listbox)
+
+        self.clearMapbutton_Callback()
+
+        self.pickedPointData = None
+        self.pick_IDthreshold.setValue(20)
+        self.pick_IDthreshold.setMaximum(1000)
+
+        self.zmax_isotope.setMaximum(99)
+        self.zmax_isotope.setMinimum(0)
+        self.zmin_isotope.setMaximum(99)
+        self.zmin_isotope.setMinimum(0)
+        self.mzVals = None
+        self.drifts = None
+        self.intensity = None
+
+    ##### Functions in the MS Image Controls box #####
+    def mass_up_Callback(self):
+        if not self.view:
+            return 0
+        val = float(self.start.text()) + 1.0
+        self.start.setText(str(val))
+        if isIM:
+            self.im_point()
+        else:
+            self.ms_point()
+        return 0
+
+    def mass_down_Callback(self):
+        if not self.view:
+            return 0
+        val = float(self.start.text()) - 1.0
+        self.start.setText(str(val))
+        if isIM:
+            self.im_point()
+        else:
+            self.ms_point()
+        return 0
+
+    def reset_orig_image(self):
+        if self.original_image:
+            self.pickedPointData = None
+            self.displayImage(self.original_image, self.pixelSizeX, self.pixelSizeY)
+            self.start.clear()
+            self.massbox.clear()
+            self.IsotopeMapData = None
+            while self.plot_kin.count():
+                child = self.plot_kin.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
+
+    def export_ConcMap_Callback(self):
+        if self.ConcMapData is None:
+            print("There is no image to export")
+            return
+        # when clicking on the exportConcMap button, it will save the filename and concentration of the map
+        self.Maps[self.exportConcMapname.text()] = self.ConcMapData
+        self.refreshMaplistbox()
+        self.Mapcount += 1
+
+    def export_IsotopeMap_Callback(self):
+        if self.IsotopeMapData is None:
+            print("There is no image to export")
+            return
+        # when clicking on the exportIsotopeMap button, it will save the filename and concentration of the map
+        self.Maps[self.exportIsotopeMapname.text()] = self.IsotopeMapData
+        self.Mapcount += 1
+        self.refreshMaplistbox()
+
+    ##### Flipping functions #####
     def flip_figure(self):
         try:
             if self.original_image is not None:
@@ -359,151 +533,50 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             newMap.append(newLine)
         return newMap
 
-    def reset_orig_image(self):
-        if self.original_image:
-            self.pickedPointData = None
-            self.displayImage(self.original_image, self.pixelSizeX, self.pixelSizeY)
-            self.start.clear()
-            self.massbox.clear()
-            self.IsotopeMapData = None
-            while self.plot_kin.count():
-                child = self.plot_kin.takeAt(0)
-                if child.widget():
-                    child.widget().deleteLater()
+    ##### Original map scaling  #####
+    def zmax_Callback(self):
+        self.temp_max.setText(str(self.zmax.sliderPosition()))
+        self.scale_image()
 
-    def reset_scatter_callback(self):
-        if isIM:
-            self.one_drift_time.setChecked(False)
-            self.all_drift_times.setChecked(True)
-        if self.mzVals is None:
-            print("Error: There is no original plot. Please select a .bin file and press 'GO' ")
+    def zmin_Callback(self):
+        self.temp_min.setText(str(self.zmin.sliderPosition()))
+        self.scale_image()
+
+    def scale_image(self):
+        if not self.pickedPointData:
             return
-        self.displayScatter(self.mzVals, self.intensity, self.drifts)
-        self.set_min_max_mz(self.mzVals)
-
-    def change_mz(self):
-        max_mz = self.max_mz.value()
-        min_mz = self.min_mz.value()
-        mzVals = self.mzVals
-        intensities = self.intensity
-
-        if mzVals is None:
+        x = self.pickedPointData
+        data = []
+        maximum = self.zmax.sliderPosition()
+        minimum = self.zmin.sliderPosition()
+        if minimum >= maximum:
+            newMap = np.zeros((len(x), len(x[0])))
+            self.displayImage(newMap, self.pixelSizeX, self.pixelSizeY)
             return 0
-
-        processed_mz = []
-        processed_intens = []
-
         if isIM:
-            drifts = self.drifts
-            processed_drift = []
-            for i in range(len(mzVals)):
-                if max_mz >= mzVals[i] >= min_mz:
-                    processed_mz.append(mzVals[i])
-                    processed_intens.append(intensities[i])
-                    processed_drift.append(drifts[i])
-            self.displayScatter(processed_mz, processed_intens, processed_drift)
+            for line in x:
+                newLine = []
+                for frame in line:
+                    newFrame = 0  # Changed this from a 0 to the minimum. Is it right??
+                    if frame > maximum:
+                        newFrame = maximum
+                    elif maximum >= frame >= minimum:
+                        newFrame = frame
+                    newLine.append(newFrame)
+                data.append(newLine)
+            self.displayImage(data, self.pixelSizeX, self.pixelSizeY)
         else:
-            for i in range(len(mzVals)):
-                if max_mz >= mzVals[i] >= min_mz:
-                    processed_mz.append(mzVals[i])
-                    processed_intens.append(intensities[i])
-            self.displayScatter(processed_mz, processed_intens, None)
-        try:
-            self.set_min_max_mz(processed_mz)
-        except ValueError:
-            print("Error: There is no spectra to plot")
-            return
-
-    # --- Executes on button press in find_IDlist.
-    # can load a new ID list the consists of two columns
-    # must be .csv file
-    # the 1st column must be named "m/z"
-    # the 2nd column must be named "Lipid ID"
-    def find_IDlist_Callback(self):
-        # But this code does not handle .h5 or .mat files
-        fName_IDlist = QFileDialog.getOpenFileName(self, 'Pick ID List', filter='*.csv')
-        self.IDlist_name.setText(fName_IDlist[0])
-        if fName_IDlist[0] == '':
-            print("Please select a file to import as the ID list.")
-            return
-        self.ids_pd = pd.read_csv(fName_IDlist[0])
-
-    def button_changed_callback(self):
-        if not self.drifts:
-            return 0
-        if self.one_drift_time.isChecked():
-            val = self.drift_time.value()
-            self.show_mz_map(val)
-        else:
-            self.change_mz()
-        return 0
-
-    def drift_time_callback(self):
-        val = self.drift_time.value()
-        self.drift_scrollbar.setValue(val)
-        if self.drifts is None:
-            return
-        if self.one_drift_time.isChecked():
-            self.show_mz_map(val)
-
-    def drift_scrollbar_callback(self):
-        val = self.drift_scrollbar.sliderPosition()
-        self.drift_time.setValue(val)
-        if self.drifts is None:
-            return
-        if self.one_drift_time.isChecked():
-            self.show_mz_map(val)
-
-    def show_mz_map(self, val):
-        theDrifts = np.asarray(self.drifts)
-        drift_vals = np.where(val == theDrifts, self.drifts, 0)
-        drift_vals = drift_vals.nonzero()
-
-        mzVals = np.asarray(self.mzVals)[drift_vals]
-        intensity = np.asarray(self.intensity)[drift_vals]
-
-        theMax = self.max_mz.value()
-        theMin = self.min_mz.value()
-
-        in1 = np.where(theMax >= mzVals, mzVals, 0)
-        in1 = in1.nonzero()
-
-        mzVals = np.asarray(mzVals)[in1]
-        intensity = np.asarray(intensity)[in1]
-
-        in1 = np.where(mzVals >= theMin, mzVals, 0)
-        in1 = in1.nonzero()
-
-        mzVals = np.asarray(mzVals)[in1]
-        intensity = np.asarray(intensity)[in1]
-
-        self.displayScatter(mzVals, intensity, None, .3)
-        return 0
-
-    def mass_up_Callback(self):
-        if not self.view:
-            return 0
-        val = float(self.start.text()) + 1.0
-        self.start.setText(str(val))
-        if isIM:
-            self.im_point()
-        else:
-            self.ms_point()
-        return 0
-
-    # --- Executes on button press in mass_down.
-    # When the button is clicked, the mass index is decremented by 1
-    # and the image for the new mass is displayed
-    def mass_down_Callback(self):
-        if not self.view:
-            return 0
-        val = float(self.start.text()) - 1.0
-        self.start.setText(str(val))
-        if isIM:
-            self.im_point()
-        else:
-            self.ms_point()
-        return 0
+            for line in x:
+                newLine = []
+                for scan in line:  # Same as above line
+                    newScan = 0
+                    if scan > maximum:
+                        newScan = maximum
+                    elif maximum >= scan >= minimum:
+                        newScan = scan
+                    newLine.append(newScan)
+                data.append(newLine)
+            self.displayImage(data, self.pixelSizeX, self.pixelSizeY)
 
     def temp_max_Callback(self):
         newMax = self.plot_con_temp_pressed_callback(self.temp_max.text())
@@ -530,6 +603,38 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             newVal = float(self.min_int.text())
         return newVal
 
+    ##### Isotope map scaling  #####
+    def zmax_isotope_Callback(self):
+        self.max_iso.setText(str(self.zmax_isotope.sliderPosition()))
+        self.scale_iso_image()
+
+    def zmin_isotope_Callback(self):
+        self.min_iso.setText(str(self.zmin_isotope.sliderPosition()))
+        self.scale_iso_image()
+
+    def scale_iso_image(self):
+        if self.chosenDataIso is None:  # This will be triggered only at the beginning
+            return 0
+        x = self.chosenDataIso
+        data = []
+        maximum = self.zmax_isotope.sliderPosition()
+        minimum = self.zmin_isotope.sliderPosition()
+        if minimum >= maximum:
+            newMap = np.zeros((len(x), len(x[0])))
+            self.displayIsoImage(newMap, newMap, self.pixelSizeX, self.pixelSizeY)
+            return 0
+        for line in x:
+            newLine = []
+            for frame in line:
+                newFrame = 0
+                if frame > maximum:
+                    newFrame = maximum
+                elif maximum >= frame >= minimum:
+                    newFrame = frame
+                newLine.append(newFrame)
+            data.append(newLine)
+        self.displayIsoImage(self.pickedPointData, data, self.pixelSizeX, self.pixelSizeY)
+
     def temp_max_iso_Callback(self):
         newMax = self.plot_kin_temp_pressed_callback(self.max_iso.text())
         self.zmax_isotope.setValue(math.ceil(newMax))
@@ -555,25 +660,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             newVal = float(self.min_int_iso.text())
         return newVal
 
-    # This function allows the user to select a region of interest,
-    # then plots the mass spectrum averaged over that ROI
-    # --- Executes on button press in ROI_select.
-    def ROI_select_Callback_mask(self):
-        if self.start.text() == '':
-            print("You must choose or input a point to the 'Selected Mass' box first.")
-            return
-        if self.massbox.text() == '':
-            print("There is no plot to select")
-            return
-        else:
-            if self.h:
-                self.h.disconnect()
-            self.h = roi.new_ROI(self.con_img)
-
-    # This function plots a mass spectrum corresponing to a selected point
-    # on the displayed image, or an image corresponding to a selected point
-    # on the mass spectrum
-    # --- Executes on button press in pick_point.
+    ##### Map Controls #####
     def pick_point_Callback(self):
         if self.micrometer.isChecked():
             self.scale_fact = 1e3
@@ -748,6 +835,305 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.chosenDataIso = image_plus_two
         return 0
 
+    def ROI_select_Callback_mask(self):
+        if self.start.text() == '':
+            print("You must choose or input a point to the 'Selected Mass' box first.")
+            return
+        if self.massbox.text() == '':
+            print("There is no plot to select")
+            return
+        else:
+            if self.h:
+                self.h.disconnect()
+            self.h = roi.new_ROI(self.con_img)
+
+    def exportROI_Callback(self):
+        if self.h is None:
+            print("Please choose an ROI before processing")
+            return
+        if self.view:
+            self.binI = self.h.get_mask().astype(int)
+            self.binI = np.flipud(self.binI)
+            f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
+            self.ROI_outline[self.exportROIfilename.text()] = f
+            self.numberpoints.setText(str(len(f)))
+        self.ROIcount = self.ROIcount + 1
+        self.ROIcountbox.setText(str(self.ROIcount))
+        self.ROI[self.exportROIfilename.text()] = self.binI
+        self.ROI_Mass[self.exportROIfilename.text()] = float(self.massbox.text())
+        self.ROI_Map_Data[self.exportROIfilename.text()] = self.mapData
+        self.refresh_ROI_listbox()
+        return 0
+
+    ##### Drift time box functions #####
+    def drift_scrollbar_callback(self):
+        val = self.drift_scrollbar.sliderPosition()
+        self.drift_time.setValue(val)
+        if self.drifts is None:
+            return
+        if self.one_drift_time.isChecked():
+            self.show_mz_map(val)
+
+    def button_changed_callback(self):
+        if not self.drifts:
+            return 0
+        if self.one_drift_time.isChecked():
+            val = self.drift_time.value()
+            self.show_mz_map(val)
+        else:
+            self.change_mz()
+        return 0
+
+    def drift_time_callback(self):
+        val = self.drift_time.value()
+        self.drift_scrollbar.setValue(val)
+        if self.drifts is None:
+            return
+        if self.one_drift_time.isChecked():
+            self.show_mz_map(val)
+
+    def show_mz_map(self, val):
+        theDrifts = np.asarray(self.drifts)
+        drift_vals = np.where(val == theDrifts, self.drifts, 0)
+        drift_vals = drift_vals.nonzero()
+
+        mzVals = np.asarray(self.mzVals)[drift_vals]
+        intensity = np.asarray(self.intensity)[drift_vals]
+
+        theMax = self.max_mz.value()
+        theMin = self.min_mz.value()
+
+        in1 = np.where(theMax >= mzVals, mzVals, 0)
+        in1 = in1.nonzero()
+
+        mzVals = np.asarray(mzVals)[in1]
+        intensity = np.asarray(intensity)[in1]
+
+        in1 = np.where(mzVals >= theMin, mzVals, 0)
+        in1 = in1.nonzero()
+
+        mzVals = np.asarray(mzVals)[in1]
+        intensity = np.asarray(intensity)[in1]
+
+        self.displayScatter(mzVals, intensity, None, .3)
+        return 0
+
+    def change_mz(self):
+        max_mz = self.max_mz.value()
+        min_mz = self.min_mz.value()
+        mzVals = self.mzVals
+        intensities = self.intensity
+
+        if mzVals is None:
+            return 0
+
+        processed_mz = []
+        processed_intens = []
+
+        if isIM:
+            drifts = self.drifts
+            processed_drift = []
+            for i in range(len(mzVals)):
+                if max_mz >= mzVals[i] >= min_mz:
+                    processed_mz.append(mzVals[i])
+                    processed_intens.append(intensities[i])
+                    processed_drift.append(drifts[i])
+            self.displayScatter(processed_mz, processed_intens, processed_drift)
+        else:
+            for i in range(len(mzVals)):
+                if max_mz >= mzVals[i] >= min_mz:
+                    processed_mz.append(mzVals[i])
+                    processed_intens.append(intensities[i])
+            self.displayScatter(processed_mz, processed_intens, None)
+        try:
+            self.set_min_max_mz(processed_mz)
+        except ValueError:
+            print("Error: There is no spectra to plot")
+            return
+
+    def reset_scatter_callback(self):
+        if isIM:
+            self.one_drift_time.setChecked(False)
+            self.all_drift_times.setChecked(True)
+        if self.mzVals is None:
+            print("Error: There is no original plot. Please select a .bin file and press 'GO' ")
+            return
+        self.displayScatter(self.mzVals, self.intensity, self.drifts)
+        self.set_min_max_mz(self.mzVals)
+
+    ##### ROI Listbox functions #####
+    def ROI_listbox_Callback(self, item):
+        # this should tell me which number in list is selected
+        # now I need the outline of the ROI to appear
+        try:
+            self.ROI_listselect_array = self.ROI[item.text()]
+        except KeyError:
+            print("This is not a ROI. Please choose a ROI. ")
+            return
+        self.ROI_listselect_text = item.text()
+        self.ROI_img_mean[item.text()] = self.img_mean
+        self._con_ax = 1
+        self.ROIplots[self.ROI_listselect_text] = item  # What am I doing here??
+        # self.ROI[self.ROI_listselect_text] =
+        return 0
+
+    def importROI_Callback(self):
+        if self.ROI_listselect_text == "":
+            print("No item selected")
+        else:
+            try:
+                chosenVal = self.ROI_Mass[self.ROI_listselect_text]
+            except ValueError:
+                print("Error: The chosen m/z must be numeric")
+                return
+            ppm = self.ppm_calc(chosenVal)
+
+            self.ROIData = []
+            mzVals = []
+            intensities = []
+            drifts = None
+
+            outline = self.ROI_outline[self.ROI_listselect_text]
+            mapData = self.ROI_Map_Data[self.ROI_listselect_text]
+            if self.drifts is None:
+                counter = 0
+                for line in mapData:
+                    for scan in line:
+                        if counter not in outline:
+                            counter += 1
+                            continue
+                        else:
+                            for point in scan:
+                                mz = point[0]
+                                if chosenVal + ppm >= mz >= chosenVal - ppm:
+                                    mzVals.append(mz)
+                                    intensities.append(point[1])
+                            counter += 1
+                for i in range(len(mzVals)):
+                    self.ROIData.append([mzVals[i], intensities[i]])
+            else:
+                drifts = []
+                counter = 0
+                for line in mapData:
+                    for frame in line:
+                        if counter not in outline:
+                            counter += 1
+                            continue
+                        else:
+                            for point in frame:
+                                mz = point[0]
+                                if chosenVal + ppm >= mz >= chosenVal - ppm:
+                                    mzVals.append(mz)
+                                    intensities.append(point[1])
+                                    drifts.append(point[2])
+                            counter += 1
+                for i in range(len(mzVals)):
+                    self.ROIData.append([mzVals[i], intensities[i], drifts[i]])
+
+            self.displayScatter(mzVals, intensities, drifts, 100 / len(mzVals))
+            self.set_min_max_mz(mzVals)
+
+    def exportROI_spectra_val_Callback(self):
+        if self.ROI_listselect_text == "":
+            print("No item selected. Double click an item in the ROI listbox")
+        else:
+            path = QFileDialog.getSaveFileName(self, 'Save CSV', os.getenv('HOME'), 'CSV(*.csv)')
+            if path[0] != '':
+                with open(path[0], 'w', newline='') as csv_file:
+                    writer = csv.writer(csv_file, dialect='excel', delimiter=',', lineterminator='\n')
+                    if isIM:
+                        writer.writerow(["M/Z Value", "Intensity", "Drift Time"])
+                        for line in self.ROIData:
+                            writer.writerow(line)
+                    else:
+                        writer.writerow(["M/Z Value", "Intensity"])
+                        for line in self.ROIData:
+                            writer.writerow(line)
+            else:
+                print("No location selected. Please select a location")
+
+    def deleteROIbutton_Callback(self):
+        if self.ROIcount == 0:
+            self.ROI_listselect_text = ""
+            return
+        else:
+            if self._con_ax:
+                if self.ROI_listselect_text in self.ROIplots:
+                    del self.ROIplots[self.ROI_listselect_text]
+                    del self.ROI[self.ROI_listselect_text]
+                    del self.ROI_img_mean[self.ROI_listselect_text]
+                    self.ROIcount = self.ROIcount - 1
+                    self.ROIcountbox.setText(str(self.ROIcount))
+                    self.refresh_ROI_listbox()
+                    print('plot removed')
+                    if isIM:
+                        self.im_point()
+                    else:
+                        self.ms_point()
+                else:
+                    print('Item does not exist. Please double click on another item')
+        self.ROI_listselect_text = ""
+
+    def clearROI_Callback(self):
+        self.ROIplots.clear()
+        self.ROI.clear()
+        self.ROI_img_mean.clear()
+        self.ROIcount = 0
+        self.ROIcountbox.setText("0")
+        self.refresh_ROI_listbox()
+        self.reset_scatter_callback()
+        self.ROI_listselect_text = ""
+        if isIM:
+            self.im_point()
+        else:
+            self.ms_point()
+
+    ##### Map Listbox functions #####
+    def deleteMapbutton_Callback(self):
+        if self.Mapcount == 0:
+            return
+        else:
+            if self.Map_listselect_text:
+                del self.Maps[self.Map_listselect_text]
+                self.refreshMaplistbox()
+                self.Mapcount -= 1
+                print('Map removed')
+            else:
+                print('Item does not exist. Please double click on another item')
+
+    def clearMapbutton_Callback(self):
+        if self.Mapcount == 0:
+            return
+        else:
+            self.Maps.clear()
+            self.Mapcount = 0
+            self.refreshMaplistbox()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def find_IDlist_Callback(self):
+        # But this code does not handle .h5 or .mat files
+        fName_IDlist = QFileDialog.getOpenFileName(self, 'Pick ID List', filter='*.csv')
+        self.IDlist_name.setText(fName_IDlist[0])
+        if fName_IDlist[0] == '':
+            print("Please select a file to import as the ID list.")
+            return
+        self.ids_pd = pd.read_csv(fName_IDlist[0])
+
     def isotope_scalar(self, m_zero_intensity, isotope_intensity):
         new_data = []
         for i in range(len(m_zero_intensity)):
@@ -762,109 +1148,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 theLine.append(ratio)
             new_data.append(theLine)
         return new_data
-
-    # --- Executes on button press in find_file.
-    def find_file_Callback(self):
-        # But this code does not handle .h5 or .mat files
-        self.fName = QFileDialog.getOpenFileName(self, 'Pick Data Cube', filter='*.mat, *.h5, *.bin *.csv')
-        self.wspc_name.setText(self.fName[0])
-
-    # --- Executes on button press in start_cube.
-    def start_cube_Callback(self):
-        self.cube_file_name = self.fName[0]
-        filename = self.cube_file_name
-        self.functionsCommonToAll()
-        print("Working to read datacube")
-        if filename.endswith('.mat'):
-            print("This code can't process .mat files")
-            return
-        elif filename.endswith('.h5'):
-            print("This code can't process .h5 files")
-            return
-        elif filename.endswith('.csv'):
-            data = ((pd.read_csv(self.cube_file_name, header=None)).to_numpy(numpy.float32)).flatten()
-        elif filename.endswith('.bin'):
-            file = open(self.cube_file_name)
-            data = np.fromfile(file, dtype=np.float32)
-            file.close()
-        else:
-            print('Unexpected file extension')
-            return
-        try:
-            if isIM:
-                self.cubeAsIMData(data)
-            elif self.MSDataButton.isChecked():
-                self.cubeAsMSData(data)
-            else:
-                print("Please select whether the file is IM or MS Data")
-        except IndexError:
-            if isIM:
-                print("Did you mean to select MS Data?")
-            else:
-                print("Did you mean to select IM Data?")
-
-    def functionsCommonToAll(self):
-        if self.micrometer.isChecked():
-            self.scale_fact = 1e3
-            self.label = 'μm'
-        elif self.millimeter.isChecked():
-            self.scale_fact = 1
-            self.label = 'mm'
-        elif self.centimeter.isChecked():
-            self.scale_fact = 0.1
-            self.label = 'cm'
-
-        while self.plot_kin.count():
-            child = self.plot_kin.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
-        self.iso_view = None
-
-        self.chosenDataIso = None
-
-        self.max_int.clear()
-        self.min_int.clear()
-        self.max_int_iso.clear()
-        self.min_int_iso.clear()
-        self.max_iso.clear()
-        self.min_iso.clear()
-        self.temp_max.clear()
-        self.temp_min.clear()
-        self.Msumratio.clear()
-        self.Msumstandard_error.clear()
-        self.numberpoints.clear()
-        self.Mplusonesumratio.clear()
-        self.Mplusonesumstandard_error.clear()
-        self.Mplustwosumratio.clear()
-        self.Mplustwosumstandard_error.clear()
-        self.start.clear()
-        self.Noise_Output_Box.clear()
-        self.exportConcMapname.setText("Conc. Map Name")
-        self.exportIsotopeMapname.setText("Isotope Map Name")
-        self.ID_Output_Box.clear()
-        self.massbox.clear()
-
-        self.ROIplots.clear()
-        self.ROI.clear()
-        self.ROI_img_mean.clear()
-        self.ROIcount = 0
-        self.ROIcountbox.setText("0")
-        self.ROI_listbox.clear()
-        QListWidgetItem('ROI list appears here', self.ROI_listbox)
-
-        self.clearMapbutton_Callback()
-
-        self.pickedPointData = None
-        self.pick_IDthreshold.setValue(20)
-        self.pick_IDthreshold.setMaximum(1000)
-
-        self.zmax_isotope.setMaximum(99)
-        self.zmax_isotope.setMinimum(0)
-        self.zmin_isotope.setMaximum(99)
-        self.zmin_isotope.setMinimum(0)
-        self.mzVals = None
-        self.drifts = None
-        self.intensity = None
 
     def displayIsoImage(self, zero_image, imageData, pixelSizeX, pixelSizeY):
         # This needs to be a different function for both the original point and the scaling functions
@@ -1138,127 +1421,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.has_data = 1
         self.original_image = chosenData
 
-    # --- Executes on slider movement.
-    def zmax_Callback(self):
-        self.temp_max.setText(str(self.zmax.sliderPosition()))
-        self.scale_image()
-
-    def zmin_Callback(self):
-        self.temp_min.setText(str(self.zmin.sliderPosition()))
-        self.scale_image()
-
-    # This function updates the image to the current index
-    def scale_image(self):
-        if not self.pickedPointData:
-            return
-        x = self.pickedPointData
-        data = []
-        maximum = self.zmax.sliderPosition()
-        minimum = self.zmin.sliderPosition()
-        if minimum >= maximum:
-            newMap = np.zeros((len(x), len(x[0])))
-            self.displayImage(newMap, self.pixelSizeX, self.pixelSizeY)
-            return 0
-        if isIM:
-            for line in x:
-                newLine = []
-                for frame in line:
-                    newFrame = 0  # Changed this from a 0 to the minimum. Is it right??
-                    if frame > maximum:
-                        newFrame = maximum
-                    elif maximum >= frame >= minimum:
-                        newFrame = frame
-                    newLine.append(newFrame)
-                data.append(newLine)
-            self.displayImage(data, self.pixelSizeX, self.pixelSizeY)
-        else:
-            for line in x:
-                newLine = []
-                for scan in line:  # Same as above line
-                    newScan = 0
-                    if scan > maximum:
-                        newScan = maximum
-                    elif maximum >= scan >= minimum:
-                        newScan = scan
-                    newLine.append(newScan)
-                data.append(newLine)
-            self.displayImage(data, self.pixelSizeX, self.pixelSizeY)
-
-    # --- Executes on slider movement.
-    def zmax_isotope_Callback(self):
-        self.max_iso.setText(str(self.zmax_isotope.sliderPosition()))
-        self.scale_iso_image()
-
-    # --- Executes on slider movement.
-    def zmin_isotope_Callback(self):
-        self.min_iso.setText(str(self.zmin_isotope.sliderPosition()))
-        self.scale_iso_image()
-
-    # This function updates the image to the current index
-    # Figure out what this function is trying to do!
-    def scale_iso_image(self):
-        if self.chosenDataIso is None:  # This will be triggered only at the beginning
-            return 0
-        x = self.chosenDataIso
-        data = []
-        maximum = self.zmax_isotope.sliderPosition()
-        minimum = self.zmin_isotope.sliderPosition()
-        if minimum >= maximum:
-            newMap = np.zeros((len(x), len(x[0])))
-            self.displayIsoImage(newMap, newMap, self.pixelSizeX, self.pixelSizeY)
-            return 0
-        for line in x:
-            newLine = []
-            for frame in line:
-                newFrame = 0
-                if frame > maximum:
-                    newFrame = maximum
-                elif maximum >= frame >= minimum:
-                    newFrame = frame
-                newLine.append(newFrame)
-            data.append(newLine)
-        self.displayIsoImage(self.pickedPointData, data, self.pixelSizeX, self.pixelSizeY)
-
-    def export_ConcMap_Callback(self):
-        if self.ConcMapData is None:
-            print("There is no image to export")
-            return
-        # when clicking on the exportConcMap button, it will save the filename and concentration of the map
-        self.Maps[self.exportConcMapname.text()] = self.ConcMapData
-        self.refreshMaplistbox()
-        self.Mapcount += 1
-
-    def export_IsotopeMap_Callback(self):
-        if self.IsotopeMapData is None:
-            print("There is no image to export")
-            return
-        # when clicking on the exportIsotopeMap button, it will save the filename and concentration of the map
-        self.Maps[self.exportIsotopeMapname.text()] = self.IsotopeMapData
-        self.Mapcount += 1
-        self.refreshMaplistbox()
-
     def Map_listbox_Callback(self, item):
         self.Map_listselect_text = item.text()
 
-    def deleteMapbutton_Callback(self):
-        if self.Mapcount == 0:
-            return
-        else:
-            if self.Map_listselect_text:
-                del self.Maps[self.Map_listselect_text]
-                self.refreshMaplistbox()
-                self.Mapcount -= 1
-                print('Map removed')
-            else:
-                print('Item does not exist. Please double click on another item')
 
-    def clearMapbutton_Callback(self):
-        if self.Mapcount == 0:
-            return
-        else:
-            self.Maps.clear()
-            self.Mapcount = 0
-            self.refreshMaplistbox()
 
     def refreshMaplistbox(self):
         if len(self.Maps) == 0:
@@ -1275,24 +1441,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             for i in range(len(listboxitems)):
                 self.Map_listbox.addItem(listboxitems[i])
 
-    def exportROI_Callback(self):
-        if self.h is None:
-            print("Please choose an ROI before processing")
-            return
-        if self.view:
-            self.binI = self.h.get_mask().astype(int)
-            self.binI = np.flipud(self.binI)
-            f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
-            self.ROI_outline[self.exportROIfilename.text()] = f
-            self.numberpoints.setText(str(len(f)))
-        self.ROIcount = self.ROIcount + 1
-        self.ROIcountbox.setText(str(self.ROIcount))
-        self.ROI[self.exportROIfilename.text()] = self.binI
-        self.ROI_Mass[self.exportROIfilename.text()] = float(self.massbox.text())
-        self.ROI_Map_Data[self.exportROIfilename.text()] = self.mapData
-        self.refresh_ROI_listbox()
-        return 0
-
     def refresh_ROI_listbox(self):
         if len(self.ROI) == 0:
             # set box with default text
@@ -1305,134 +1453,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             for i in range(len(listboxitems)):
                 self.ROI_listbox.addItem(listboxitems[i])
 
-    # --- Executes on selection change in ROI_listbox
-    def ROI_listbox_Callback(self, item):
-        # this should tell me which number in list is selected
-        # now I need the outline of the ROI to appear
-        try:
-            self.ROI_listselect_array = self.ROI[item.text()]
-        except KeyError:
-            print("This is not a ROI. Please choose a ROI. ")
-            return
-        self.ROI_listselect_text = item.text()
-        self.ROI_img_mean[item.text()] = self.img_mean
-        self._con_ax = 1
-        self.ROIplots[self.ROI_listselect_text] = item  # What am I doing here??
-        # self.ROI[self.ROI_listselect_text] =
-        return 0
 
-    # loads the spectra from the selected ROI in the ROI_listbox
-    # --- Executes on button press in 'Load selected ROI spectra' button
-    def importROI_Callback(self):
-        if self.ROI_listselect_text == "":
-            print("No item selected")
-        else:
-            try:
-                chosenVal = self.ROI_Mass[self.ROI_listselect_text]
-            except ValueError:
-                print("Error: The chosen m/z must be numeric")
-                return
-            ppm = self.ppm_calc(chosenVal)
-
-            self.ROIData = []
-            mzVals = []
-            intensities = []
-            drifts = None
-
-            outline = self.ROI_outline[self.ROI_listselect_text]
-            mapData = self.ROI_Map_Data[self.ROI_listselect_text]
-            if self.drifts is None:
-                counter = 0
-                for line in mapData:
-                    for scan in line:
-                        if counter not in outline:
-                            counter += 1
-                            continue
-                        else:
-                            for point in scan:
-                                mz = point[0]
-                                if chosenVal + ppm >= mz >= chosenVal - ppm:
-                                    mzVals.append(mz)
-                                    intensities.append(point[1])
-                            counter += 1
-                for i in range(len(mzVals)):
-                    self.ROIData.append([mzVals[i], intensities[i]])
-            else:
-                drifts = []
-                counter = 0
-                for line in mapData:
-                    for frame in line:
-                        if counter not in outline:
-                            counter += 1
-                            continue
-                        else:
-                            for point in frame:
-                                mz = point[0]
-                                if chosenVal + ppm >= mz >= chosenVal - ppm:
-                                    mzVals.append(mz)
-                                    intensities.append(point[1])
-                                    drifts.append(point[2])
-                            counter += 1
-                for i in range(len(mzVals)):
-                    self.ROIData.append([mzVals[i], intensities[i], drifts[i]])
-
-            self.displayScatter(mzVals, intensities, drifts, 100 / len(mzVals))
-            self.set_min_max_mz(mzVals)
-
-    def exportROI_spectra_val_Callback(self):
-        if self.ROI_listselect_text == "":
-            print("No item selected. Double click an item in the ROI listbox")
-        else:
-            path = QFileDialog.getSaveFileName(self, 'Save CSV', os.getenv('HOME'), 'CSV(*.csv)')
-            if path[0] != '':
-                with open(path[0], 'w', newline='') as csv_file:
-                    writer = csv.writer(csv_file, dialect='excel', delimiter=',', lineterminator='\n')
-                    if isIM:
-                        writer.writerow(["M/Z Value", "Intensity", "Drift Time"])
-                        for line in self.ROIData:
-                            writer.writerow(line)
-                    else:
-                        writer.writerow(["M/Z Value", "Intensity"])
-                        for line in self.ROIData:
-                            writer.writerow(line)
-            else:
-                print("No location selected. Please select a location")
-
-    def deleteROIbutton_Callback(self):
-        if self.ROIcount == 0:
-            self.ROI_listselect_text = ""
-            return
-        else:
-            if self._con_ax:
-                if self.ROI_listselect_text in self.ROIplots:
-                    del self.ROIplots[self.ROI_listselect_text]
-                    del self.ROI[self.ROI_listselect_text]
-                    del self.ROI_img_mean[self.ROI_listselect_text]
-                    self.ROIcount = self.ROIcount - 1
-                    self.ROIcountbox.setText(str(self.ROIcount))
-                    self.refresh_ROI_listbox()
-                    print('plot removed')
-                    if isIM:
-                        self.im_point()
-                    else:
-                        self.ms_point()
-                else:
-                    print('Item does not exist. Please double click on another item')
-        self.ROI_listselect_text = ""
-
-    def clearROI_Callback(self):
-        self.ROIplots.clear()
-        self.ROI.clear()
-        self.ROI_img_mean.clear()
-        self.ROIcount = 0
-        self.ROIcountbox.setText("0")
-        self.refresh_ROI_listbox()
-        self.reset_scatter_callback()
-        self.ROI_listselect_text = ""
-        if isIM:
-            self.im_point()
-        else:
-            self.ms_point()
 
     # --- Executes on button press in find_file_mzOI.
     def find_file_mzOI_Callback(self):
@@ -1620,24 +1641,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mmcWindow.map_packet[num][4] = self.mmcWindow.map_packet[num][0].figure.colorbar(
             self.mmcWindow.map_packet[num][2])
         return 0
-
-    def setIM(self):
-        global isIM
-        isIM = True
-        self.all_drift_times.setCheckable(True)
-        self.all_drift_times.setChecked(True)
-        self.one_drift_time.setCheckable(True)
-        self.drift_time.setDisabled(False)
-        self.drift_scrollbar.setDisabled(False)
-
-    def setMS(self):
-        global isIM
-        isIM = False
-        self.all_drift_times.setChecked(False)
-        self.all_drift_times.setCheckable(False)
-        self.one_drift_time.setCheckable(False)
-        self.drift_time.setDisabled(True)
-        self.drift_scrollbar.setDisabled(True)
 
 
 if __name__ == "__main__":
