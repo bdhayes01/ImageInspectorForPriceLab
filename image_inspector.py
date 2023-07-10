@@ -139,7 +139,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         QtWidgets.QMainWindow.__init__(self, parent)
         super(MainGUIobject, self).__init__()
         self.con_img = None
-        self.con_img2 = None
         self.toolbar = None
         self.axes = None
         self.pixelSizeX = None
@@ -159,7 +158,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.chosenDataIso = None
         self.view = None
         self.iso_view = None
-        self.con_cbar = None
         self.original_image = None
         self.ROIData = None
         self.setupUi(self)
@@ -176,7 +174,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # multi map compare instance
         self.mmcWindow = MultiMapCompareobject()
 
-        # Function connection
+        # Function connections
         self.find_file.clicked.connect(self.find_file_Callback)
         self.find_file_mzOI.clicked.connect(self.find_file_mzOI_Callback)
         self.start_cube.clicked.connect(self.start_cube_Callback)
@@ -240,7 +238,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mmcWindow.importMapData.clicked.connect(self.MultiMapCompare_importMapData_Callback)
 
         # function image_inspector_OpeningFcn
-        self.has_data = 0
         self.millimeter.setChecked(True)
         self.massplusone.setChecked(True)
         self.all_drift_times.setChecked(True)
@@ -249,29 +246,24 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         QListWidgetItem('Map list appears here', self.Map_listbox)
 
         self.fName = ""
-        self.fName_mzOI = ""
-        self.cube_file_name = ""
         self.ROI = {}
         self.ROIplots = {}
-        self.ROI_img_mean = {}
         self.ROI_Mass = {}
         self.ROIcount = 0
         self.Maps = {}
         self.Mapcount = 0
         self.Map_listselect_text = ""
-        self.img_mean = 0
 
         # canvas
         self.spectra_canvas = None
 
         # ROI
-        self.h = None
+        self.outline = None
         self.ROI_listselect_text = ""
-        self.ROI_listselect_array = []
 
         # multipmap compare variables
-        self.ConcMapData = None  # map data, x_end, y_end, ()
-        self.IsotopeMapData = None  # # map data, x_end, y_end, (iso_min, iso_max)
+        self.ConcMapData = None
+        self.IsotopeMapData = None
 
         # Style sheets
         self.micrometer.setStyleSheet(button_style_sheet)
@@ -309,8 +301,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.drift_scrollbar.setDisabled(True)
 
     def start_cube_Callback(self):
-        self.cube_file_name = self.fName[0]
-        filename = self.cube_file_name
+        cube_file_name = self.fName[0]
+        filename = cube_file_name
         self.functionsCommonToAll()
         print("Working to read datacube")
         if filename.endswith('.mat'):
@@ -320,9 +312,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("This code can't process .h5 files")
             return
         elif filename.endswith('.csv'):
-            data = ((pd.read_csv(self.cube_file_name, header=None)).to_numpy(numpy.float32)).flatten()
+            data = ((pd.read_csv(cube_file_name, header=None)).to_numpy(numpy.float32)).flatten()
         elif filename.endswith('.bin'):
-            file = open(self.cube_file_name)
+            file = open(cube_file_name)
             data = np.fromfile(file, dtype=np.float32)
             file.close()
         else:
@@ -384,7 +376,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.ROIplots.clear()
         self.ROI.clear()
-        self.ROI_img_mean.clear()
         self.ROIcount = 0
         self.ROIcountbox.setText("0")
         self.ROI_listbox.clear()
@@ -518,8 +509,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mapData = mapData
 
         self.displayImage(chosenData, self.pixelSizeX, self.pixelSizeY)
-
-        self.has_data = 1
         self.original_image = chosenData
 
     ##### Functions in the MS Image Controls box #####
@@ -961,16 +950,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("There is no plot to select")
             return
         else:
-            if self.h:
-                self.h.disconnect()
-            self.h = roi.new_ROI(self.con_img)
+            if self.outline:
+                self.outline.disconnect()
+            self.outline = roi.new_ROI(self.con_img)
 
     def exportROI_Callback(self):
-        if self.h is None:
+        if self.outline is None:
             print("Please choose an ROI before processing")
             return
         if self.view:
-            self.binI = self.h.get_mask().astype(int)
+            self.binI = self.outline.get_mask().astype(int)
             self.binI = np.flipud(self.binI)
             f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
             self.ROI_outline[self.exportROIfilename.text()] = f
@@ -1084,15 +1073,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         # this should tell me which number in list is selected
         # now I need the outline of the ROI to appear
         try:
-            self.ROI_listselect_array = self.ROI[item.text()]
+            self.ROI[item.text()]
         except KeyError:
             print("This is not a ROI. Please choose a ROI. ")
             return
         self.ROI_listselect_text = item.text()
-        self.ROI_img_mean[item.text()] = self.img_mean
         self._con_ax = 1
-        self.ROIplots[self.ROI_listselect_text] = item  # What am I doing here??
-        # self.ROI[self.ROI_listselect_text] =
+        self.ROIplots[self.ROI_listselect_text] = item
         return 0
 
     def importROI_Callback(self):
@@ -1179,7 +1166,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 if self.ROI_listselect_text in self.ROIplots:
                     del self.ROIplots[self.ROI_listselect_text]
                     del self.ROI[self.ROI_listselect_text]
-                    del self.ROI_img_mean[self.ROI_listselect_text]
                     self.ROIcount = self.ROIcount - 1
                     self.ROIcountbox.setText(str(self.ROIcount))
                     self.refresh_ROI_listbox()
@@ -1195,7 +1181,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def clearROI_Callback(self):
         self.ROIplots.clear()
         self.ROI.clear()
-        self.ROI_img_mean.clear()
         self.ROIcount = 0
         self.ROIcountbox.setText("0")
         self.refresh_ROI_listbox()
@@ -1257,8 +1242,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     ##### m/z of interest box functions #####
     def find_file_mzOI_Callback(self):
-        self.fName_mzOI = QFileDialog.getOpenFileName(self, 'Pick list: m/z of interest', filter='*.csv')
-        self.mzOI_listname.setText(self.fName_mzOI[0])
+        fName_mzOI = QFileDialog.getOpenFileName(self, 'Pick list: m/z of interest', filter='*.csv')
+        self.mzOI_listname.setText(fName_mzOI[0])
 
     def mzOI_extractMap_Callback(self):
         if self.mzOI_listname.text() == '':
@@ -1340,11 +1325,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes = self.iso_view.figure.subplots()
         self.toolbar = NavigationToolbar(self.iso_view, self)
         self.plot_kin.addWidget(self.iso_view)
-        self.con_img2 = self.axes.imshow(iso_data, cmap='inferno', aspect=(y_end / x_end),
+        con_img2 = self.axes.imshow(iso_data, cmap='inferno', aspect=(y_end / x_end),
                                          extent=[0, x_end * self.scale_fact, 0, y_end * self.scale_fact])
         self.axes.set_xlabel("x, " + self.label)
         self.axes.set_ylabel("y, " + self.label)
-        plt.colorbar(self.con_img2)
+        plt.colorbar(con_img2)
         self.iso_view.draw()
         if not self.chosenDataIso:
             theMin, theMax = self.find_min_max_image(imageData)
