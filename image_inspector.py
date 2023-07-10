@@ -167,8 +167,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         # plots
         self._spectra_ax = None
-        self._con_ax = None
-        self._kin_ax = None
+        self._con_ax = False
 
         # load in default ID file
         self.ids_pd = pd.read_csv(DESI_ID_path)
@@ -197,17 +196,17 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.zmin_isotope.valueChanged.connect(self.zmin_isotope_Callback)
         self.ROI_select.clicked.connect(self.ROI_select_Callback_mask)
         self.exportROI.clicked.connect(self.exportROI_Callback)
-        self.ROI_listbox.itemDoubleClicked.connect(self.ROI_listbox_Callback)
-        self.importROI.clicked.connect(self.importROI_Callback)
-        self.deleteROIbutton.clicked.connect(self.deleteROIbutton_Callback)
-        self.clearROIbutton.clicked.connect(self.clearROI_Callback)
-        self.exportROI_val.clicked.connect(self.exportROI_spectra_val_Callback)
+        self.ROI_listbox.itemDoubleClicked.connect(self.roi_listbox_callback)
+        self.importROI.clicked.connect(self.import_roi_callback)
+        self.deleteROIbutton.clicked.connect(self.delete_roi_callback)
+        self.clearROIbutton.clicked.connect(self.clear_roi_callback)
+        self.exportROI_val.clicked.connect(self.export_roi_spectra_callback)
         self.find_IDlist.clicked.connect(self.find_IDlist_Callback)
-        self.Map_listbox.itemDoubleClicked.connect(self.Map_listbox_Callback)
+        self.Map_listbox.itemDoubleClicked.connect(self.map_listbox_callback)
         self.exportConcMap.clicked.connect(self.export_ConcMap_Callback)
         self.exportIsotopeMap.clicked.connect(self.export_IsotopeMap_Callback)
-        self.deleteMapbutton.clicked.connect(self.deleteMapbutton_Callback)
-        self.clearMapListboxbutton.clicked.connect(self.clearMapbutton_Callback)
+        self.deleteMapbutton.clicked.connect(self.delete_map_callback)
+        self.clearMapListboxbutton.clicked.connect(self.clear_map_callback)
         self.extract_Map_mzOI.clicked.connect(self.mzOI_extractMap_Callback)
         self.drift_scrollbar.sliderMoved.connect(self.drift_scrollbar_callback)
         self.drift_time.valueChanged.connect(self.drift_time_callback)
@@ -386,7 +385,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ROI_listbox.clear()
         QListWidgetItem('ROI list appears here', self.ROI_listbox)
 
-        self.clearMapbutton_Callback()
+        self.clear_map_callback()
 
         self.picked_point_data = None
         self.pick_IDthreshold.setValue(20)
@@ -973,38 +972,37 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.show_mz_map(val)
 
     def show_mz_map(self, val):
-        theDrifts = np.asarray(self.drifts)
-        drift_vals = np.where(val == theDrifts, self.drifts, 0)
+        drift_vals = np.where(val == np.asarray(self.drifts), self.drifts, 0)
         drift_vals = drift_vals.nonzero()
 
-        mzVals = np.asarray(self.mz_vals)[drift_vals]
+        mz_vals = np.asarray(self.mz_vals)[drift_vals]
         intensity = np.asarray(self.intensity)[drift_vals]
 
-        theMax = self.max_mz.value()
-        theMin = self.min_mz.value()
+        the_max = self.max_mz.value()
+        the_min = self.min_mz.value()
 
-        in1 = np.where(theMax >= mzVals, mzVals, 0)
-        in1 = in1.nonzero()
+        index = np.where(the_max >= mz_vals, mz_vals, 0)
+        index = index.nonzero()
 
-        mzVals = np.asarray(mzVals)[in1]
-        intensity = np.asarray(intensity)[in1]
+        mz_vals = np.asarray(mz_vals)[index]
+        intensity = np.asarray(intensity)[index]
 
-        in1 = np.where(mzVals >= theMin, mzVals, 0)
-        in1 = in1.nonzero()
+        index = np.where(mz_vals >= the_min, mz_vals, 0)
+        index = index.nonzero()
 
-        mzVals = np.asarray(mzVals)[in1]
-        intensity = np.asarray(intensity)[in1]
+        mz_vals = np.asarray(mz_vals)[index]
+        intensity = np.asarray(intensity)[index]
 
-        self.display_spectra(mzVals, intensity, None, .3)
+        self.display_spectra(mz_vals, intensity, None)
         return 0
 
     def change_mz(self):
         max_mz = self.max_mz.value()
         min_mz = self.min_mz.value()
-        mzVals = self.mz_vals
+        mz_vals = self.mz_vals
         intensities = self.intensity
 
-        if mzVals is None:
+        if mz_vals is None:
             return 0
 
         processed_mz = []
@@ -1013,16 +1011,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if isIM:
             drifts = self.drifts
             processed_drift = []
-            for i in range(len(mzVals)):
-                if max_mz >= mzVals[i] >= min_mz:
-                    processed_mz.append(mzVals[i])
+            for i in range(len(mz_vals)):
+                if max_mz >= mz_vals[i] >= min_mz:
+                    processed_mz.append(mz_vals[i])
                     processed_intens.append(intensities[i])
                     processed_drift.append(drifts[i])
             self.display_spectra(processed_mz, processed_intens, processed_drift)
         else:
-            for i in range(len(mzVals)):
-                if max_mz >= mzVals[i] >= min_mz:
-                    processed_mz.append(mzVals[i])
+            for i in range(len(mz_vals)):
+                if max_mz >= mz_vals[i] >= min_mz:
+                    processed_mz.append(mz_vals[i])
                     processed_intens.append(intensities[i])
             self.display_spectra(processed_mz, processed_intens, None)
         try:
@@ -1042,40 +1040,39 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.set_min_max_mz(self.mz_vals)
 
     ##### ROI Listbox functions #####
-    def ROI_listbox_Callback(self, item):
-        # this should tell me which number in list is selected
-        # now I need the outline of the ROI to appear
+    def roi_listbox_callback(self, item):
+        # the outline of the ROI should appear
         try:
             self.ROI[item.text()]
         except KeyError:
             print("This is not a ROI. Please choose a ROI. ")
             return
         self.ROI_listselect_text = item.text()
-        self._con_ax = 1
+        self._con_ax = True
         self.ROIplots[self.ROI_listselect_text] = item
         return 0
 
-    def importROI_Callback(self):
+    def import_roi_callback(self):
         if self.ROI_listselect_text == "":
             print("No item selected")
         else:
             try:
-                chosenVal = self.ROI_Mass[self.ROI_listselect_text]
+                chosen_val = self.ROI_Mass[self.ROI_listselect_text]
             except ValueError:
                 print("Error: The chosen m/z must be numeric")
                 return
-            ppm = self.ppm_calc(chosenVal)
+            ppm = self.ppm_calc(chosen_val)
 
             self.ROIData = []
-            mzVals = []
+            mz_vals = []
             intensities = []
             drifts = None
 
             outline = self.ROI_outline[self.ROI_listselect_text]
-            mapData = self.ROI_Map_Data[self.ROI_listselect_text]
+            map_data = self.ROI_Map_Data[self.ROI_listselect_text]
             if self.drifts is None:
                 counter = 0
-                for line in mapData:
+                for line in map_data:
                     for scan in line:
                         if counter not in outline:
                             counter += 1
@@ -1083,16 +1080,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                         else:
                             for point in scan:
                                 mz = point[0]
-                                if chosenVal + ppm >= mz >= chosenVal - ppm:
-                                    mzVals.append(mz)
+                                if chosen_val + ppm >= mz >= chosen_val - ppm:
+                                    mz_vals.append(mz)
                                     intensities.append(point[1])
                             counter += 1
-                for i in range(len(mzVals)):
-                    self.ROIData.append([mzVals[i], intensities[i]])
+                for i in range(len(mz_vals)):
+                    self.ROIData.append([mz_vals[i], intensities[i]])
             else:
                 drifts = []
                 counter = 0
-                for line in mapData:
+                for line in map_data:
                     for frame in line:
                         if counter not in outline:
                             counter += 1
@@ -1100,18 +1097,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                         else:
                             for point in frame:
                                 mz = point[0]
-                                if chosenVal + ppm >= mz >= chosenVal - ppm:
-                                    mzVals.append(mz)
+                                if chosen_val + ppm >= mz >= chosen_val - ppm:
+                                    mz_vals.append(mz)
                                     intensities.append(point[1])
                                     drifts.append(point[2])
                             counter += 1
-                for i in range(len(mzVals)):
-                    self.ROIData.append([mzVals[i], intensities[i], drifts[i]])
+                for i in range(len(mz_vals)):
+                    self.ROIData.append([mz_vals[i], intensities[i], drifts[i]])
 
-            self.display_spectra(mzVals, intensities, drifts, 100 / len(mzVals))
-            self.set_min_max_mz(mzVals)
+            self.display_spectra(mz_vals, intensities, drifts)
+            self.set_min_max_mz(mz_vals)
 
-    def exportROI_spectra_val_Callback(self):
+    def export_roi_spectra_callback(self):
         if self.ROI_listselect_text == "":
             print("No item selected. Double click an item in the ROI listbox")
         else:
@@ -1130,7 +1127,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             else:
                 print("No location selected. Please select a location")
 
-    def deleteROIbutton_Callback(self):
+    def delete_roi_callback(self):
         if self.ROIcount == 0:
             self.ROI_listselect_text = ""
             return
@@ -1151,7 +1148,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     print('Item does not exist. Please double click on another item')
         self.ROI_listselect_text = ""
 
-    def clearROI_Callback(self):
+    def clear_roi_callback(self):
         self.ROIplots.clear()
         self.ROI.clear()
         self.ROIcount = 0
@@ -1170,12 +1167,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             QListWidgetItem('ROI list appears here', self.ROI_listbox)
         else:
             self.ROI_listbox.clear()
-            listboxitems = list(self.ROI.keys())
-            for i in range(len(listboxitems)):
-                self.ROI_listbox.addItem(listboxitems[i])
+            list_box_items = list(self.ROI.keys())
+            for i in range(len(list_box_items)):
+                self.ROI_listbox.addItem(list_box_items[i])
 
     ##### Map Listbox functions #####
-    def deleteMapbutton_Callback(self):
+    def delete_map_callback(self):
         if self.map_count == 0:
             return
         else:
@@ -1187,7 +1184,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             else:
                 print('Item does not exist. Please double click on another item')
 
-    def clearMapbutton_Callback(self):
+    def clear_map_callback(self):
         if self.map_count == 0:
             return
         else:
@@ -1195,7 +1192,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.map_count = 0
             self.refresh_map_listbox()
 
-    def Map_listbox_Callback(self, item):
+    def map_listbox_callback(self, item):
         self.Map_listselect_text = item.text()
 
     def refresh_map_listbox(self):
@@ -1209,14 +1206,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.Map_listbox.clear()
             if "Map_listselect_text" in locals():
                 del self.Map_listselect_text
-            listboxitems = list(self.Maps.keys())
-            for i in range(len(listboxitems)):
-                self.Map_listbox.addItem(listboxitems[i])
+            list_box_items = list(self.Maps.keys())
+            for i in range(len(list_box_items)):
+                self.Map_listbox.addItem(list_box_items[i])
 
     ##### m/z of interest box functions #####
     def find_file_mzOI_Callback(self):
-        fName_mzOI = QFileDialog.getOpenFileName(self, 'Pick list: m/z of interest', filter='*.csv')
-        self.mzOI_listname.setText(fName_mzOI[0])
+        self.mzOI_listname.setText(QFileDialog.getOpenFileName(self, 'Pick list: m/z of interest', filter='*.csv')[0])
 
     def mzOI_extractMap_Callback(self):
         if self.mzOI_listname.text() == '':
@@ -1227,37 +1223,34 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return 0
         try:
             mzOI = pd.read_csv(self.mzOI_listname.text())
+            mzOI = mzOI.to_numpy()
         except IOError:
             print("Please choose a .csv file with m/z values")
             return 0
-        mzOI = mzOI.to_numpy()
 
-        mzVals = []
+        mz_vals = []
         intensity = []
         drifts = None
         if isIM:
             drifts = []
-
         for mz in mzOI:
             diff = self.ppm_calc(mz)
             for i in range(len(self.mz_vals)):
                 if mz + diff >= self.mz_vals[i] >= mz - diff:
-                    mzVals.append(self.mz_vals[i])
+                    mz_vals.append(self.mz_vals[i])
                     intensity.append(self.intensity[i])
                     if isIM:
                         drifts.append(self.drifts[i])
-
-        self.display_spectra(mzVals, intensity, drifts)
+        self.display_spectra(mz_vals, intensity, drifts)
 
     ##### m/z ID box functions #####
     def find_IDlist_Callback(self):
-        # But this code does not handle .h5 or .mat files
-        fName_IDlist = QFileDialog.getOpenFileName(self, 'Pick ID List', filter='*.csv')
-        self.IDlist_name.setText(fName_IDlist[0])
-        if fName_IDlist[0] == '':
+        file_name = QFileDialog.getOpenFileName(self, 'Pick ID List', filter='*.csv')
+        self.IDlist_name.setText(file_name[0])
+        if file_name[0] == '':
             print("Please select a file to import as the ID list.")
             return
-        self.ids_pd = pd.read_csv(fName_IDlist[0])
+        self.ids_pd = pd.read_csv(file_name[0])
 
     ##### Image display functions #####
     def display_iso_image(self, zero_image, imageData, pixelSizeX, pixelSizeY):
@@ -1305,37 +1298,37 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         plt.colorbar(con_img2)
         self.iso_view.draw()
         if not self.chosen_data_iso:
-            theMin, theMax = self.find_min_max_image(imageData)
+            the_min, the_max = self.find_min_max_image(imageData)
             # If this needs to be the scaled image just change the above line
-            self.max_int_iso.setText(str(theMax))
-            self.min_int_iso.setText(str(theMin))
-            self.max_iso.setText(str(theMax))
-            self.min_iso.setText(str(theMin))
-            self.zmax_isotope.setMaximum(math.ceil(theMax))
-            self.zmax_isotope.setMinimum(math.floor(theMin))
-            self.zmin_isotope.setMaximum(math.ceil(theMax))
-            self.zmin_isotope.setMinimum(math.floor(theMin))
-            self.zmax_isotope.setValue(math.ceil(theMax))
-            self.zmin_isotope.setValue(math.floor(theMin))
+            self.max_int_iso.setText(str(the_max))
+            self.min_int_iso.setText(str(the_min))
+            self.max_iso.setText(str(the_max))
+            self.min_iso.setText(str(the_min))
+            self.zmax_isotope.setMaximum(math.ceil(the_max))
+            self.zmax_isotope.setMinimum(math.floor(the_min))
+            self.zmin_isotope.setMaximum(math.ceil(the_max))
+            self.zmin_isotope.setMinimum(math.floor(the_min))
+            self.zmax_isotope.setValue(math.ceil(the_max))
+            self.zmin_isotope.setValue(math.floor(the_min))
 
     def isotope_scalar(self, m_zero_intensity, isotope_intensity):
         new_data = []
-        for i in range(len(m_zero_intensity)):
-            theLine = []
-            orig_line = m_zero_intensity[i]
-            iso_line = isotope_intensity[i]
-            for j in range(len(orig_line)):
-                if orig_line[j] == 0:
+        for line in range(len(m_zero_intensity)):
+            the_line = []
+            orig_line = m_zero_intensity[line]
+            iso_line = isotope_intensity[line]
+            for scan in range(len(orig_line)):
+                if orig_line[scan] == 0:
                     ratio = 0
                 else:
-                    ratio = iso_line[j] / orig_line[j] + iso_line[j]
-                theLine.append(ratio)
-            new_data.append(theLine)
+                    ratio = iso_line[scan] / orig_line[scan] + iso_line[scan]
+                the_line.append(ratio)
+            new_data.append(the_line)
         return new_data
 
-    def display_image(self, imageData, pixelSizeX, pixelSizeY):
-        x_end = len(imageData[0]) * (pixelSizeX / 1000)
-        y_end = len(imageData) * (pixelSizeY / 1000)
+    def display_image(self, image_data, pixel_size_x, pixel_size_y):
+        x_end = len(image_data[0]) * (pixel_size_x / 1000)
+        y_end = len(image_data) * (pixel_size_y / 1000)
 
         if self.view:
             self.plot_con.removeWidget(self.view)
@@ -1343,38 +1336,38 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes = self.view.figure.subplots()
         self.toolbar = NavigationToolbar(self.view, self)
         self.plot_con.addWidget(self.view)
-        self.con_img = self.axes.imshow(imageData, cmap='jet', aspect=(y_end / x_end),
+        self.con_img = self.axes.imshow(image_data, cmap='jet', aspect=(y_end / x_end),
                                         extent=[0, x_end * self.scale_factor, 0, y_end * self.scale_factor])
         plt.colorbar(self.con_img)
         self.axes.set_title('Points In Selected Region')
         self.axes.set_xlabel("x, " + self.label)
         self.axes.set_ylabel("y, " + self.label)
         self.view.draw()
-        self.conc_map_data = imageData
+        self.conc_map_data = image_data
         if not self.picked_point_data:
-            theMin, theMax = self.find_min_max_image(imageData)
-            self.max_int.setText(str(theMax))
-            self.min_int.setText(str(theMin))
-            self.temp_max.setText(str(theMax))
-            self.temp_min.setText(str(theMin))
-            self.zmax.setMaximum(math.ceil(theMax))
-            self.zmax.setMinimum(math.floor(theMin))
-            self.zmin.setMaximum(math.ceil(theMax))
-            self.zmin.setMinimum(math.floor(theMin))
-            self.zmax.setValue(math.ceil(theMax))
-            self.zmin.setValue(math.floor(theMin))
-            self.picked_point_data = imageData
+            the_min, the_max = self.find_min_max_image(image_data)
+            self.max_int.setText(str(the_max))
+            self.min_int.setText(str(the_min))
+            self.temp_max.setText(str(the_max))
+            self.temp_min.setText(str(the_min))
+            self.zmax.setMaximum(math.ceil(the_max))
+            self.zmax.setMinimum(math.floor(the_min))
+            self.zmin.setMaximum(math.ceil(the_max))
+            self.zmin.setMinimum(math.floor(the_min))
+            self.zmax.setValue(math.ceil(the_max))
+            self.zmin.setValue(math.floor(the_min))
+            self.picked_point_data = image_data
 
     ##### Spectra display functions #####
-    def display_spectra(self, mzVals, intensity, drifts=None, pt_size=.01):
+    def display_spectra(self, mz_vals, intensity, drifts=None, pt_size=.01):
         while self.plot_spectra.count():  # This solved the double figure problem
             child = self.plot_spectra.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
         plt.close('all')
 
-        if 100 / len(mzVals) > pt_size:
-            pt_size = 100 / len(mzVals)
+        if 100 / len(mz_vals) > pt_size:
+            pt_size = 100 / len(mz_vals)
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
         self.spectra_canvas.setFocusPolicy(QtCore.Qt.ClickFocus)
@@ -1384,8 +1377,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.plot_spectra.addWidget(self.spectra_canvas)
         self._spectra_ax = self.spectra_canvas.figure.subplots()
         if drifts is not None:
-            x = self._spectra_ax.scatter(mzVals, intensity, s=pt_size, c=drifts, cmap="turbo", alpha=0.75, picker=True)
-            plt.colorbar(x).set_label('Drift times')
+            spectra = self._spectra_ax.scatter(mz_vals, intensity, s=pt_size, c=drifts, cmap="turbo", alpha=0.75, picker=True)
+            plt.colorbar(spectra).set_label('Drift times')
             try:
                 self.drift_scrollbar.setMinimum(int(min(drifts)))
                 self.drift_scrollbar.setMaximum(int(max(drifts)))
@@ -1397,9 +1390,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.drift_scrollbar.setMaximum(0)
                 self.drift_time.setMinimum(0)
                 self.drift_time.setMaximum(0)
-
         else:
-            self._spectra_ax.scatter(mzVals, intensity, color='#393424', s=pt_size, alpha=0.75, picker=True)
+            self._spectra_ax.scatter(mz_vals, intensity, color='#393424', s=pt_size, alpha=0.75, picker=True)
             # Can change to peaks here
         self._spectra_ax.set_title('Points In Selected Region')
         self._spectra_ax.set_xlabel('m/z')
@@ -1422,9 +1414,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             mz_vals = self.ids_pd['m/z']
             lipid_ids = self.ids_pd['Lipid ID']
             for i in range(mz_vals.size):
-                x = mz_vals[i]
-                if (mz + diff) > x > (mz - diff):
-                    difference = abs(mz - x)
+                mz_val = mz_vals[i]
+                if (mz + diff) > mz_val > (mz - diff):
+                    difference = abs(mz - mz_val)
                     lipid_map[difference] = lipid_ids[i]
         if len(lipid_map.keys()) > 0:
             key = min(lipid_map.keys())
@@ -1462,55 +1454,54 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 bbox=dict(boxstyle='square, pad=0.3', facecolor='white'))
         self.spectra_canvas.draw()
 
-    def set_min_max_mz(self, mzVals):
+    def set_min_max_mz(self, mz_vals):
         try:
-            self.min_mz.setRange(min(mzVals), max(mzVals))
-            self.max_mz.setRange(min(mzVals), max(mzVals))
-            self.min_mz.setValue(min(mzVals))
-            self.max_mz.setValue(max(mzVals))
+            self.min_mz.setRange(min(mz_vals), max(mz_vals))
+            self.max_mz.setRange(min(mz_vals), max(mz_vals))
+            self.min_mz.setValue(min(mz_vals))
+            self.max_mz.setValue(max(mz_vals))
         except TypeError:
             print("Error: There is no plot. Please select a .bin file and press 'GO' ")
             return
 
     ##### Misc. functions #####
-    def find_min_max_image(self, imageData):
-        theMin = sys.maxsize
-        theMax = 0
-        for line in imageData:
-            lineMin = min(line)
-            lineMax = max(line)
-            if lineMax > theMax:
-                theMax = lineMax
-            if lineMin < theMin:
-                theMin = lineMin
-        return theMin, theMax
+    def find_min_max_image(self, image_data):
+        the_min = sys.maxsize
+        the_max = 0
+        for line in image_data:
+            line_min = min(line)
+            line_max = max(line)
+            if line_max > the_max:
+                the_max = line_max
+            if line_min < the_min:
+                the_min = line_min
+        return the_min, the_max
 
-    def ppm_calc(self, mzVal):
+    def ppm_calc(self, mz_val):
         if float(self.pick_IDthreshold.value()) == 0:
-            return 0  # is this correct??
-        return mzVal * float(self.pick_IDthreshold.value()) / 1e6
+            return 0
+        return mz_val * float(self.pick_IDthreshold.value()) / 1e6
 
     ##########################################
     # Multi Map Compare functions (things related to the 2nd window)
     def MultiMapCompare_Display_Callback(self):
         self.mmcWindow.pick_item = None
         self.mmcWindow.Map_listbox_mmcWindow.clear()
-        listboxitems = list(self.Maps.keys())
-        for i in range(len(listboxitems)):
-            self.mmcWindow.Map_listbox_mmcWindow.addItem(listboxitems[i])
+        list_box_items = list(self.Maps.keys())
+        for i in range(len(list_box_items)):
+            self.mmcWindow.Map_listbox_mmcWindow.addItem(list_box_items[i])
         self.mmcWindow.display_mmcWindow()
 
     def MultiMapCompare_exportMapData_Callback(self):
-        pickeditem = self.mmcWindow.pick_item
-        if pickeditem is None or pickeditem == '':
+        picked_item = self.mmcWindow.pick_item
+        if picked_item is None or picked_item == '':
             print('Please choose a map')
             return 0
-        theMap = self.Maps[pickeditem.text()]
-        df = pd.DataFrame(theMap)
+        df = pd.DataFrame(self.Maps[picked_item.text()])
         name = self.mmcWindow.exportMapData_filename.text()
-        dirpath = QFileDialog.getExistingDirectory(self, 'Select a directory to export')
-        if dirpath != '':
-            pathfile = os.path.join(dirpath, name + '.csv')
+        dir_path = QFileDialog.getExistingDirectory(self, 'Select a directory to export')
+        if dir_path != '':
+            pathfile = os.path.join(dir_path, name + '.csv')
             df.to_csv(pathfile, index=False)
         else:
             print('Please choose a directory')
@@ -1520,8 +1511,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if path[0] == '':
             print("No map to import.")
             return
-        df = pd.read_csv(path[0])
-        self.Maps[self.mmcWindow.importMapData_filename.text()] = df.to_numpy()
+        self.Maps[self.mmcWindow.importMapData_filename.text()] = pd.read_csv(path[0]).to_numpy()
         self.MultiMapCompare_Display_Callback()
         return 0
 
@@ -1552,10 +1542,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("No item selected. Please double click on an item in the map listbox.")
             return
         self.mmcWindow.map_packet[num][6].setText(item)
-        chosenMap = self.Maps[item]
+        chosen_map = self.Maps[item]
 
-        x_end = len(chosenMap[0]) * (self.pixel_size_x / 1000)
-        y_end = len(chosenMap) * (self.pixel_size_y / 1000)
+        x_end = len(chosen_map[0]) * (self.pixel_size_x / 1000)
+        y_end = len(chosen_map) * (self.pixel_size_y / 1000)
 
         if self.mmcWindow.map_packet[num][5]:
             self.mmcWindow.map_packet[num][5].removeWidget(self.mmcWindow.map_packet[num][3])
@@ -1567,7 +1557,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mmcWindow.map_packet[num][5].addWidget(self.mmcWindow.map_packet[num][0])
         self.mmcWindow.map_packet[num][1] = self.mmcWindow.map_packet[num][0].figure.subplots()
 
-        self.mmcWindow.map_packet[num][2] = self.mmcWindow.map_packet[num][1].imshow(chosenMap, cmap='jet',
+        self.mmcWindow.map_packet[num][2] = self.mmcWindow.map_packet[num][1].imshow(chosen_map, cmap='jet',
                                                                                      interpolation='gaussian',
                                                                                      aspect=(y_end / x_end),
                                                                                      extent=[0, x_end, 0, y_end])
