@@ -20,7 +20,7 @@ Created on Wed Feb 10 15:58:09 2021
 # 8. (JC)What color should the spectra plot colormap be?
 #       a. Make examples for this in colab that can be shown to JC. Screenshot them!
 # 9. Put the documents onto the lab website online.
-# 10. Ask if the mass up/ down should add 1 or the m/z spacing?
+# 10. (JC)Ask if the mass up/ down should add 1 or the m/z spacing?
 # 11. Put a form for reporting errors on the lab website.
 
 import os
