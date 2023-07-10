@@ -20,6 +20,7 @@ Created on Wed Feb 10 15:58:09 2021
 # 8. (JC)What color should the spectra plot colormap be?
 #       a. Make examples for this in colab that can be shown to JC. Screenshot them!
 # 9. Put the documents onto the lab website online.
+# 10. Ask if the mass up/ down should add 1 or the m/z spacing?
 
 import os
 import sys
@@ -147,7 +148,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.binI = None
         self.ROI_outline = {}
         self.ROI_Map_Data = {}
-        self.pickedPointData = None
+        self.picked_point_data = None
         self.map_data = None
         self.label = None
         self.scale_factor = None
@@ -156,7 +157,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.mz_vals = None
         self.intensity = None
         self.drifts = None
-        self.chosenDataIso = None
+        self.chosen_data_iso = None
         self.view = None
         self.iso_view = None
         self.original_image = None
@@ -180,8 +181,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.find_file_mzOI.clicked.connect(self.find_file_mzOI_Callback)
         self.start_cube.clicked.connect(self.process_file)
         self.pick_point.clicked.connect(self.pick_point_Callback)
-        self.mass_up.clicked.connect(self.mass_up_Callback)
-        self.mass_down.clicked.connect(self.mass_down_Callback)
+        self.mass_up.clicked.connect(self.mass_up_callback)
+        self.mass_down.clicked.connect(self.mass_down_callback)
         self.zmax.sliderMoved.connect(self.zmax_Callback)
         self.zmax.valueChanged.connect(self.zmax_Callback)
         self.zmin.sliderMoved.connect(self.zmin_Callback)
@@ -216,8 +217,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.reset_image.clicked.connect(self.reset_orig_image)
         self.set_mz_minmax.clicked.connect(self.change_mz)
         self.flipButton.clicked.connect(self.flip_figure)
-        self.rotate_right_button.clicked.connect(self.rightRotate)
-        self.rotate_left_button.clicked.connect(self.leftRotate)
+        self.rotate_right_button.clicked.connect(self.right_rotate)
+        self.rotate_left_button.clicked.connect(self.left_rotate)
 
         self.IMDataButton.clicked.connect(self.setIM)
         self.MSDataButton.clicked.connect(self.setMS)
@@ -246,13 +247,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         QListWidgetItem('ROI list appears here', self.ROI_listbox)
         QListWidgetItem('Map list appears here', self.Map_listbox)
 
-        self.fileName = ""
+        self.file_name = ""
         self.ROI = {}
         self.ROIplots = {}
         self.ROI_Mass = {}
         self.ROIcount = 0
         self.Maps = {}
-        self.Mapcount = 0
+        self.map_count = 0
         self.Map_listselect_text = ""
 
         # canvas
@@ -263,8 +264,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ROI_listselect_text = ""
 
         # multipmap compare variables
-        self.ConcMapData = None
-        self.IsotopeMapData = None
+        self.conc_map_data = None
+        self.isotope_map_data = None
 
         # Style sheets
         self.micrometer.setStyleSheet(button_style_sheet)
@@ -279,8 +280,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     #####  Functions in the top boxes  #####
     def find_data_file(self):
-        self.fileName = QFileDialog.getOpenFileName(self, 'Pick Data Cube', filter='*.mat, *.h5, *.bin *.csv')
-        self.working_file_name.setText(self.fileName[0])
+        self.file_name = QFileDialog.getOpenFileName(self, 'Pick Data Cube', filter='*.mat, *.h5, *.bin *.csv')
+        self.working_file_name.setText(self.file_name[0])
 
     # setIM sets the global isIM variable to true and enables all buttons needed to inspect IM data. 
     def setIM(self):
@@ -303,20 +304,20 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.drift_scrollbar.setDisabled(True)
 
     def process_file(self):
-        file_Name = self.fileName[0]
+        file_name = self.file_name[0]
         self.reset_all()
         print("Working to read datacube")
-        if file_Name.endswith('.mat'):
+        if file_name.endswith('.mat'):
             print("This code can't process .mat files")
             return
-        elif file_Name.endswith('.h5'):
+        elif file_name.endswith('.h5'):
             print("This code can't process .h5 files")
             return
-        elif file_Name.endswith('.csv'):
-            data = ((pd.read_csv(file_Name, header=None)).to_numpy(numpy.float32)).flatten()
+        elif file_name.endswith('.csv'):
+            data = ((pd.read_csv(file_name, header=None)).to_numpy(numpy.float32)).flatten()
             # Opens the input csv file and converts the file to the correct format.
-        elif file_Name.endswith('.bin'):
-            file = open(file_Name)
+        elif file_name.endswith('.bin'):
+            file = open(file_name)
             data = np.fromfile(file, dtype=np.float32)
             file.close()
         else:
@@ -354,7 +355,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 child.widget().deleteLater()
         self.iso_view = None
 
-        self.chosenDataIso = None
+        self.chosen_data_iso = None
 
         self.max_int.clear()
         self.min_int.clear()
@@ -387,7 +388,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.clearMapbutton_Callback()
 
-        self.pickedPointData = None
+        self.picked_point_data = None
         self.pick_IDthreshold.setValue(20)
         self.pick_IDthreshold.setMaximum(1000)
 
@@ -501,22 +502,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.original_image = chosen_data
 
     ##### Functions in the MS Image Controls box #####
-    def mass_up_Callback(self):
+    def mass_up_callback(self):
         if not self.view:
             return 0
-        val = float(self.start.text()) + 1.0
-        self.start.setText(str(val))
+        self.start.setText(
+            str(float(self.start.text()) + 1.0))  # TODO: Ask if the mass up/ down should add 1 or the m/z spacing?
         if isIM:
             self.im_point()
         else:
             self.ms_point()
         return 0
 
-    def mass_down_Callback(self):
+    def mass_down_callback(self):
         if not self.view:
             return 0
-        val = float(self.start.text()) - 1.0
-        self.start.setText(str(val))
+        self.start.setText(str(float(self.start.text()) - 1.0))
         if isIM:
             self.im_point()
         else:
@@ -525,33 +525,33 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def reset_orig_image(self):
         if self.original_image:
-            self.pickedPointData = None
+            self.picked_point_data = None
             self.display_image(self.original_image, self.pixel_size_x, self.pixel_size_y)
             self.start.clear()
             self.massbox.clear()
-            self.IsotopeMapData = None
+            self.isotope_map_data = None
             while self.iso_plot.count():
                 child = self.iso_plot.takeAt(0)
                 if child.widget():
                     child.widget().deleteLater()
 
     def export_ConcMap_Callback(self):
-        if self.ConcMapData is None:
+        if self.conc_map_data is None:
             print("There is no image to export")
             return
         # when clicking on the exportConcMap button, it will save the filename and concentration of the map
-        self.Maps[self.exportConcMapname.text()] = self.ConcMapData
-        self.refreshMaplistbox()
-        self.Mapcount += 1
+        self.Maps[self.exportConcMapname.text()] = self.conc_map_data
+        self.refresh_map_listbox()
+        self.map_count += 1
 
     def export_IsotopeMap_Callback(self):
-        if self.IsotopeMapData is None:
+        if self.isotope_map_data is None:
             print("There is no image to export")
             return
         # when clicking on the exportIsotopeMap button, it will save the filename and concentration of the map
-        self.Maps[self.exportIsotopeMapname.text()] = self.IsotopeMapData
-        self.Mapcount += 1
-        self.refreshMaplistbox()
+        self.Maps[self.exportIsotopeMapname.text()] = self.isotope_map_data
+        self.map_count += 1
+        self.refresh_map_listbox()
 
     ##### Flipping functions #####
     def flip_figure(self):
@@ -560,74 +560,71 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.original_image.reverse()
             if self.map_data is not None:
                 self.map_data.reverse()
-            if self.ConcMapData is not None:
-                self.ConcMapData.reverse()
-                self.display_image(self.ConcMapData, self.pixel_size_x, self.pixel_size_y)
-            if self.IsotopeMapData is not None:
-                self.IsotopeMapData.reverse()
-                self.displayIsoImage(self.ConcMapData, self.IsotopeMapData, self.pixel_size_x, self.pixel_size_y)
+            if self.conc_map_data is not None:
+                self.conc_map_data.reverse()
+                self.display_image(self.conc_map_data, self.pixel_size_x, self.pixel_size_y)
+            if self.isotope_map_data is not None:
+                self.isotope_map_data.reverse()
+                self.display_iso_image(self.conc_map_data, self.isotope_map_data, self.pixel_size_x, self.pixel_size_y)
         except AttributeError:
             print("Error: Flipping an array with no values.\n"
                   "Please return to an image with data if you wish to flip the image.")
             return
 
-    def rightRotate(self):
+    def right_rotate(self):
         self.rotate(True)
 
-    def leftRotate(self):
+    def left_rotate(self):
         self.rotate(False)
 
     def rotate(self, isRight):
         if self.map_data is None:
-            return 0
-
-        temp = self.pixel_size_x
-        self.pixel_size_x = self.pixel_size_y
-        self.pixel_size_y = temp
+            return
+        self.pixel_size_x, self.pixel_size_y = self.pixel_size_y, self.pixel_size_x  # switch variables
 
         if isRight:
-            self.map_data = self.rotateRight(self.map_data)
+            self.map_data = self.rotate_right(self.map_data)
         else:
-            self.map_data = self.rotateLeft(self.map_data)
+            self.map_data = self.rotate_left(self.map_data)
 
         if self.original_image:
             if isRight:
-                self.original_image = self.rotateRight(self.original_image)
+                self.original_image = self.rotate_right(self.original_image)
             else:
-                self.original_image = self.rotateLeft(self.original_image)
+                self.original_image = self.rotate_left(self.original_image)
 
-        if self.ConcMapData:
+        if self.conc_map_data:
             if isRight:
-                self.ConcMapData = self.rotateRight(self.ConcMapData)
+                self.conc_map_data = self.rotate_right(self.conc_map_data)
             else:
-                self.ConcMapData = self.rotateLeft(self.ConcMapData)
-            self.display_image(self.ConcMapData, self.pixel_size_x, self.pixel_size_y)
+                self.conc_map_data = self.rotate_left(self.conc_map_data)
+            self.display_image(self.conc_map_data, self.pixel_size_x, self.pixel_size_y)
 
-        if self.IsotopeMapData:
+        if self.isotope_map_data:
             if isRight:
-                self.IsotopeMapData = self.rotateRight(self.IsotopeMapData)
+                self.isotope_map_data = self.rotate_right(self.isotope_map_data)
             else:
-                self.IsotopeMapData = self.rotateLeft(self.IsotopeMapData)
-            self.displayIsoImage(self.ConcMapData, self.IsotopeMapData, self.pixel_size_x, self.pixel_size_y)
+                self.isotope_map_data = self.rotate_left(self.isotope_map_data)
+            self.display_iso_image(self.conc_map_data, self.isotope_map_data, self.pixel_size_x, self.pixel_size_y)
         return 0
 
-    def rotateRight(self, origMap):
-        newMap = []
-        for i in range(len(origMap[0])):
-            newLine = []
-            for j in range(len(origMap) - 1, -1, -1):
-                newLine.append(origMap[j][i])
-            newMap.append(newLine)
-        return newMap
+    def rotate_right(self, orig_map):
+        new_map = []
+        for line in range(len(orig_map[0])):
+            new_line = []
+            for scan in range(len(orig_map) - 1, -1, -1):
+                new_line.append(orig_map[scan][line])
+            new_map.append(new_line)
+        return new_map
 
-    def rotateLeft(self, origMap):
-        newMap = []
-        for i in range(len(origMap[0]) - 1, -1, -1):
-            newLine = []
-            for j in range(len(origMap)):
-                newLine.append(origMap[j][i])
-            newMap.append(newLine)
-        return newMap
+    def rotate_left(self, orig_map):
+        new_map = []
+        for line in range(len(orig_map[0]) - 1, -1, -1):
+            new_line = []
+            for scan in range(len(orig_map)):
+                new_line.append(orig_map[scan][line])
+            new_map.append(new_line)
+        return new_map
 
     ##### Original map scaling  #####
     def zmax_Callback(self):
@@ -639,65 +636,52 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.scale_image()
 
     def scale_image(self):
-        if not self.pickedPointData:
-            return
-        x = self.pickedPointData
+        if not self.picked_point_data:
+            return 0
+        image = self.picked_point_data
         data = []
         maximum = self.zmax.sliderPosition()
         minimum = self.zmin.sliderPosition()
         if minimum >= maximum:
-            newMap = np.zeros((len(x), len(x[0])))
-            self.display_image(newMap, self.pixel_size_x, self.pixel_size_y)
+            new_map = np.zeros((len(image), len(image[0])))
+            self.display_image(new_map, self.pixel_size_x, self.pixel_size_y)
             return 0
-        if isIM:
-            for line in x:
-                newLine = []
-                for frame in line:
-                    newFrame = 0  # Changed this from a 0 to the minimum. Is it right??
-                    if frame > maximum:
-                        newFrame = maximum
-                    elif maximum >= frame >= minimum:
-                        newFrame = frame
-                    newLine.append(newFrame)
-                data.append(newLine)
-            self.display_image(data, self.pixel_size_x, self.pixel_size_y)
-        else:
-            for line in x:
-                newLine = []
-                for scan in line:  # Same as above line
-                    newScan = 0
-                    if scan > maximum:
-                        newScan = maximum
-                    elif maximum >= scan >= minimum:
-                        newScan = scan
-                    newLine.append(newScan)
-                data.append(newLine)
-            self.display_image(data, self.pixel_size_x, self.pixel_size_y)
+        for line in image:
+            newLine = []
+            for scan in line:
+                newFrame = 0
+                if scan > maximum:
+                    newFrame = maximum
+                elif maximum >= scan >= minimum:
+                    newFrame = scan
+                newLine.append(newFrame)
+            data.append(newLine)
+        self.display_image(data, self.pixel_size_x, self.pixel_size_y)
 
     def temp_max_Callback(self):
-        newMax = self.plot_con_temp_pressed_callback(self.temp_max.text())
-        self.zmax.setValue(math.ceil(newMax))
+        new_max = self.plot_con_temp_pressed_callback(self.temp_max.text())
+        self.zmax.setValue(math.ceil(new_max))
         self.scale_image()
 
     def temp_min_Callback(self):
-        newMin = self.plot_con_temp_pressed_callback(self.temp_min.text())
-        self.zmin.setValue(math.ceil(newMin))
+        new_min = self.plot_con_temp_pressed_callback(self.temp_min.text())
+        self.zmin.setValue(math.ceil(new_min))
         self.scale_image()
 
     def plot_con_temp_pressed_callback(self, temp):
         try:
-            newVal = float(temp)
+            new_val = float(temp)
         except ValueError:
             print("Please enter a numeric value.")
-            newVal = float(self.min_int.text())
-            return newVal
-        if newVal > float(self.max_int.text()):
+            new_val = float(self.min_int.text())
+            return new_val
+        if new_val > float(self.max_int.text()):
             print("Error: Trying to set the value above the max")
-            newVal = float(self.max_int.text())
-        elif newVal < float(self.min_int.text()):
+            new_val = float(self.max_int.text())
+        elif new_val < float(self.min_int.text()):
             print("Error: Trying to set the value below the min")
-            newVal = float(self.min_int.text())
-        return newVal
+            new_val = float(self.min_int.text())
+        return new_val
 
     ##### Isotope map scaling  #####
     def zmax_isotope_Callback(self):
@@ -709,52 +693,52 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.scale_iso_image()
 
     def scale_iso_image(self):
-        if self.chosenDataIso is None:  # This will be triggered only at the beginning
+        if self.chosen_data_iso is None:  # This will be triggered only at the beginning
             return 0
-        x = self.chosenDataIso
+        image = self.chosen_data_iso
         data = []
         maximum = self.zmax_isotope.sliderPosition()
         minimum = self.zmin_isotope.sliderPosition()
         if minimum >= maximum:
-            newMap = np.zeros((len(x), len(x[0])))
-            self.displayIsoImage(newMap, newMap, self.pixel_size_x, self.pixel_size_y)
+            new_map = np.zeros((len(image), len(image[0])))
+            self.display_iso_image(new_map, new_map, self.pixel_size_x, self.pixel_size_y)
             return 0
-        for line in x:
-            newLine = []
+        for line in image:
+            new_line = []
             for frame in line:
-                newFrame = 0
+                new_frame = 0
                 if frame > maximum:
-                    newFrame = maximum
+                    new_frame = maximum
                 elif maximum >= frame >= minimum:
-                    newFrame = frame
-                newLine.append(newFrame)
-            data.append(newLine)
-        self.displayIsoImage(self.pickedPointData, data, self.pixel_size_x, self.pixel_size_y)
+                    new_frame = frame
+                new_line.append(new_frame)
+            data.append(new_line)
+        self.display_iso_image(self.picked_point_data, data, self.pixel_size_x, self.pixel_size_y)
 
     def temp_max_iso_Callback(self):
-        newMax = self.iso_plot_temp_pressed_callback(self.max_iso.text())
-        self.zmax_isotope.setValue(math.ceil(newMax))
+        new_max = self.iso_plot_temp_pressed_callback(self.max_iso.text())
+        self.zmax_isotope.setValue(math.ceil(new_max))
         self.scale_iso_image()
 
     def temp_min_iso_Callback(self):
-        newMin = self.iso_plot_temp_pressed_callback(self.min_iso.text())
-        self.zmin_isotope.setValue(math.ceil(newMin))
+        new_min = self.iso_plot_temp_pressed_callback(self.min_iso.text())
+        self.zmin_isotope.setValue(math.ceil(new_min))
         self.scale_iso_image()
 
     def iso_plot_temp_pressed_callback(self, temp):
         try:
-            newVal = float(temp)
+            new_val = float(temp)
         except ValueError:
             print("Please enter a numeric value.")
-            newVal = float(self.min_int_iso.text())
-            return newVal
-        if newVal > float(self.max_int_iso.text()):
+            new_val = float(self.min_int_iso.text())
+            return new_val
+        if new_val > float(self.max_int_iso.text()):
             print("Error: Trying to set the value above the max")
-            newVal = float(self.max_int_iso.text())
-        elif newVal < float(self.min_int_iso.text()):
+            new_val = float(self.max_int_iso.text())
+        elif new_val < float(self.min_int_iso.text()):
             print("Error: Trying to set the value below the min")
-            newVal = float(self.min_int_iso.text())
-        return newVal
+            new_val = float(self.min_int_iso.text())
+        return new_val
 
     ##### Map Controls #####
     def pick_point_Callback(self):
@@ -795,70 +779,70 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("Please enter a spacing greater than 0")
             return
         self.massbox.setText(self.start.text())
-        mapData = self.map_data
+        map_data = self.map_data
 
-        chosenData = []
-        chosenDataPlusOne = []
-        chosenDataPlusTwo = []
-        maxIntensity = 0
-        maxIntensityPlusOne = 0
-        maxIntensityPlusTwo = 0
+        chosen_data = []
+        chosen_data_plus_one = []
+        chosen_data_plus_two = []
+        max_intensity = 0
+        max_intensity_plus_one = 0
+        max_intensity_plus_two = 0
 
-        for line in mapData:
-            lineData = []
-            lineDataPlusOne = []
-            lineDataPlusTwo = []
+        for line in map_data:
+            line_data = []
+            line_data_plus_one = []
+            line_data_plus_two = []
             for frame in line:
-                theVal = 0
-                theValPlusOne = 0
-                theValPlusTwo = 0
+                the_val = 0
+                the_val_plus_one = 0
+                the_val_plus_two = 0
                 for scan in frame:
                     if picked_point - max_diff <= scan[0] < picked_point + max_diff:
-                        theVal += scan[1]
-                        if theVal > maxIntensity:
-                            maxIntensity = theVal
+                        the_val += scan[1]
+                        if the_val > max_intensity:
+                            max_intensity = the_val
                     elif picked_point + (1 / ideal_ratio) - max_diff <= scan[0] < picked_point + (
                             1 / ideal_ratio) + max_diff:
-                        theValPlusOne += scan[1]
-                        if theValPlusOne > maxIntensityPlusOne:
-                            maxIntensityPlusOne = theValPlusOne
+                        the_val_plus_one += scan[1]
+                        if the_val_plus_one > max_intensity_plus_one:
+                            max_intensity_plus_one = the_val_plus_one
                     elif picked_point + (2 / ideal_ratio) - max_diff <= scan[0] < picked_point + (
                             2 / ideal_ratio) + max_diff:
-                        theValPlusTwo += scan[1]
-                        if theValPlusTwo > maxIntensityPlusTwo:
-                            maxIntensityPlusTwo = theValPlusTwo
-                lineData.append(theVal)
-                lineDataPlusOne.append(theValPlusOne)
-                lineDataPlusTwo.append(theValPlusTwo)
-            chosenData.append(lineData)
-            chosenDataPlusOne.append(lineDataPlusOne)
-            chosenDataPlusTwo.append(lineDataPlusTwo)
+                        the_val_plus_two += scan[1]
+                        if the_val_plus_two > max_intensity_plus_two:
+                            max_intensity_plus_two = the_val_plus_two
+                line_data.append(the_val)
+                line_data_plus_one.append(the_val_plus_one)
+                line_data_plus_two.append(the_val_plus_two)
+            chosen_data.append(line_data)
+            chosen_data_plus_one.append(line_data_plus_one)
+            chosen_data_plus_two.append(line_data_plus_two)
 
         m_zero_sum = 0
         m_one_sum = 0
         m_two_sum = 0
-        if maxIntensity != 0:
-            denom = maxIntensity + maxIntensityPlusOne + maxIntensityPlusTwo
-            m_zero_sum = round(maxIntensity / denom, 4)
-            m_one_sum = round(maxIntensityPlusOne / denom, 4)
-            m_two_sum = round(maxIntensityPlusTwo / denom, 4)
+        if max_intensity != 0:
+            denom = max_intensity + max_intensity_plus_one + max_intensity_plus_two
+            m_zero_sum = round(max_intensity / denom, 4)
+            m_one_sum = round(max_intensity_plus_one / denom, 4)
+            m_two_sum = round(max_intensity_plus_two / denom, 4)
 
         self.Msumratio.setText(str(m_zero_sum))
         self.Mplusonesumratio.setText(str(m_one_sum))
         self.Mplustwosumratio.setText(str(m_two_sum))
 
-        self.pickedPointData = None
-        self.display_image(chosenData, self.pixel_size_x, self.pixel_size_y)
-        self.pickedPointData = chosenData
+        self.picked_point_data = None
+        self.display_image(chosen_data, self.pixel_size_x, self.pixel_size_y)
+        self.picked_point_data = chosen_data
 
         if self.massplusone.isChecked():
-            self.chosenDataIso = None
-            self.displayIsoImage(chosenData, chosenDataPlusOne, self.pixel_size_x, self.pixel_size_y)
-            self.chosenDataIso = chosenDataPlusOne
+            self.chosen_data_iso = None
+            self.display_iso_image(chosen_data, chosen_data_plus_one, self.pixel_size_x, self.pixel_size_y)
+            self.chosen_data_iso = chosen_data_plus_one
         elif self.massplustwo.isChecked():
-            self.chosenDataIso = None
-            self.displayIsoImage(chosenData, chosenDataPlusTwo, self.pixel_size_x, self.pixel_size_y)
-            self.chosenDataIso = chosenDataPlusTwo
+            self.chosen_data_iso = None
+            self.display_iso_image(chosen_data, chosen_data_plus_two, self.pixel_size_x, self.pixel_size_y)
+            self.chosen_data_iso = chosen_data_plus_two
 
     def ms_point(self):
         if self.start.text() == '':
@@ -880,14 +864,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         self.massbox.setText(self.start.text())
 
-        mapData = self.map_data
+        map_data = self.map_data
 
-        imageData = []
+        image_data = []
         image_plus_one = []
         image_plus_two = []
 
-        for line in mapData:
-            lineVals = []
+        for line in map_data:
+            line_vals = []
             line_plus_one = []
             line_plus_two = []
             for scan in line:
@@ -901,18 +885,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                         intensity_plus_one += val[1]
                     elif val[0] + (2 / ideal_ratio) + max_diff >= picked_point >= val[0] + (2 / ideal_ratio) - max_diff:
                         intensity_plus_two += val[1]
-                lineVals.append(intensity)
+                line_vals.append(intensity)
                 line_plus_one.append(intensity_plus_one)
                 line_plus_two.append(intensity_plus_two)
-            imageData.append(lineVals)
+            image_data.append(line_vals)
             image_plus_one.append(line_plus_one)
             image_plus_two.append(line_plus_two)
 
-        self.pickedPointData = None
-        self.display_image(imageData, self.pixel_size_x, self.pixel_size_y)
-        self.pickedPointData = imageData
+        self.picked_point_data = None
+        self.display_image(image_data, self.pixel_size_x, self.pixel_size_y)
+        self.picked_point_data = image_data
 
-        not_used, m_zero_max_intensity = self.find_min_max_image(imageData)
+        not_used, m_zero_max_intensity = self.find_min_max_image(image_data)
         not_used, m_one_max_intensity = self.find_min_max_image(image_plus_one)
         not_used, m_two_max_intensity = self.find_min_max_image(image_plus_two)
         if m_zero_max_intensity != 0:
@@ -922,13 +906,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.Mplustwosumratio.setText(str(round(m_two_max_intensity / denom, 4)))
 
         if self.massplusone.isChecked():
-            self.chosenDataIso = None
-            self.displayIsoImage(imageData, image_plus_one, self.pixel_size_x, self.pixel_size_y)
-            self.chosenDataIso = image_plus_one
+            self.chosen_data_iso = None
+            self.display_iso_image(image_data, image_plus_one, self.pixel_size_x, self.pixel_size_y)
+            self.chosen_data_iso = image_plus_one
         if self.massplustwo.isChecked():
-            self.chosenDataIso = None
-            self.displayIsoImage(imageData, image_plus_two, self.pixel_size_x, self.pixel_size_y)
-            self.chosenDataIso = image_plus_two
+            self.chosen_data_iso = None
+            self.display_iso_image(image_data, image_plus_two, self.pixel_size_x, self.pixel_size_y)
+            self.chosen_data_iso = image_plus_two
         return 0
 
     def ROI_select_Callback_mask(self):
@@ -1192,29 +1176,29 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     ##### Map Listbox functions #####
     def deleteMapbutton_Callback(self):
-        if self.Mapcount == 0:
+        if self.map_count == 0:
             return
         else:
             if self.Map_listselect_text:
                 del self.Maps[self.Map_listselect_text]
-                self.refreshMaplistbox()
-                self.Mapcount -= 1
+                self.refresh_map_listbox()
+                self.map_count -= 1
                 print('Map removed')
             else:
                 print('Item does not exist. Please double click on another item')
 
     def clearMapbutton_Callback(self):
-        if self.Mapcount == 0:
+        if self.map_count == 0:
             return
         else:
             self.Maps.clear()
-            self.Mapcount = 0
-            self.refreshMaplistbox()
+            self.map_count = 0
+            self.refresh_map_listbox()
 
     def Map_listbox_Callback(self, item):
         self.Map_listselect_text = item.text()
 
-    def refreshMaplistbox(self):
+    def refresh_map_listbox(self):
         if len(self.Maps) == 0:
             # set box with default text
             self.Map_listbox.clear()
@@ -1276,7 +1260,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ids_pd = pd.read_csv(fName_IDlist[0])
 
     ##### Image display functions #####
-    def displayIsoImage(self, zero_image, imageData, pixelSizeX, pixelSizeY):
+    def display_iso_image(self, zero_image, imageData, pixelSizeX, pixelSizeY):
         # This needs to be a different function for both the original point and the scaling functions
         count = len(zero_image) * len(zero_image[0])
         self.numberpoints.setText(str(count))
@@ -1294,7 +1278,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.Msumstandard_error.setText(str(std_deviation))
 
         iso_data = self.isotope_scalar(zero_image, imageData)
-        self.IsotopeMapData = iso_data
+        self.isotope_map_data = iso_data
         iso_for_deviation = np.asarray(iso_data)
         iso_for_deviation = iso_for_deviation.flatten()
 
@@ -1320,7 +1304,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes.set_ylabel("y, " + self.label)
         plt.colorbar(con_img2)
         self.iso_view.draw()
-        if not self.chosenDataIso:
+        if not self.chosen_data_iso:
             theMin, theMax = self.find_min_max_image(imageData)
             # If this needs to be the scaled image just change the above line
             self.max_int_iso.setText(str(theMax))
@@ -1366,8 +1350,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes.set_xlabel("x, " + self.label)
         self.axes.set_ylabel("y, " + self.label)
         self.view.draw()
-        self.ConcMapData = imageData
-        if not self.pickedPointData:
+        self.conc_map_data = imageData
+        if not self.picked_point_data:
             theMin, theMax = self.find_min_max_image(imageData)
             self.max_int.setText(str(theMax))
             self.min_int.setText(str(theMin))
@@ -1379,7 +1363,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.zmin.setMinimum(math.floor(theMin))
             self.zmax.setValue(math.ceil(theMax))
             self.zmin.setValue(math.floor(theMin))
-            self.pickedPointData = imageData
+            self.picked_point_data = imageData
 
     ##### Spectra display functions #####
     def display_spectra(self, mzVals, intensity, drifts=None, pt_size=.01):
@@ -1389,7 +1373,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 child.widget().deleteLater()
         plt.close('all')
 
-        if 100/len(mzVals) > pt_size:
+        if 100 / len(mzVals) > pt_size:
             pt_size = 100 / len(mzVals)
 
         self.spectra_canvas = FigureCanvas(plt.figure(tight_layout=True))
