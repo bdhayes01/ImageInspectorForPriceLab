@@ -198,7 +198,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ROI_select.clicked.connect(self.ROI_select_Callback_mask)
         self.exportROI.clicked.connect(self.exportROI_Callback)
         self.ROI_listbox.itemDoubleClicked.connect(self.roi_listbox_callback)
-        self.importROI.clicked.connect(self.import_roi_callback)
+        self.importROI_mz.clicked.connect(self.import_roi_callback)
+        self.importROI_whole.clicked.connect(self.import_roi_allmz_callback)
         self.deleteROIbutton.clicked.connect(self.delete_roi_callback)
         self.clearROIbutton.clicked.connect(self.clear_roi_callback)
         self.exportROI_val.clicked.connect(self.export_roi_spectra_callback)
@@ -1068,15 +1069,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("No item selected")
         else:
             chosen_val = self.ROI_Mass[self.ROI_listselect_text]
-            # try:
-            #     chosen_val = self.ROI_Mass[self.ROI_listselect_text]
-            # except ValueError:
-            #     print("Error: The chosen m/z must be numeric")
-            #     return
-            if chosen_val == None:
-                do = "something"
-            else:
-                there = "is a chosen val "
+            if chosen_val is None:
+                try:
+                    chosen_val = float(self.massbox.text())
+                except ValueError:
+                    print("No mass selected. Please choose a mass and press 'Point'.")
+                    return 0
             ppm = self.ppm_calc(chosen_val)
 
             self.ROIData = []
@@ -1117,6 +1115,51 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                                     mz_vals.append(mz)
                                     intensities.append(point[1])
                                     drifts.append(point[2])
+                            counter += 1
+                for i in range(len(mz_vals)):
+                    self.ROIData.append([mz_vals[i], intensities[i], drifts[i]])
+
+            self.display_spectra(mz_vals, intensities, drifts)
+            self.set_min_max_mz(mz_vals)
+
+    def import_roi_allmz_callback(self):
+        if self.ROI_listselect_text == "":
+            print("No item selected")
+        else:
+            self.ROIData = []
+            mz_vals = []
+            intensities = []
+            drifts = None
+
+            outline = self.ROI_outline[self.ROI_listselect_text]
+            map_data = self.ROI_Map_Data[self.ROI_listselect_text]
+            if self.drifts is None:
+                counter = 0
+                for line in map_data:
+                    for scan in line:
+                        if counter not in outline:
+                            counter += 1
+                            continue
+                        else:
+                            for point in scan:
+                                mz_vals.append(point[0])
+                                intensities.append(point[1])
+                            counter += 1
+                for i in range(len(mz_vals)):
+                    self.ROIData.append([mz_vals[i], intensities[i]])
+            else:
+                drifts = []
+                counter = 0
+                for line in map_data:
+                    for frame in line:
+                        if counter not in outline:
+                            counter += 1
+                            continue
+                        else:
+                            for point in frame:
+                                mz_vals.append(point[0])
+                                intensities.append(point[1])
+                                drifts.append(point[2])
                             counter += 1
                 for i in range(len(mz_vals)):
                     self.ROIData.append([mz_vals[i], intensities[i], drifts[i]])
