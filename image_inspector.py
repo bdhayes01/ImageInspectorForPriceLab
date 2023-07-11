@@ -14,14 +14,19 @@ Created on Wed Feb 10 15:58:09 2021
 # 3. Write Image Inspector documents
 # 4. Make it crash proof, so that the program will not terminate early under any circumstances.
 # 5. Make ML heuristic scorer.
+
+
 #           Questions:
-# 6. (JC)Should the noise button be implemented?
-# 7. (JC)The standard dev increases when the image is flipped or rotated. Is that okay?
-# 8. (JC)What color should the spectra plot colormap be?
-#       a. Make examples for this in colab that can be shown to JC. Screenshot them!
+# 7. (JC)The standard dev increases when the image is flipped or rotated. Is that okay? For now yes.
+
 # 9. Put the documents onto the lab website online.
-# 10. (JC)Ask if the mass up/ down should add 1 or the m/z spacing?
-# 11. Put a form for reporting errors on the lab website.
+# 12. Allow the user to select an ROI without a selected m/z
+# 13. scale for iso map should not go above the average ratio * 4
+# 14. ROI should update all m/sum boxes
+# 15. Use the average for the ratio instead of the maximum
+# 16. Put a big mark on the average of a ROI spectra
+# 17. ROI Spectra needs to include m0, 1, and 2.
+# 18. Maybe have a button for selected mass and all m/z
 
 import os
 import sys
@@ -373,7 +378,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.Mplustwosumratio.clear()
         self.Mplustwosumstandard_error.clear()
         self.start.clear()
-        self.Noise_Output_Box.clear()
         self.exportConcMapname.setText("Conc. Map Name")
         self.exportIsotopeMapname.setText("Isotope Map Name")
         self.ID_Output_Box.clear()
@@ -505,8 +509,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def mass_up_callback(self):
         if not self.view:
             return 0
-        self.start.setText(
-            str(float(self.start.text()) + 1.0))  # TODO: Ask if the mass up/ down should add 1 or the m/z spacing?
+        try:
+            mass_diff = float(self.ideal_ratio.text())
+            self.start.setText(str(float(self.start.text()) + mass_diff))
+        except ValueError:
+            print("Please enter numbers only.")
+            return 0
         if isIM:
             self.im_point()
         else:
@@ -516,7 +524,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def mass_down_callback(self):
         if not self.view:
             return 0
-        self.start.setText(str(float(self.start.text()) - 1.0))
+        try:
+            mass_diff = float(self.ideal_ratio.text())
+            self.start.setText(str(float(self.start.text()) - mass_diff))
+        except ValueError:
+            print("Please enter numbers only.")
+            return 0
         if isIM:
             self.im_point()
         else:
