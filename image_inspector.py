@@ -923,16 +923,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
 
     def ROI_select_Callback_mask(self):
-        if self.start.text() == '':
-            print("You must choose or input a point to the 'Selected Mass' box first.")
-            return
-        if self.massbox.text() == '':
-            print("There is no plot to select")
-            return
-        else:
-            if self.outline:
-                self.outline.disconnect()
-            self.outline = roi.new_ROI(self.con_img)
+        # if self.start.text() == '':
+        #     print("You must choose or input a point to the 'Selected Mass' box first.")
+        #     return
+        # if self.massbox.text() == '':
+        #     print("There is no plot to select")
+        #     return
+        # else:
+        if self.outline:
+            self.outline.disconnect()
+        self.outline = roi.new_ROI(self.con_img)
 
     def exportROI_Callback(self):
         if self.outline is None:
@@ -943,11 +943,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.binI = np.flipud(self.binI)
             f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
             self.ROI_outline[self.exportROIfilename.text()] = f
-            self.numberpoints.setText(str(len(f)))
+            # self.numberpoints.setText(str(len(f)))
         self.ROIcount = self.ROIcount + 1
         self.ROIcountbox.setText(str(self.ROIcount))
         self.ROI[self.exportROIfilename.text()] = self.binI
-        self.ROI_Mass[self.exportROIfilename.text()] = float(self.massbox.text())
+        try:
+            self.ROI_Mass[self.exportROIfilename.text()] = float(self.massbox.text())
+        except ValueError:
+            self.ROI_Mass[self.exportROIfilename.text()] = None
         self.ROI_Map_Data[self.exportROIfilename.text()] = self.map_data
         self.refresh_ROI_listbox()
         return 0
@@ -1064,11 +1067,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if self.ROI_listselect_text == "":
             print("No item selected")
         else:
-            try:
-                chosen_val = self.ROI_Mass[self.ROI_listselect_text]
-            except ValueError:
-                print("Error: The chosen m/z must be numeric")
-                return
+            chosen_val = self.ROI_Mass[self.ROI_listselect_text]
+            # try:
+            #     chosen_val = self.ROI_Mass[self.ROI_listselect_text]
+            # except ValueError:
+            #     print("Error: The chosen m/z must be numeric")
+            #     return
+            if chosen_val == None:
+                do = "something"
+            else:
+                there = "is a chosen val "
             ppm = self.ppm_calc(chosen_val)
 
             self.ROIData = []
