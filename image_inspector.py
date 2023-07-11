@@ -22,7 +22,6 @@ Created on Wed Feb 10 15:58:09 2021
 # 9. Put the documents onto the lab website online.
 # 12. Allow the user to select an ROI without a selected m/z
 # 14. ROI should update all m/sum boxes
-# 15. Use the average for the ratio instead of the maximum
 # 16. Put a big mark on the average of a ROI spectra
 # 17. ROI Spectra needs to include m0, 1, and 2.
 # 18. Maybe have a button for selected mass and all m/z
@@ -796,9 +795,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         chosen_data = []
         chosen_data_plus_one = []
         chosen_data_plus_two = []
-        # max_intensity = 0
-        # max_intensity_plus_one = 0
-        # max_intensity_plus_two = 0
 
         for line in map_data:
             line_data = []
@@ -811,18 +807,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 for scan in frame:
                     if picked_point - max_diff <= scan[0] < picked_point + max_diff:
                         the_val += scan[1]
-                        # if the_val > max_intensity:
-                        #     max_intensity = the_val
                     elif picked_point + (1 / ideal_ratio) - max_diff <= scan[0] < picked_point + (
                             1 / ideal_ratio) + max_diff:
                         the_val_plus_one += scan[1]
-                        # if the_val_plus_one > max_intensity_plus_one:
-                        #     max_intensity_plus_one = the_val_plus_one
                     elif picked_point + (2 / ideal_ratio) - max_diff <= scan[0] < picked_point + (
                             2 / ideal_ratio) + max_diff:
                         the_val_plus_two += scan[1]
-                        # if the_val_plus_two > max_intensity_plus_two:
-                        #     max_intensity_plus_two = the_val_plus_two
                 line_data.append(the_val)
                 line_data_plus_one.append(the_val_plus_one)
                 line_data_plus_two.append(the_val_plus_two)
@@ -830,21 +820,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             chosen_data_plus_one.append(line_data_plus_one)
             chosen_data_plus_two.append(line_data_plus_two)
 
-        m_zero_sum = 0
-        m_one_sum = 0
-        m_two_sum = 0
-        zero_average = np.average(np.asarray(chosen_data).flatten())
-        m_plus_one_average = np.average(np.asarray(chosen_data_plus_one).flatten())
-        m_plus_two_average = np.average(np.asarray(chosen_data_plus_two).flatten())
-        denom = zero_average + m_plus_one_average + m_plus_two_average
-        if denom > 0:
-            m_zero_sum = round(zero_average / denom, 4)
-            m_one_sum = round(m_plus_one_average / denom, 4)
-            m_two_sum = round(m_plus_two_average / denom, 4)
-
-        self.Msumratio.setText(str(m_zero_sum))
-        self.Mplusonesumratio.setText(str(m_one_sum))
-        self.Mplustwosumratio.setText(str(m_two_sum))
+        self.set_Msum_boxes(chosen_data, chosen_data_plus_one, chosen_data_plus_two)
 
         self.picked_point_data = None
         self.display_image(chosen_data, self.pixel_size_x, self.pixel_size_y)
@@ -911,14 +887,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.display_image(image_data, self.pixel_size_x, self.pixel_size_y)
         self.picked_point_data = image_data
 
-        not_used, m_zero_max_intensity = self.find_min_max_image(image_data)
-        not_used, m_one_max_intensity = self.find_min_max_image(image_plus_one)
-        not_used, m_two_max_intensity = self.find_min_max_image(image_plus_two)
-        if m_zero_max_intensity != 0:
-            denom = m_zero_max_intensity + m_one_max_intensity + m_two_max_intensity
-            self.Msumratio.setText(str(round(m_zero_max_intensity / denom, 4)))
-            self.Mplusonesumratio.setText(str(round(m_one_max_intensity / denom, 4)))
-            self.Mplustwosumratio.setText(str(round(m_two_max_intensity / denom, 4)))
+        self.set_Msum_boxes(image_data, image_plus_one, image_plus_two)
 
         if self.massplusone.isChecked():
             self.chosen_data_iso = None
@@ -929,6 +898,24 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.display_iso_image(image_data, image_plus_two, self.pixel_size_x, self.pixel_size_y)
             self.chosen_data_iso = image_plus_two
         return 0
+
+    def set_Msum_boxes(self, image_data, image_plus_one, image_plus_two):
+        m_zero_sum = 0
+        m_one_sum = 0
+        m_two_sum = 0
+        zero_average = np.average(np.asarray(image_data).flatten())
+        m_plus_one_average = np.average(np.asarray(image_plus_one).flatten())
+        m_plus_two_average = np.average(np.asarray(image_plus_two).flatten())
+        denominator = zero_average + m_plus_one_average + m_plus_two_average
+        if denominator > 0:
+            m_zero_sum = round(zero_average / denominator, 4)
+            m_one_sum = round(m_plus_one_average / denominator, 4)
+            m_two_sum = round(m_plus_two_average / denominator, 4)
+
+        self.Msumratio.setText(str(m_zero_sum))
+        self.Mplusonesumratio.setText(str(m_one_sum))
+        self.Mplustwosumratio.setText(str(m_two_sum))
+
 
     def ROI_select_Callback_mask(self):
         if self.start.text() == '':
@@ -1314,8 +1301,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         plt.colorbar(con_img2)
         self.iso_view.draw()
         if not self.chosen_data_iso:
-            the_min, the_max = self.find_min_max_image(imageData)
-            # If this needs to be the scaled image just change the above line
+            the_max = round(max(iso_for_deviation), 4)
+            the_min = round(min(iso_for_deviation), 4)
             self.max_int_iso.setText(str(the_max))
             self.min_int_iso.setText(str(the_min))
             self.max_iso.setText(str(the_max))
@@ -1326,6 +1313,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.zmin_isotope.setMinimum(math.floor(the_min))
             self.zmax_isotope.setValue(math.ceil(the_max))
             self.zmin_isotope.setValue(math.floor(the_min))
+            # self.zmax_isotope.setSingleStep(the_max / 25) #TODO: Fix the single step
+            # self.zmin_isotope.setSingleStep(the_max / 25)
+
 
     def isotope_scalar(self, m_zero_intensity, isotope_intensity):
         new_data = []
@@ -1361,7 +1351,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.view.draw()
         self.conc_map_data = image_data
         if not self.picked_point_data:
-            the_min, the_max = self.find_min_max_image(image_data)
+            image = np.asarray(image_data)
+            image = image.flatten()
+            the_max = round(max(image), 4)
+            the_min = round(min(image), 4)
             self.max_int.setText(str(the_max))
             self.min_int.setText(str(the_min))
             self.temp_max.setText(str(the_max))
@@ -1481,17 +1474,17 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return
 
     ##### Misc. functions #####
-    def find_min_max_image(self, image_data):
-        the_min = sys.maxsize
-        the_max = 0
-        for line in image_data:
-            line_min = min(line)
-            line_max = max(line)
-            if line_max > the_max:
-                the_max = line_max
-            if line_min < the_min:
-                the_min = line_min
-        return the_min, the_max
+    # def find_min_max_image(self, image_data):
+    #     the_min = sys.maxsize
+    #     the_max = 0
+    #     for line in image_data:
+    #         line_min = min(line)
+    #         line_max = max(line)
+    #         if line_max > the_max:
+    #             the_max = line_max
+    #         if line_min < the_min:
+    #             the_min = line_min
+    #     return the_min, the_max
 
     def ppm_calc(self, mz_val):
         if float(self.pick_IDthreshold.value()) == 0:
