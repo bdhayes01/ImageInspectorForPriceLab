@@ -16,9 +16,6 @@ Created on Wed Feb 10 15:58:09 2021
 # 5. Make ML heuristic scorer.
 
 
-#           Questions:
-# 7. (JC)The standard dev increases when the image is flipped or rotated. Is that okay? For now yes.
-
 # 9. Put the documents onto the lab website online.
 # 12. Allow the user to select an ROI without a selected m/z
 # 14. ROI should update all m/sum boxes
@@ -576,6 +573,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.display_image(self.conc_map_data, self.pixel_size_x, self.pixel_size_y)
             if self.isotope_map_data is not None:
                 self.isotope_map_data.reverse()
+                self.isotope_map_data = self.isotope_scalar(self.conc_map_data, self.isotope_map_data)
                 self.display_iso_image(self.conc_map_data, self.isotope_map_data, self.pixel_size_x, self.pixel_size_y)
         except AttributeError:
             print("Error: Flipping an array with no values.\n"
@@ -616,6 +614,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.isotope_map_data = self.rotate_right(self.isotope_map_data)
             else:
                 self.isotope_map_data = self.rotate_left(self.isotope_map_data)
+            self.isotope_map_data = self.isotope_scalar(self.conc_map_data, self.isotope_map_data)
             self.display_iso_image(self.conc_map_data, self.isotope_map_data, self.pixel_size_x, self.pixel_size_y)
         return 0
 
@@ -696,25 +695,25 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     ##### Isotope map scaling  #####
     def zmax_isotope_Callback(self):
-        self.max_iso.setText(str(self.zmax_isotope.sliderPosition()))
+        self.max_iso.setText(str(self.zmax_isotope.sliderPosition() / 100))
         self.scale_iso_image()
 
     def zmin_isotope_Callback(self):
-        self.min_iso.setText(str(self.zmin_isotope.sliderPosition()))
+        self.min_iso.setText(str(self.zmin_isotope.sliderPosition() / 100))
         self.scale_iso_image()
 
     def scale_iso_image(self):
         if self.chosen_data_iso is None:  # This will be triggered only at the beginning
             return 0
-        image = self.chosen_data_iso
+        # image = self.isotope_scalar(self.picked_point_data, self.chosen_data_iso)
         data = []
-        maximum = self.zmax_isotope.sliderPosition()
-        minimum = self.zmin_isotope.sliderPosition()
+        maximum = self.zmax_isotope.sliderPosition() / 100
+        minimum = self.zmin_isotope.sliderPosition() / 100
         if minimum >= maximum:
-            new_map = np.zeros((len(image), len(image[0])))
+            new_map = np.zeros((len(self.chosen_data_iso), len(self.chosen_data_iso[0])))
             self.display_iso_image(new_map, new_map, self.pixel_size_x, self.pixel_size_y)
             return 0
-        for line in image:
+        for line in self.chosen_data_iso:
             new_line = []
             for frame in line:
                 new_frame = 0
@@ -728,11 +727,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     def temp_max_iso_Callback(self):
         new_max = self.iso_plot_temp_pressed_callback(self.max_iso.text())
+        new_max = new_max * 100
         self.zmax_isotope.setValue(math.ceil(new_max))
         self.scale_iso_image()
 
     def temp_min_iso_Callback(self):
         new_min = self.iso_plot_temp_pressed_callback(self.min_iso.text())
+        new_min = new_min * 100
         self.zmin_isotope.setValue(math.ceil(new_min))
         self.scale_iso_image()
 
@@ -828,10 +829,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         if self.massplusone.isChecked():
             self.chosen_data_iso = None
+            chosen_data_plus_one = self.isotope_scalar(chosen_data, chosen_data_plus_one)
             self.display_iso_image(chosen_data, chosen_data_plus_one, self.pixel_size_x, self.pixel_size_y)
             self.chosen_data_iso = chosen_data_plus_one
         elif self.massplustwo.isChecked():
             self.chosen_data_iso = None
+            chosen_data_plus_two = self.isotope_scalar(chosen_data, chosen_data_plus_two)
             self.display_iso_image(chosen_data, chosen_data_plus_two, self.pixel_size_x, self.pixel_size_y)
             self.chosen_data_iso = chosen_data_plus_two
 
@@ -891,10 +894,12 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
         if self.massplusone.isChecked():
             self.chosen_data_iso = None
+            image_plus_one = self.isotope_scalar(image_data, image_plus_one)
             self.display_iso_image(image_data, image_plus_one, self.pixel_size_x, self.pixel_size_y)
             self.chosen_data_iso = image_plus_one
         if self.massplustwo.isChecked():
             self.chosen_data_iso = None
+            image_plus_two = self.isotope_scalar(image_data, image_plus_two)
             self.display_iso_image(image_data, image_plus_two, self.pixel_size_x, self.pixel_size_y)
             self.chosen_data_iso = image_plus_two
         return 0
@@ -1273,9 +1278,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         std_deviation = round(float(np.std(zero_for_dev)), 4)
         self.Msumstandard_error.setText(str(std_deviation))
 
-        iso_data = self.isotope_scalar(zero_image, imageData)
-        self.isotope_map_data = iso_data
-        iso_for_deviation = np.asarray(iso_data)
+        # iso_data = self.isotope_scalar(zero_image, imageData)
+        self.isotope_map_data = imageData
+        iso_for_deviation = np.asarray(imageData)
         iso_for_deviation = iso_for_deviation.flatten()
 
         std_deviation = round(float(np.std(iso_for_deviation)), 4)
@@ -1294,7 +1299,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.axes = self.iso_view.figure.subplots()
         self.toolbar = NavigationToolbar(self.iso_view, self)
         self.iso_plot.addWidget(self.iso_view)
-        con_img2 = self.axes.imshow(iso_data, cmap='inferno', aspect=(y_end / x_end),
+        con_img2 = self.axes.imshow(imageData, cmap='jet', aspect=(y_end / x_end),
                                     extent=[0, x_end * self.scale_factor, 0, y_end * self.scale_factor])
         self.axes.set_xlabel("x, " + self.label)
         self.axes.set_ylabel("y, " + self.label)
@@ -1307,14 +1312,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.min_int_iso.setText(str(the_min))
             self.max_iso.setText(str(the_max))
             self.min_iso.setText(str(the_min))
+            the_max = the_max * 100
+            the_min = the_min * 100
             self.zmax_isotope.setMaximum(math.ceil(the_max))
             self.zmax_isotope.setMinimum(math.floor(the_min))
             self.zmin_isotope.setMaximum(math.ceil(the_max))
             self.zmin_isotope.setMinimum(math.floor(the_min))
             self.zmax_isotope.setValue(math.ceil(the_max))
             self.zmin_isotope.setValue(math.floor(the_min))
-            # self.zmax_isotope.setSingleStep(the_max / 25) #TODO: Fix the single step
-            # self.zmin_isotope.setSingleStep(the_max / 25)
 
 
     def isotope_scalar(self, m_zero_intensity, isotope_intensity):
