@@ -21,7 +21,6 @@ Created on Wed Feb 10 15:58:09 2021
 
 # 9. Put the documents onto the lab website online.
 # 12. Allow the user to select an ROI without a selected m/z
-# 13. scale for iso map should not go above the average ratio * 4
 # 14. ROI should update all m/sum boxes
 # 15. Use the average for the ratio instead of the maximum
 # 16. Put a big mark on the average of a ROI spectra
@@ -797,9 +796,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         chosen_data = []
         chosen_data_plus_one = []
         chosen_data_plus_two = []
-        max_intensity = 0
-        max_intensity_plus_one = 0
-        max_intensity_plus_two = 0
+        # max_intensity = 0
+        # max_intensity_plus_one = 0
+        # max_intensity_plus_two = 0
 
         for line in map_data:
             line_data = []
@@ -812,18 +811,18 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 for scan in frame:
                     if picked_point - max_diff <= scan[0] < picked_point + max_diff:
                         the_val += scan[1]
-                        if the_val > max_intensity:
-                            max_intensity = the_val
+                        # if the_val > max_intensity:
+                        #     max_intensity = the_val
                     elif picked_point + (1 / ideal_ratio) - max_diff <= scan[0] < picked_point + (
                             1 / ideal_ratio) + max_diff:
                         the_val_plus_one += scan[1]
-                        if the_val_plus_one > max_intensity_plus_one:
-                            max_intensity_plus_one = the_val_plus_one
+                        # if the_val_plus_one > max_intensity_plus_one:
+                        #     max_intensity_plus_one = the_val_plus_one
                     elif picked_point + (2 / ideal_ratio) - max_diff <= scan[0] < picked_point + (
                             2 / ideal_ratio) + max_diff:
                         the_val_plus_two += scan[1]
-                        if the_val_plus_two > max_intensity_plus_two:
-                            max_intensity_plus_two = the_val_plus_two
+                        # if the_val_plus_two > max_intensity_plus_two:
+                        #     max_intensity_plus_two = the_val_plus_two
                 line_data.append(the_val)
                 line_data_plus_one.append(the_val_plus_one)
                 line_data_plus_two.append(the_val_plus_two)
@@ -834,11 +833,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         m_zero_sum = 0
         m_one_sum = 0
         m_two_sum = 0
-        if max_intensity != 0:
-            denom = max_intensity + max_intensity_plus_one + max_intensity_plus_two
-            m_zero_sum = round(max_intensity / denom, 4)
-            m_one_sum = round(max_intensity_plus_one / denom, 4)
-            m_two_sum = round(max_intensity_plus_two / denom, 4)
+        zero_average = np.average(np.asarray(chosen_data).flatten())
+        m_plus_one_average = np.average(np.asarray(chosen_data_plus_one).flatten())
+        m_plus_two_average = np.average(np.asarray(chosen_data_plus_two).flatten())
+        denom = zero_average + m_plus_one_average + m_plus_two_average
+        if denom > 0:
+            m_zero_sum = round(zero_average / denom, 4)
+            m_one_sum = round(m_plus_one_average / denom, 4)
+            m_two_sum = round(m_plus_two_average / denom, 4)
 
         self.Msumratio.setText(str(m_zero_sum))
         self.Mplusonesumratio.setText(str(m_one_sum))
@@ -1332,10 +1334,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             orig_line = m_zero_intensity[line]
             iso_line = isotope_intensity[line]
             for scan in range(len(orig_line)):
-                if orig_line[scan] == 0:
+                if orig_line[scan] <= 0:
                     ratio = 0
                 else:
-                    ratio = iso_line[scan] / orig_line[scan] + iso_line[scan]
+                    ratio = iso_line[scan] / (orig_line[scan] + iso_line[scan])
                 the_line.append(ratio)
             new_data.append(the_line)
         return new_data
