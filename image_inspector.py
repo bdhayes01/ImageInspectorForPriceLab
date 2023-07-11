@@ -17,11 +17,8 @@ Created on Wed Feb 10 15:58:09 2021
 
 
 # 9. Put the documents onto the lab website online.
-# 12. Allow the user to select an ROI without a selected m/z
 # 14. ROI should update all m/sum boxes
 # 16. Put a big mark on the average of a ROI spectra
-# 17. ROI Spectra needs to include m0, 1, and 2.
-# 18. Maybe have a button for selected mass and all m/z
 
 import os
 import sys
@@ -1077,9 +1074,19 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     return 0
             ppm = self.ppm_calc(chosen_val)
 
+            try:
+                spacing = float(self.ideal_ratio.text())
+            except ValueError:
+                print("No mass selected. Please choose a mass and press 'Point'.")
+                return 0
+
             self.ROIData = []
             mz_vals = []
             intensities = []
+            # mz_plus_one_vals = []
+            plus_one_intensities = []
+            # mz_plus_two_vals = []
+            plus_two_intensities = []
             drifts = None
 
             outline = self.ROI_outline[self.ROI_listselect_text]
@@ -1097,6 +1104,16 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                                 if chosen_val + ppm >= mz >= chosen_val - ppm:
                                     mz_vals.append(mz)
                                     intensities.append(point[1])
+                                elif chosen_val + (1 / spacing) + ppm >= mz >= \
+                                        chosen_val + (1 / spacing) - ppm:
+                                    mz_vals.append(mz)
+                                    intensities.append(point[1])
+                                    plus_one_intensities.append(point[1])
+                                elif chosen_val + (2 / spacing) + ppm >= mz >= \
+                                        chosen_val + (2 / spacing) - ppm:
+                                    mz_vals.append(mz)
+                                    intensities.append(point[1])
+                                    plus_two_intensities.append(point[1])
                             counter += 1
                 for i in range(len(mz_vals)):
                     self.ROIData.append([mz_vals[i], intensities[i]])
@@ -1115,12 +1132,27 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                                     mz_vals.append(mz)
                                     intensities.append(point[1])
                                     drifts.append(point[2])
+                                elif chosen_val + (1 / spacing) + ppm >= mz >= \
+                                        chosen_val + (1 / spacing) - ppm:
+                                    mz_vals.append(mz)
+                                    intensities.append(point[1])
+                                    drifts.append(point[2])
+                                    plus_one_intensities.append(point[1])
+                                elif chosen_val + (2 / spacing) + ppm >= mz >= \
+                                        chosen_val + (2 / spacing) - ppm:
+                                    mz_vals.append(mz)
+                                    intensities.append(point[1])
+                                    drifts.append(point[2])
+                                    plus_two_intensities.append(point[1])
                             counter += 1
                 for i in range(len(mz_vals)):
                     self.ROIData.append([mz_vals[i], intensities[i], drifts[i]])
-
             self.display_spectra(mz_vals, intensities, drifts)
             self.set_min_max_mz(mz_vals)
+            self.set_Msum_boxes(intensities, plus_one_intensities, plus_two_intensities)
+            self.numberpoints.setText(str(len(np.asarray(outline).flatten())))
+            # TODO: This isn't quite right, the intensities need to be for every pixel,
+            #  then averaged, not just for every individual intensity point
 
     def import_roi_allmz_callback(self):
         if self.ROI_listselect_text == "":
