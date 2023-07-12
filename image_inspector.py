@@ -919,6 +919,28 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.Mplusonesumratio.setText(str(m_one_sum))
         self.Mplustwosumratio.setText(str(m_two_sum))
 
+        std_dev = round(float(np.std(image_data)), 4)
+        self.Msumstandard_error.setText(str(std_dev))
+
+        try:
+            image_one, image_two = self.scale_flattened(image_data, image_plus_one, image_plus_two)
+        except TypeError:
+            return 0
+        std_dev = round(float(np.std(image_data)), 4)
+        self.Msumstandard_error.setText(str(std_dev))
+        std_dev = round(float(np.std(image_one)), 4)
+        self.Mplusonesumstandard_error.setText(str(std_dev))
+        std_dev = round(float(np.std(image_two)), 4)
+        self.Mplustwosumstandard_error.setText(str(std_dev))
+
+    def scale_flattened(self, zero, one, two):
+        one_ratio = []
+        two_ratio = []
+        for i in range(len(zero)):
+            one_ratio.append(round((one[i] / (zero[i] + one[i])), 4))
+            two_ratio.append(round((two[i] / (zero[i] + two[i])), 4))
+        return one_ratio, two_ratio
+
 
     def ROI_select_Callback_mask(self):
         # if self.start.text() == '':
@@ -1083,9 +1105,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.ROIData = []
             mz_vals = []
             intensities = []
-            # mz_plus_one_vals = []
+            plus_zero_intensities = []
             plus_one_intensities = []
-            # mz_plus_two_vals = []
             plus_two_intensities = []
             drifts = None
 
@@ -1099,21 +1120,28 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                             counter += 1
                             continue
                         else:
+                            plus_zero = 0
+                            plus_one = 0
+                            plus_two = 0
                             for point in scan:
                                 mz = point[0]
                                 if chosen_val + ppm >= mz >= chosen_val - ppm:
                                     mz_vals.append(mz)
                                     intensities.append(point[1])
+                                    plus_zero += point[1]
                                 elif chosen_val + (1 / spacing) + ppm >= mz >= \
                                         chosen_val + (1 / spacing) - ppm:
                                     mz_vals.append(mz)
                                     intensities.append(point[1])
-                                    plus_one_intensities.append(point[1])
+                                    plus_one += point[1]
                                 elif chosen_val + (2 / spacing) + ppm >= mz >= \
                                         chosen_val + (2 / spacing) - ppm:
                                     mz_vals.append(mz)
                                     intensities.append(point[1])
-                                    plus_two_intensities.append(point[1])
+                                    plus_two += point[1]
+                            plus_zero_intensities.append(plus_zero)
+                            plus_one_intensities.append(plus_one)
+                            plus_two_intensities.append(plus_two)
                             counter += 1
                 for i in range(len(mz_vals)):
                     self.ROIData.append([mz_vals[i], intensities[i]])
@@ -1126,31 +1154,40 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                             counter += 1
                             continue
                         else:
+                            plus_zero = 0
+                            plus_one = 0
+                            plus_two = 0
                             for point in frame:
                                 mz = point[0]
                                 if chosen_val + ppm >= mz >= chosen_val - ppm:
                                     mz_vals.append(mz)
                                     intensities.append(point[1])
                                     drifts.append(point[2])
+                                    plus_zero += point[1]
                                 elif chosen_val + (1 / spacing) + ppm >= mz >= \
                                         chosen_val + (1 / spacing) - ppm:
                                     mz_vals.append(mz)
                                     intensities.append(point[1])
                                     drifts.append(point[2])
-                                    plus_one_intensities.append(point[1])
+                                    plus_one += point[1]
                                 elif chosen_val + (2 / spacing) + ppm >= mz >= \
                                         chosen_val + (2 / spacing) - ppm:
                                     mz_vals.append(mz)
                                     intensities.append(point[1])
                                     drifts.append(point[2])
-                                    plus_two_intensities.append(point[1])
+                                    plus_two += point[1]
+                            plus_zero_intensities.append(plus_zero)
+                            plus_one_intensities.append(plus_one)
+                            plus_two_intensities.append(plus_two)
                             counter += 1
                 for i in range(len(mz_vals)):
                     self.ROIData.append([mz_vals[i], intensities[i], drifts[i]])
             self.display_spectra(mz_vals, intensities, drifts)
             self.set_min_max_mz(mz_vals)
-            self.set_Msum_boxes(intensities, plus_one_intensities, plus_two_intensities)
+
+            self.set_Msum_boxes(plus_zero_intensities, plus_one_intensities, plus_two_intensities)
             self.numberpoints.setText(str(len(np.asarray(outline).flatten())))
+
             # TODO: This isn't quite right, the intensities need to be for every pixel,
             #  then averaged, not just for every individual intensity point
 
