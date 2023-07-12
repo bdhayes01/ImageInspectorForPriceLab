@@ -1192,10 +1192,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.set_min_max_mz(mz_vals)
 
             self.set_Msum_boxes(plus_zero_intensities, plus_one_intensities, plus_two_intensities)
+            # I think the following line is correct.
             self.numberpoints.setText(str(len(np.asarray(outline).flatten())))
-
-            # TODO: This isn't quite right, the intensities need to be for every pixel,
-            #  then averaged, not just for every individual intensity point
 
     def import_roi_all_mz_callback(self):
         if self.ROI_listselect_text == "":
