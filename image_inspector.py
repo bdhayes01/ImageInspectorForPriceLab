@@ -1188,7 +1188,39 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                             counter += 1
                 for i in range(len(mz_vals)):
                     self.ROIData.append([mz_vals[i], intensities[i], drifts[i]])
+
+            #TODO: start working here
+
+            mzV = np.asarray(mz_vals)
+            v = np.asarray(intensities)
+            vals = np.where(chosen_val + ppm > mzV, mz_vals, 0)
+            vals = np.where(chosen_val - ppm < vals, v, 0).nonzero()
+            orig_intensity = v[vals]
+
+            vals = np.where(chosen_val + (1 / spacing) + ppm > mzV, mz_vals, 0)
+            vals = np.where(chosen_val + (1 / spacing) - ppm < vals, v, 0).nonzero()
+            plus_one_intensity = v[vals]
+
+            vals = np.where(chosen_val + (2 / spacing) + ppm > mzV, mz_vals, 0)
+            vals = np.where(chosen_val + (2 / spacing) - ppm < vals, v, 0).nonzero()
+            plus_two_intensity = v[vals]
+
+            zero_graph_x = [chosen_val - ppm, chosen_val + ppm]
+            y = np.average(orig_intensity)
+            zero_graph_y = [y, y]
+
+            one_graph_x = [chosen_val + (1 / spacing) - ppm, chosen_val + (1 / spacing) + ppm]
+            y = np.average(plus_one_intensity)
+            one_graph_y = [y, y]
+
+            two_graph_x = [chosen_val + (2 / spacing) - ppm, chosen_val + (2 / spacing) + ppm]
+            y = np.average(plus_two_intensity)
+            two_graph_y = [y, y]
+
             self.display_spectra(mz_vals, intensities, drifts)
+            self._spectra_ax.plot(zero_graph_x, zero_graph_y)
+            self._spectra_ax.plot(one_graph_x, one_graph_y)
+            self._spectra_ax.plot(two_graph_x, two_graph_y)
             self.set_min_max_mz(mz_vals)
 
             self.set_Msum_boxes(plus_zero_intensities, plus_one_intensities, plus_two_intensities)
