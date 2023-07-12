@@ -196,7 +196,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.exportROI.clicked.connect(self.exportROI_Callback)
         self.ROI_listbox.itemDoubleClicked.connect(self.roi_listbox_callback)
         self.importROI_mz.clicked.connect(self.import_roi_callback)
-        self.importROI_whole.clicked.connect(self.import_roi_allmz_callback)
+        self.importROI_whole.clicked.connect(self.import_roi_all_mz_callback)
         self.deleteROIbutton.clicked.connect(self.delete_roi_callback)
         self.clearROIbutton.clicked.connect(self.clear_roi_callback)
         self.exportROI_val.clicked.connect(self.export_roi_spectra_callback)
@@ -970,7 +970,6 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.binI = np.flipud(self.binI)
             f = np.argwhere(np.ravel(self.binI, order='C'))[:, 0]
             self.ROI_outline[self.exportROIfilename.text()] = f
-            # self.numberpoints.setText(str(len(f)))
         self.ROIcount = self.ROIcount + 1
         self.ROIcountbox.setText(str(self.ROIcount))
         self.ROI[self.exportROIfilename.text()] = self.binI
@@ -1198,7 +1197,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             # TODO: This isn't quite right, the intensities need to be for every pixel,
             #  then averaged, not just for every individual intensity point
 
-    def import_roi_allmz_callback(self):
+    def import_roi_all_mz_callback(self):
         if self.ROI_listselect_text == "":
             print("No item selected")
         else:
