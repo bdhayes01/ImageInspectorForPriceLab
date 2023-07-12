@@ -937,8 +937,15 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         one_ratio = []
         two_ratio = []
         for i in range(len(zero)):
-            one_ratio.append(round((one[i] / (zero[i] + one[i])), 4))
-            two_ratio.append(round((two[i] / (zero[i] + two[i])), 4))
+            if (zero[i] + one[i]) == 0:
+                one_ratio.append(0)
+            else:
+                one_ratio.append(round((one[i] / (zero[i] + one[i])), 4))
+
+            if (zero[i] + two[i]) == 0:
+                two_ratio.append(0)
+            else:
+                two_ratio.append(round((two[i] / (zero[i] + two[i])), 4))
         return one_ratio, two_ratio
 
 
