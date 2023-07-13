@@ -922,16 +922,23 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         std_dev = round(float(np.std(image_data)), 4)
         self.Msumstandard_error.setText(str(std_dev))
 
-        try:
-            image_one, image_two = self.scale_flattened(image_data, image_plus_one, image_plus_two)
-        except TypeError:
-            return 0
-        std_dev = round(float(np.std(image_data)), 4)
-        self.Msumstandard_error.setText(str(std_dev))
-        std_dev = round(float(np.std(image_one)), 4)
-        self.Mplusonesumstandard_error.setText(str(std_dev))
-        std_dev = round(float(np.std(image_two)), 4)
-        self.Mplustwosumstandard_error.setText(str(std_dev))
+        zero_dev = round(float(np.std(np.asarray(image_data).flatten())), 4)
+        one_dev = round(float(np.std(np.asarray(image_plus_one).flatten())), 4)
+        two_dev = round(float(np.std(np.asarray(image_plus_two).flatten())), 4)
+        self.Msumstandard_error.setText(str(zero_dev))
+        self.Mplusonesumstandard_error.setText(str(one_dev))
+        self.Mplustwosumstandard_error.setText(str(two_dev))
+
+        # try:
+        #     image_one, image_two = self.scale_flattened(image_data, image_plus_one, image_plus_two)
+        # except TypeError:
+        #     return 0
+        # std_dev = round(float(np.std(image_data)), 4)
+        # self.Msumstandard_error.setText(str(std_dev))
+        # std_dev = round(float(np.std(image_one)), 4)
+        # self.Mplusonesumstandard_error.setText(str(std_dev))
+        # std_dev = round(float(np.std(image_two)), 4)
+        # self.Mplustwosumstandard_error.setText(str(std_dev))
 
     def scale_flattened(self, zero, one, two):
         one_ratio = []
@@ -1218,12 +1225,13 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             two_graph_y = [y, y]
 
             self.display_spectra(mz_vals, intensities, drifts)
-            self._spectra_ax.plot(zero_graph_x, zero_graph_y)
-            self._spectra_ax.plot(one_graph_x, one_graph_y)
-            self._spectra_ax.plot(two_graph_x, two_graph_y)
+            self._spectra_ax.plot(zero_graph_x, zero_graph_y, color='#000000')
+            self._spectra_ax.plot(one_graph_x, one_graph_y, color='#000000')
+            self._spectra_ax.plot(two_graph_x, two_graph_y, color='#000000')
             self.set_min_max_mz(mz_vals)
 
-            self.set_Msum_boxes(plus_zero_intensities, plus_one_intensities, plus_two_intensities)
+            # self.set_Msum_boxes(plus_zero_intensities, plus_one_intensities, plus_two_intensities)
+            self.set_Msum_boxes(orig_intensity, plus_one_intensity, plus_two_intensity)
             # I think the following line is correct.
             self.numberpoints.setText(str(len(np.asarray(outline).flatten())))
 
