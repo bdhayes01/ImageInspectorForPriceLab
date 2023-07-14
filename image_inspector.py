@@ -245,9 +245,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.ideal_ratio.setValue(1.0)
         self.ideal_ratio.setDecimals(5)
         self.ideal_ratio.setRange(0.01, 99)
-        self.ideal_ratio.setValue(0)
-        self.ideal_ratio.setDecimals(5)
         self.selected_mass.setRange(0, 2000)
+        self.selected_mass.setDecimals(5)
         QListWidgetItem('ROI list appears here', self.ROI_listbox)
         QListWidgetItem('Map list appears here', self.Map_listbox)
 
@@ -763,6 +762,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
 
     ##### Map Controls #####
     def pick_point_Callback(self):
+        print("Setting the picked point")
         if self.micrometer.isChecked():
             self.scale_factor = 1e3
             self.label = 'μm'
@@ -772,10 +772,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif self.centimeter.isChecked():
             self.scale_factor = 0.1
             self.label = 'cm'
-        # if self.start.text() == '':
-        #     print("You must choose or input a point to the 'Selected Mass' box first.")
-        #     return 0
-        elif isIM:
+        if isIM:
             self.im_point()
             return 0
         else:
