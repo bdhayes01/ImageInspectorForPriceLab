@@ -243,7 +243,11 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.massplusone.setChecked(True)
         self.all_drift_times.setChecked(True)
         self.ideal_ratio.setValue(1.0)
+        self.ideal_ratio.setDecimals(5)
         self.ideal_ratio.setRange(0.01, 99)
+        self.ideal_ratio.setValue(0)
+        self.ideal_ratio.setDecimals(5)
+        self.selected_mass.setRange(0, 2000)
         QListWidgetItem('ROI list appears here', self.ROI_listbox)
         QListWidgetItem('Map list appears here', self.Map_listbox)
 
@@ -372,7 +376,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.Mplusonesumstandard_error.clear()
         self.Mplustwosumratio.clear()
         self.Mplustwosumstandard_error.clear()
-        self.start.clear()
+        self.selected_mass.setValue(0)
         self.exportConcMapname.setText("Conc. Map Name")
         self.exportIsotopeMapname.setText("Isotope Map Name")
         self.ID_Output_Box.clear()
@@ -504,12 +508,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def mass_up_callback(self):
         if not self.view:
             return 0
-        try:
-            mass_diff = float(self.ideal_ratio.value())
-            self.start.setText(str(float(self.start.text()) + mass_diff))
-        except ValueError:
-            print("Please enter numbers only.")
-            return 0
+        mass_diff = float(self.ideal_ratio.value())
+        self.selected_mass.setValue(self.selected_mass.value() + mass_diff)
+        # try:
+        #
+        #     # self.start.setText(str(float(self.start.text()) + mass_diff))
+        # except ValueError:
+        #     print("Please enter numbers only.")
+        #     return 0
         if isIM:
             self.im_point()
         else:
@@ -519,12 +525,14 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def mass_down_callback(self):
         if not self.view:
             return 0
-        try:
-            mass_diff = float(self.ideal_ratio.value())
-            self.start.setText(str(float(self.start.text()) - mass_diff))
-        except ValueError:
-            print("Please enter numbers only.")
-            return 0
+        mass_diff = float(self.ideal_ratio.value())
+        self.selected_mass.setValue(self.selected_mass.value() - mass_diff)
+        # try:
+        #     mass_diff = float(self.ideal_ratio.value())
+        #     self.start.setText(str(float(self.start.text()) - mass_diff))
+        # except ValueError:
+        #     print("Please enter numbers only.")
+        #     return 0
         if isIM:
             self.im_point()
         else:
@@ -535,7 +543,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if self.original_image:
             self.picked_point_data = None
             self.display_image(self.original_image, self.pixel_size_x, self.pixel_size_y)
-            self.start.clear()
+            self.selected_mass.setValue(0)
+            # self.start.clear()
             self.massbox.clear()
             self.isotope_map_data = None
             while self.iso_plot.count():
@@ -763,9 +772,9 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         elif self.centimeter.isChecked():
             self.scale_factor = 0.1
             self.label = 'cm'
-        if self.start.text() == '':
-            print("You must choose or input a point to the 'Selected Mass' box first.")
-            return 0
+        # if self.start.text() == '':
+        #     print("You must choose or input a point to the 'Selected Mass' box first.")
+        #     return 0
         elif isIM:
             self.im_point()
             return 0
@@ -774,19 +783,20 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             return 0
 
     def im_point(self):
-        if self.start.text() == '':
-            return
-        try:
-            picked_point = float(self.start.text())
-        except ValueError:
-            print("Please enter a number for the selected mass.")
-            return
+        # if self.start.text() == '':
+        #     return
+        picked_point = self.selected_mass.value()
+        # try:
+        #     picked_point = float(self.start.text())
+        # except ValueError:
+        #     print("Please enter a number for the selected mass.")
+        #     return
         max_diff = self.ppm_calc(picked_point)
         ideal_ratio = float(self.ideal_ratio.value())
         if ideal_ratio <= 0:
             print("Please enter a spacing greater than 0")
             return
-        self.massbox.setText(self.start.text())
+        self.massbox.setText(str(picked_point))
         map_data = self.map_data
 
         chosen_data = []
@@ -835,20 +845,21 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             self.chosen_data_iso = chosen_data_plus_two
 
     def ms_point(self):
-        if self.start.text() == '':
-            return
-        try:
-            picked_point = float(self.start.text())
-        except ValueError:
-            print("Please enter a number for the selected mass.")
-            return
+        picked_point = self.selected_mass.value()
+        # if self.start.text() == '':
+        #     return
+        # try:
+        #     picked_point = float(self.start.text())
+        # except ValueError:
+        #     print("Please enter a number for the selected mass.")
+        #     return
         max_diff = self.ppm_calc(picked_point)
         ideal_ratio = float(self.ideal_ratio.value())
         if ideal_ratio <= 0:
             print("Please enter a spacing greater than 0")
             return
 
-        self.massbox.setText(self.start.text())
+        self.massbox.setText(str(picked_point))
 
         map_data = self.map_data
 
@@ -1571,7 +1582,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
     def data_cursor_click(self, event):
         theXmOverZ = event.mouseevent.lastevent.xdata
         theY = event.mouseevent.lastevent.ydata
-        self.start.setText("%.5f" % theXmOverZ)
+        self.selected_mass.setValue(theXmOverZ)
         self.spectra_annotation(theXmOverZ, theY)
 
     def spectra_annotation(self, mz, intensity):
