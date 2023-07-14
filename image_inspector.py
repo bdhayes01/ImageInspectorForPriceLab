@@ -6,7 +6,6 @@ Created on Wed Feb 10 15:58:09 2021
 """
 
 # TODO: for 10th of July week:
-# 1. Group all functions based on where in the ui layout they are.
 # 2. Make an outline of the different documents that you will write.
 #       a. User manual (Quickstart guide and more complicated functions.
 #       b. Input formatting notes and examples.
@@ -19,6 +18,8 @@ Created on Wed Feb 10 15:58:09 2021
 # 9. Put the documents onto the lab website online.
 # 14. ROI should update all m/sum boxes
 # 16. Put a big mark on the average of a ROI spectra
+# 17. Do the URA application
+
 
 import os
 import sys
@@ -241,7 +242,8 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         self.millimeter.setChecked(True)
         self.massplusone.setChecked(True)
         self.all_drift_times.setChecked(True)
-        self.ideal_ratio.setText('1')
+        self.ideal_ratio.setValue(1.0)
+        self.ideal_ratio.setRange(0.01, 99)
         QListWidgetItem('ROI list appears here', self.ROI_listbox)
         QListWidgetItem('Map list appears here', self.Map_listbox)
 
@@ -503,7 +505,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if not self.view:
             return 0
         try:
-            mass_diff = float(self.ideal_ratio.text())
+            mass_diff = float(self.ideal_ratio.value())
             self.start.setText(str(float(self.start.text()) + mass_diff))
         except ValueError:
             print("Please enter numbers only.")
@@ -518,7 +520,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
         if not self.view:
             return 0
         try:
-            mass_diff = float(self.ideal_ratio.text())
+            mass_diff = float(self.ideal_ratio.value())
             self.start.setText(str(float(self.start.text()) - mass_diff))
         except ValueError:
             print("Please enter numbers only.")
@@ -780,11 +782,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("Please enter a number for the selected mass.")
             return
         max_diff = self.ppm_calc(picked_point)
-        try:
-            ideal_ratio = float(self.ideal_ratio.text())
-        except ValueError:
-            print("Please enter a number above 0 for the m/z spacing.")
-            return
+        ideal_ratio = float(self.ideal_ratio.value())
         if ideal_ratio <= 0:
             print("Please enter a spacing greater than 0")
             return
@@ -845,11 +843,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             print("Please enter a number for the selected mass.")
             return
         max_diff = self.ppm_calc(picked_point)
-        try:
-            ideal_ratio = float(self.ideal_ratio.text())
-        except ValueError:
-            print("Please enter a number above 0 for the m/z spacing.")
-            return
+        ideal_ratio = float(self.ideal_ratio.value())
         if ideal_ratio <= 0:
             print("Please enter a spacing greater than 0")
             return
@@ -1109,11 +1103,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                     return 0
             ppm = self.ppm_calc(chosen_val)
 
-            try:
-                spacing = float(self.ideal_ratio.text())
-            except ValueError:
-                print("No mass selected. Please choose a mass and press 'Point'.")
-                return 0
+            spacing = float(self.ideal_ratio.value())
 
             self.ROIData = []
             mz_vals = []
