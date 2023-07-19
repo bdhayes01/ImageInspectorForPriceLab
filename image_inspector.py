@@ -581,7 +581,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.display_image(self.conc_map_data, self.pixel_size_x, self.pixel_size_y)
             if self.isotope_map_data is not None:
                 self.isotope_map_data.reverse()
-                self.isotope_map_data = self.isotope_scalar(self.conc_map_data, self.isotope_map_data)
+                # self.isotope_map_data = self.isotope_scalar(self.conc_map_data, self.isotope_map_data)
                 self.display_iso_image(self.conc_map_data, self.isotope_map_data, self.pixel_size_x, self.pixel_size_y)
         except AttributeError:
             print("Error: Flipping an array with no values.\n"
@@ -622,7 +622,7 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
                 self.isotope_map_data = self.rotate_right(self.isotope_map_data)
             else:
                 self.isotope_map_data = self.rotate_left(self.isotope_map_data)
-            self.isotope_map_data = self.isotope_scalar(self.conc_map_data, self.isotope_map_data)
+            # self.isotope_map_data = self.isotope_scalar(self.conc_map_data, self.isotope_map_data)
             self.display_iso_image(self.conc_map_data, self.isotope_map_data, self.pixel_size_x, self.pixel_size_y)
         return 0
 
