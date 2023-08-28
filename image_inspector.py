@@ -18,7 +18,12 @@ Created on Wed Feb 10 15:58:09 2021
 # 9. Put the documents onto the lab website online.
 # 14. ROI should update all m/sum boxes
 # 16. Put a big mark on the average of a ROI spectra
-# 17. Do the URA application
+
+# TODO: week of August 14th:
+# Meet with Ben and Esteban
+# Consolidate drift time points in d to bin
+# Fix ROI
+#
 
 
 import os
@@ -1222,6 +1227,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             y = np.average(plus_two_intensity)
             two_graph_y = [y, y]
 
+            if len(mz_vals) == 0:
+                print("No spectra to display")
+                return
+
             self.display_spectra(mz_vals, intensities, drifts)
             self._spectra_ax.plot(zero_graph_x, zero_graph_y, color='#000000')
             self._spectra_ax.plot(one_graph_x, one_graph_y, color='#000000')
@@ -1541,6 +1550,10 @@ class MainGUIobject(QtWidgets.QMainWindow, loaded_ui_main):
             if child.widget():
                 child.widget().deleteLater()
         plt.close('all')
+
+        if len(mz_vals) == 0:
+            print("No spectra to display")
+            return
 
         if 100 / len(mz_vals) > pt_size:
             pt_size = 100 / len(mz_vals)
